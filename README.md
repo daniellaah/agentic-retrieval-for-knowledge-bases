@@ -480,3 +480,29 @@ model calls. The saved query instruction and context limit are reused. Explicit
 come from the snapshot, not potentially edited source files; unknown vector hits
 and invalid scores are rejected. The original `retrieve` remains the exact
 in-memory reference function.
+
+## Persistent CLI commands
+
+```sh
+uv run --locked obsidian-rag index --notes-dir example_notes --offline
+uv run --locked obsidian-rag query "How should I write permanent notes?" --offline
+uv run --locked obsidian-rag query "How should I write permanent notes?" --offline --json
+uv run --locked obsidian-rag status
+```
+
+The default database is `.obsidian-rag/index.sqlite` (Git-ignored); use `--db`
+and `--vault-id` consistently across commands. `index` prints a JSON build report.
+`query --json` prints retrieved chunks without generation; `--source` filters by
+exact source path. `status` reads saved manifests without loading a tokenizer or
+contacting Ollama. Queries use a pinned snapshot even if the source notes change.
+Each command opens/closes its own database connection.
+
+Persistent commands currently validate the Qwen 0.6b tokenizer/model pairing.
+The CLI reads the installed model digest and dimensions rather than inventing a
+revision. `index --context-length` defaults to 8192, cannot exceed the model's
+advertised limit, and is explicitly sent as `num_ctx` for document and query
+embedding requests. `--batch-size`, `--max-batch-tokens`, and `--max-retries` control
+embedding work. `--query-instruction ''` saves a raw-query configuration.
+A missing index or mismatched model/tokenizer produces an error instead of
+silently rebuilding on a query. The original `obsidian-rag "question"` invocation
+remains an ephemeral baseline; use `query` to reuse a persistent index.

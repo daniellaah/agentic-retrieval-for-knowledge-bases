@@ -40,7 +40,7 @@ def iter_embedding_batches(
     batch_size: int = 32, token_counts: Sequence[int] | None = None,
     max_batch_tokens: int | None = None, dimensions: int | None = None,
     dtype: str = "float64", normalization: str = "none",
-    max_retries: int = 0, retry_delay: float = 0.25,
+    max_retries: int = 0, retry_delay: float = 0.25, context_length: int | None = None,
 ) -> Iterator[tuple[int, NDArray]]:
     """Yield (start offset, vectors), letting callers checkpoint each batch.
 
@@ -56,7 +56,7 @@ def iter_embedding_batches(
     if not isinstance(model, str) or not model.strip():
         raise ValueError("model must be nonblank.")
     for name, value in (("batch_size", batch_size), ("dimensions", dimensions),
-                        ("max_batch_tokens", max_batch_tokens)):
+                        ("max_batch_tokens", max_batch_tokens), ("context_length", context_length)):
         if value is None and name != "batch_size":
             continue
         if type(value) is not int or value <= 0:
@@ -88,7 +88,8 @@ def iter_embedding_batches(
             end += 1
         for attempt in range(max_retries + 1):
             try:
-                response = client.embed(model=model, input=texts[start:end], truncate=False)
+                options = {"options": {"num_ctx": context_length}} if context_length is not None else {}
+                response = client.embed(model=model, input=texts[start:end], truncate=False, **options)
                 break
             except (ConnectionError, TransportError, ResponseError) as error:
                 transient = not isinstance(error, ResponseError) or error.status_code in (
@@ -109,7 +110,7 @@ def embed_texts(
     batch_size: int = 32, token_counts: Sequence[int] | None = None,
     max_batch_tokens: int | None = None, dimensions: int | None = None,
     dtype: str = "float64", normalization: str = "none",
-    max_retries: int = 0, retry_delay: float = 0.25,
+    max_retries: int = 0, retry_delay: float = 0.25, context_length: int | None = None,
 ) -> NDArray:
     """Collect batches in input order; empty input returns a (0, 0) matrix.
 
@@ -120,5 +121,6 @@ def embed_texts(
         texts, client=client, model=model, batch_size=batch_size, token_counts=token_counts,
         max_batch_tokens=max_batch_tokens, dimensions=dimensions, dtype=dtype,
         normalization=normalization, max_retries=max_retries, retry_delay=retry_delay,
+        context_length=context_length,
     )]
     return np.concatenate(batches) if batches else np.empty((0, 0), dtype=dtype)

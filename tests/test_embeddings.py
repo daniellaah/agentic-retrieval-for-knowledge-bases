@@ -186,3 +186,9 @@ def test_representation_matches_declared_spec(client: Mock) -> None:
     client.embed.return_value = EmbedResponse(embeddings=[[3, 4]])
     with pytest.raises(ValueError, match="L2"):
         embed_texts(["a"], client=client, normalization="l2")
+
+
+def test_explicit_context_limit_is_sent_to_each_batch(client: Mock) -> None:
+    client.embed.side_effect = [EmbedResponse(embeddings=[[1, 0]]), EmbedResponse(embeddings=[[0, 1]])]
+    embed_texts(['a', 'b'], client=client, batch_size=1, context_length=512)
+    assert all(call.kwargs['options'] == {'num_ctx': 512} for call in client.embed.call_args_list)

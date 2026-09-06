@@ -92,7 +92,7 @@ def build_index(
             missing, client=client, model=spec.model, batch_size=batch_size,
             token_counts=[unique[text] for text in missing], max_batch_tokens=max_batch_tokens,
             dimensions=spec.dimensions, dtype=spec.dtype, normalization=spec.normalization,
-            max_retries=max_retries,
+            max_retries=max_retries, context_length=max_input_tokens,
         ):
             storage.put_embeddings(spec, missing[start:start + len(vectors)], vectors)
         for ordinal, record in enumerate(records):

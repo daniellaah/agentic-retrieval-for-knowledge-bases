@@ -191,7 +191,7 @@ def test_indexed_search_only_embeds_query_and_restores_snapshot_content(publishe
     store, kwargs = published_index
     results = search_index(store, 'Question?', **kwargs)
     kwargs['client'].embed.assert_called_once_with(
-        model='test', input=['Instruct: Find evidence.\nQuery:Question?'], truncate=False)
+        model='test', input=['Instruct: Find evidence.\nQuery:Question?'], truncate=False, options={'num_ctx': 100})
     assert results[0].chunk.content == 'Original source text'
     assert results[0].chunk.source == 'a.md'
     assert results[0].score == 1

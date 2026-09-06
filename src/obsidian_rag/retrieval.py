@@ -122,7 +122,7 @@ def search_index(
         raise ValueError('Vector store does not match the query embedding spec and vault.')
     query_vector = embed_texts([query], client=client, model=spec.model,
                               dimensions=spec.dimensions, dtype=spec.dtype,
-                              normalization=spec.normalization)[0]
+                              normalization=spec.normalization, context_length=inputs['max_tokens'])[0]
     hits = vector_store.search(query_vector, top_k=top_k, source=source, exact=exact)
     by_id = {record.chunk_id: record for record in records}
     if len(hits) > top_k or len({hit.chunk_id for hit in hits}) != len(hits):

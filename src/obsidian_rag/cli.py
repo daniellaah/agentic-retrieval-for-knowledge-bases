@@ -2,6 +2,9 @@
 
 import argparse
 import math
+import json
+import sqlite3
+from dataclasses import asdict
 import sys
 from collections.abc import Sequence
 from functools import partial
@@ -19,7 +22,7 @@ from obsidian_rag.retrieval import retrieve
 from obsidian_rag.tokenization import count_tokens, load_tokenizer
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def _legacy_main(argv: Sequence[str] | None = None) -> int:
     """Print an answer and return zero, or report a runtime error and return one.
 
     Parse the supplied arguments, or the process arguments when argv is None.
@@ -27,7 +30,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     """
     parser = argparse.ArgumentParser(
         prog="obsidian-rag",
-        description="Answer a question using local Markdown notes.",
+        description="Answer a question using local Markdown notes. Persistent commands: index, query, status.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("question", help="Question to answer from the notes.")
@@ -121,5 +124,133 @@ def main(argv: Sequence[str] | None = None) -> int:
     return 0
 
 
-if __name__ == "__main__":
+def _resolve_spec(client: Client, model: str, *, context_length: int):
+    from obsidian_rag.embedding_inputs import DOCUMENT_TEMPLATE
+    from obsidian_rag.index_schema import EmbeddingSpec
+    if model != 'qwen3-embedding:0.6b':
+        raise ValueError('Persistent indexing currently requires the validated qwen3-embedding:0.6b tokenizer pairing.')
+    matches = [entry for entry in client.list().models if entry.model == model]
+    if len(matches) != 1 or not matches[0].digest:
+        raise ValueError(f'Embedding model is not installed or its digest is unavailable: {model}.')
+    info = client.show(model).modelinfo or {}
+    dimensions = [value for key, value in info.items() if key.endswith('.embedding_length')]
+    limits = [value for key, value in info.items() if key.endswith('.context_length')]
+    if len(dimensions) != 1 or len(limits) != 1 or type(limits[0]) is not int:
+        raise ValueError('Embedding model dimensions/context metadata are unavailable.')
+    if context_length > limits[0]:
+        raise ValueError('Requested context length exceeds the model context limit.')
+    return EmbeddingSpec(model=model, model_revision=matches[0].digest, dimensions=dimensions[0],
+                         document_template=DOCUMENT_TEMPLATE)
+
+
+def _persistent_parser():
+    from obsidian_rag.embedding_inputs import DEFAULT_QUERY_INSTRUCTION
+    parser = argparse.ArgumentParser(prog='obsidian-rag')
+    commands = parser.add_subparsers(dest='command', required=True)
+    for name in ('index', 'query', 'status'):
+        command = commands.add_parser(name)
+        command.add_argument('--db', type=Path, default=Path('.obsidian-rag/index.sqlite'))
+        command.add_argument('--vault-id', default='default')
+        if name == 'status':
+            continue
+        command.add_argument('--host', default='http://127.0.0.1:11434')
+        command.add_argument('--timeout', type=float, default=180.0)
+        command.add_argument('--tokenizer-cache', type=Path)
+        command.add_argument('--offline', action='store_true')
+        command.add_argument('--embedding-model', default='qwen3-embedding:0.6b' if name == 'index' else None)
+        if name == 'index':
+            command.add_argument('--notes-dir', type=Path, default=Path('example_notes'))
+            command.add_argument('--chunking', choices=('none', 'recursive'), default='recursive')
+            command.add_argument('--chunk-size', type=int, default=512)
+            command.add_argument('--chunk-overlap', type=int, default=64)
+            command.add_argument('--context-length', type=int, default=8192,
+                                 help='Per-input budget; also sent as Ollama num_ctx.')
+            command.add_argument('--batch-size', type=int, default=32)
+            command.add_argument('--max-batch-tokens', type=int)
+            command.add_argument('--max-retries', type=int, default=2)
+            command.add_argument('--query-instruction', default=DEFAULT_QUERY_INSTRUCTION)
+        else:
+            command.add_argument('question')
+            command.add_argument('--top-k', type=int, default=2)
+            command.add_argument('--source')
+            command.add_argument('--exact', action='store_true')
+            command.add_argument('--json', action='store_true', help='Print retrieval results without generation.')
+            command.add_argument('--generation-model', default='qwen3.5:4b')
+    return parser
+
+
+def _persistent_main(argv: Sequence[str]) -> int:
+    from obsidian_rag.indexing import build_index
+    from obsidian_rag.retrieval import search_index
+    from obsidian_rag.storage import SQLiteStorage
+
+    parser = _persistent_parser()
+    args = parser.parse_args(argv)
+    if not args.vault_id.strip():
+        parser.error('--vault-id must not be blank')
+    if args.command != 'status' and (not math.isfinite(args.timeout) or args.timeout <= 0):
+        parser.error('--timeout must be positive and finite')
+    if args.command == 'index':
+        if args.context_length <= 0 or args.batch_size <= 0 or not 0 <= args.max_retries <= 8:
+            parser.error('context/batch sizes must be positive and retries must be between 0 and 8')
+        if args.max_batch_tokens is not None and args.max_batch_tokens <= 0:
+            parser.error('--max-batch-tokens must be positive')
+        if args.chunking == 'recursive' and (args.chunk_size <= 0 or not 0 <= args.chunk_overlap < args.chunk_size):
+            parser.error('chunk size must be positive and overlap must be in [0, chunk size)')
+    if args.command == 'query' and (not args.question.strip() or args.top_k <= 0):
+        parser.error('question must not be blank and --top-k must be positive')
+    try:
+        if args.command == 'status':
+            with SQLiteStorage(args.db, read_only=True) as storage:
+                active = storage.active_manifest(args.vault_id)
+                print(json.dumps({'vault_id': args.vault_id,
+                                  'active_version': active.index_version if active else None,
+                                  'builds': [asdict(m) for m in storage.list_builds(args.vault_id)]}, ensure_ascii=False))
+            return 0
+        if args.command == 'index':
+            # Finish the source scan before opening or changing index state.
+            notes = load_notes(args.notes_dir)
+            tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
+            with Client(host=args.host, timeout=args.timeout, trust_env=False) as client:
+                spec = _resolve_spec(client, args.embedding_model, context_length=args.context_length)
+                with SQLiteStorage(args.db) as storage:
+                    report = build_index(storage, notes, spec=spec, vault_id=args.vault_id, client=client,
+                                         tokenizer=tokenizer, max_input_tokens=args.context_length,
+                                         chunking=args.chunking, chunk_size=args.chunk_size,
+                                         chunk_overlap=args.chunk_overlap, batch_size=args.batch_size,
+                                         max_batch_tokens=args.max_batch_tokens, max_retries=args.max_retries,
+                                         query_instruction=args.query_instruction)
+                    print(json.dumps(asdict(report), ensure_ascii=False))
+            return 0
+        with SQLiteStorage(args.db, read_only=True) as storage:
+            manifest = storage.active_manifest(args.vault_id)
+            if manifest is None:
+                raise ValueError('No published index; run the index command first.')
+            metadata = storage.build_metadata(manifest.index_version)['backend']
+            tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
+            with Client(host=args.host, timeout=args.timeout, trust_env=False) as client:
+                spec = _resolve_spec(client, args.embedding_model or manifest.embedding_spec.model,
+                                     context_length=metadata['input']['max_tokens'])
+                results = search_index(storage, args.question, vault_id=args.vault_id, spec=spec,
+                                       tokenizer=tokenizer, client=client, top_k=args.top_k,
+                                       source=args.source, exact=args.exact, index_version=manifest.index_version)
+                if args.json:
+                    print(json.dumps({'index_version': manifest.index_version, 'question': args.question,
+                                      'results': [asdict(r) for r in results]}, ensure_ascii=False))
+                else:
+                    print(generate_answer(args.question, results, client=client, model=args.generation_model))
+        return 0
+    except (OSError, ValueError, sqlite3.Error, ResponseError, HTTPError) as error:
+        print(f'Error: {error}', file=sys.stderr)
+        return 1
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    if arguments and arguments[0] in ('index', 'query', 'status'):
+        return _persistent_main(arguments)
+    return _legacy_main(arguments)
+
+
+if __name__ == '__main__':
     raise SystemExit(main())

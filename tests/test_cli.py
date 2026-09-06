@@ -363,3 +363,81 @@ def test_main_reports_tokenizer_failures_before_model_calls(
     assert main(["A question?", "--offline"]) == 1
     assert str(error) in capsys.readouterr().err
     client_factory.assert_not_called()
+
+
+@pytest.fixture
+def persistent_client(client):
+    from ollama import ListResponse, ShowResponse
+    client.list.return_value = ListResponse(models=[{'model': 'qwen3-embedding:0.6b', 'digest': 'actual-digest'}])
+    client.show.return_value = ShowResponse(model_info={'qwen3.embedding_length': 2, 'qwen3.context_length': 32768})
+    client.embed.side_effect = lambda **kw: EmbedResponse(embeddings=[[1., 0.] for _ in kw['input']])
+    return client
+
+
+def test_persistent_commands_build_reopen_query_and_show_status(
+    workspace, persistent_client, capsys, client_factory, tokenizer_download,
+):
+    assert main(['index', '--offline', '--context-length', '512']) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report['embedded_inputs'] == 3
+    assert report['manifest']['embedding_spec']['model_revision'] == 'actual-digest'
+    assert persistent_client.embed.call_args.kwargs['options'] == {'num_ctx': 512}
+    persistent_client.embed.reset_mock()
+    (workspace / 'example_notes' / 'habits.md').write_text('# Edited\nThis must not appear in a snapshot query.')
+    assert main(['query', 'Question?', '--offline', '--json', '--source', 'habits.md']) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result['index_version'] == report['manifest']['index_version']
+    assert result['results'][0]['chunk']['content'] == 'A cue starts a habit.'
+    assert persistent_client.embed.call_count == 1
+    assert persistent_client.embed.call_args.kwargs['input'] == [
+        'Instruct: Given a question, retrieve relevant notes that help answer it.\nQuery:Question?']
+    assert persistent_client.embed.call_args.kwargs['options'] == {'num_ctx': 512}
+    persistent_client.chat.assert_not_called()
+    client_factory.reset_mock()
+    tokenizer_download.reset_mock()
+    assert main(['status']) == 0
+    assert json.loads(capsys.readouterr().out)['active_version'] == result['index_version']
+    client_factory.assert_not_called()
+    tokenizer_download.assert_not_called()
+
+
+def test_query_checks_digest_and_missing_database_before_embedding(persistent_client, capsys):
+    from ollama import ListResponse
+    assert main(['query', 'Question?', '--json']) == 1
+    persistent_client.embed.assert_not_called()
+    assert main(['index', '--offline']) == 0
+    capsys.readouterr()
+    persistent_client.embed.reset_mock()
+    persistent_client.list.return_value = ListResponse(models=[{'model': 'qwen3-embedding:0.6b', 'digest': 'changed'}])
+    assert main(['query', 'Question?', '--offline']) == 1
+    assert 'incompatible' in capsys.readouterr().err
+    persistent_client.embed.assert_not_called()
+
+
+@pytest.mark.parametrize('arguments', [
+    ['index', '--context-length', '0'], ['index', '--max-retries', '9'],
+    ['index', '--batch-size', '0'], ['index', '--chunk-overlap', '512'],
+    ['query', ' '], ['query', 'Question?', '--top-k', '0'], ['status', '--vault-id', ' '],
+])
+def test_persistent_cli_rejects_invalid_arguments(arguments, client_factory):
+    with pytest.raises(SystemExit) as error:
+        main(arguments)
+    assert error.value.code == 2
+    client_factory.assert_not_called()
+
+
+def test_index_scan_failure_does_not_replace_the_previous_version(workspace, persistent_client, capsys):
+    assert main(['index', '--offline']) == 0
+    first = json.loads(capsys.readouterr().out)['manifest']['index_version']
+    assert main(['index', '--notes-dir', 'missing', '--offline']) == 1
+    capsys.readouterr()
+    assert main(['status']) == 0
+    assert json.loads(capsys.readouterr().out)['active_version'] == first
+
+
+def test_query_can_generate_from_the_saved_snapshot(persistent_client, capsys):
+    assert main(['index', '--offline']) == 0
+    capsys.readouterr()
+    assert main(['query', 'Question?', '--offline']) == 0
+    assert 'Develop one idea' in capsys.readouterr().out
+    assert json.loads(persistent_client.chat.call_args.kwargs['messages'][1]['content'])['question'] == 'Question?'
