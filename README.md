@@ -426,3 +426,16 @@ uv.lock             Resolved dependency versions
 The sample documents can be shared with the repository. Virtual environments,
 caches, local `config.toml`, and local `.env` files are excluded from Git. Keep
 machine-specific paths and credentials in ignored local files.
+
+## Bounded embedding execution
+
+`embed_texts` accepts `batch_size` (default 32), optional complete-input
+`token_counts` with `max_batch_tokens`, and an expected `dimensions`, `dtype`,
+and `normalization`. These are validated before requests; vector dimensions
+must remain consistent across batches. `normalization="l2"` verifies unit vectors
+without silently transforming them. Defaults preserve the original float64 values.
+`max_retries` defaults to zero; explicit retries cover only transient transport
+errors and HTTP 429/500/502/503/504 with capped exponential backoff.
+Use `iter_embedding_batches` to save each successful batch before requesting the
+next; failed batches never appear as successful results. Both APIs disable
+truncation. Batch token limits supplement per-input context validation.

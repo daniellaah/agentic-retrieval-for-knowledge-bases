@@ -112,3 +112,77 @@ def test_embed_texts_propagates_connection_errors(client: Mock) -> None:
 
     with pytest.raises(ConnectionError, match="Ollama is unavailable"):
         embed_texts(["A useful idea."], client=client)
+
+
+def test_batches_obey_both_limits_and_preserve_global_order(client: Mock) -> None:
+    client.embed.side_effect = lambda **kw: EmbedResponse(
+        embeddings=[[float(text), 1.0] for text in kw["input"]])
+    vectors = embed_texts(["1", "2", "3", "4", "5"], client=client,
+                         batch_size=2, token_counts=[2, 3, 4, 2, 1], max_batch_tokens=5)
+    assert [call.kwargs["input"] for call in client.embed.call_args_list] == [
+        ["1", "2"], ["3"], ["4", "5"],
+    ]
+    np.testing.assert_array_equal(vectors[:, 0], [1, 2, 3, 4, 5])
+
+
+@pytest.mark.parametrize("options", [
+    {"batch_size": 0}, {"batch_size": True}, {"dimensions": -1},
+    {"max_batch_tokens": 10}, {"token_counts": [1]},
+    {"token_counts": [1, True]}, {"max_batch_tokens": 2, "token_counts": [1, 3]},
+    {"max_retries": -1}, {"max_retries": 9}, {"retry_delay": float("nan")},
+    {"dtype": "int8"}, {"normalization": "unknown"},
+])
+def test_invalid_plan_fails_before_first_batch(client: Mock, options) -> None:
+    with pytest.raises(ValueError):
+        embed_texts(["first", "second"], client=client, **options)
+    client.embed.assert_not_called()
+
+
+def test_successful_batches_can_be_checkpointed_before_a_later_failure(client: Mock) -> None:
+    from obsidian_rag.embeddings import iter_embedding_batches
+    client.embed.side_effect = [EmbedResponse(embeddings=[[1, 0]]), ConnectionError("failed")]
+    batches = iter_embedding_batches(["a", "b"], client=client, batch_size=1)
+    start, matrix = next(batches)
+    assert start == 0
+    np.testing.assert_array_equal(matrix, [[1, 0]])
+    with pytest.raises(ConnectionError):
+        next(batches)
+
+
+def test_dimension_change_between_batches_is_rejected(client: Mock) -> None:
+    client.embed.side_effect = [EmbedResponse(embeddings=[[1, 0]]),
+                               EmbedResponse(embeddings=[[1, 0, 0]])]
+    with pytest.raises(ValueError, match="dimensions"):
+        embed_texts(["a", "b"], client=client, batch_size=1)
+
+
+@pytest.mark.parametrize("status", [429, 500, 502, 503, 504])
+def test_transient_errors_are_retried_with_bounded_backoff(client: Mock, monkeypatch, status) -> None:
+    sleep = Mock()
+    monkeypatch.setattr("obsidian_rag.embeddings.time.sleep", sleep)
+    client.embed.side_effect = [ResponseError("busy", status_code=status),
+                               EmbedResponse(embeddings=[[1, 0]])]
+    embed_texts(["a"], client=client, max_retries=2)
+    assert client.embed.call_count == 2
+    sleep.assert_called_once_with(0.25)
+
+
+def test_transport_retries_stop_and_permanent_errors_are_not_retried(client: Mock) -> None:
+    client.embed.side_effect = ConnectionError("offline")
+    with pytest.raises(ConnectionError):
+        embed_texts(["a"], client=client, max_retries=2, retry_delay=0)
+    assert client.embed.call_count == 3
+    client.reset_mock()
+    client.embed.side_effect = ResponseError("bad input", status_code=400)
+    with pytest.raises(ResponseError):
+        embed_texts(["a"], client=client, max_retries=2, retry_delay=0)
+    assert client.embed.call_count == 1
+
+
+def test_representation_matches_declared_spec(client: Mock) -> None:
+    client.embed.return_value = EmbedResponse(embeddings=[[0.6, 0.8]])
+    assert embed_texts(["a"], client=client, dimensions=2,
+                       dtype="float32", normalization="l2").dtype == np.float32
+    client.embed.return_value = EmbedResponse(embeddings=[[3, 4]])
+    with pytest.raises(ValueError, match="L2"):
+        embed_texts(["a"], client=client, normalization="l2")
