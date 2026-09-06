@@ -1,11 +1,12 @@
 """Build complete, validated index candidates and atomically publish them."""
 
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from functools import partial, wraps
 from pathlib import Path
 import hashlib
 from uuid import uuid4
+from time import perf_counter
 
 from ollama import Client
 from tokenizers import Tokenizer
@@ -29,6 +30,7 @@ class BuildReport:
     added_documents: int = 0
     modified_documents: int = 0
     deleted_documents: int = 0
+    build_seconds: float = 0.0
 
 
 def tokenizer_fingerprint(tokenizer: Tokenizer) -> str:
@@ -55,7 +57,9 @@ def _exclusive_build(function):
     @wraps(function)
     def run(storage, *args, **kwargs):
         with storage.writer_lock():
-            return function(storage, *args, **kwargs)
+            started = perf_counter()
+            report = function(storage, *args, **kwargs)
+            return replace(report, build_seconds=perf_counter() - started)
     return run
 
 
@@ -193,7 +197,8 @@ def _qdrant_projection(client, metadata: dict, manifest: IndexManifest, *, creat
     return QdrantVectorStore(client, metadata['collection'], manifest.embedding_spec,
                              vault_id=manifest.vault_id, create=create,
                              hnsw_m=metadata.get('hnsw_m', 16), ef_construct=metadata.get('ef_construct', 100),
-                             indexing_threshold=metadata.get('indexing_threshold', 10000))
+                             indexing_threshold=metadata.get('indexing_threshold', 10000),
+                             full_scan_threshold=metadata.get('full_scan_threshold', 10000))
 
 
 def cleanup_failed_qdrant(storage: SQLiteStorage, *, vault_id: str, client, url: str) -> int:

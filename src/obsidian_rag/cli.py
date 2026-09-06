@@ -168,6 +168,7 @@ def _persistent_parser():
             command.add_argument('--hnsw-m', type=int, default=16)
             command.add_argument('--ef-construct', type=int, default=100)
             command.add_argument('--indexing-threshold', type=int, default=10000)
+            command.add_argument('--full-scan-threshold', type=int, default=10000)
             command.add_argument('--index-timeout', type=float, default=30)
             command.add_argument('--require-hnsw', action='store_true')
             command.add_argument('--force', action='store_true', help='Rebuild even when unchanged; reuse compatible vectors.')
@@ -204,7 +205,7 @@ def _persistent_main(argv: Sequence[str]) -> int:
     if args.command != 'status' and (not math.isfinite(args.timeout) or args.timeout <= 0):
         parser.error('--timeout must be positive and finite')
     if args.command == 'index':
-        if (args.hnsw_m < 2 or args.ef_construct <= 0 or args.indexing_threshold < 0
+        if (args.hnsw_m < 2 or args.ef_construct <= 0 or args.indexing_threshold < 0 or args.full_scan_threshold < 10
                 or not math.isfinite(args.index_timeout) or args.index_timeout <= 0
                 or (args.require_hnsw and args.indexing_threshold == 0)):
             parser.error('Invalid Qdrant HNSW configuration or readiness timeout')
@@ -236,7 +237,8 @@ def _persistent_main(argv: Sequence[str]) -> int:
                     if args.backend == 'qdrant':
                         qclient = resources.enter_context(closing(_connect_qdrant(args.qdrant_url, args.timeout)))
                         backend.update(url=args.qdrant_url, hnsw_m=args.hnsw_m, ef_construct=args.ef_construct,
-                                       indexing_threshold=args.indexing_threshold, index_timeout=args.index_timeout,
+                                       indexing_threshold=args.indexing_threshold, full_scan_threshold=args.full_scan_threshold,
+                                       index_timeout=args.index_timeout,
                                        require_hnsw=args.require_hnsw)
                     report = build_index(storage, notes, spec=spec, vault_id=args.vault_id, client=client,
                                          tokenizer=tokenizer, max_input_tokens=args.context_length,

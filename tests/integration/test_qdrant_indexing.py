@@ -39,7 +39,7 @@ def test_qdrant_publication_hnsw_and_failure_recovery(tmp_path, monkeypatch):
     with SQLiteStorage(tmp_path / 'db') as storage, closing(QdrantClient(url=url, timeout=15, trust_env=False)) as client:
         options = dict(spec=spec, vault_id=vault, client=ollama, tokenizer=tokenizer, max_input_tokens=100,
                        chunking='none', qdrant_client=client,
-                       backend={'kind': 'qdrant', 'url': url, 'indexing_threshold': 1, 'require_hnsw': True,
+                       backend={'kind': 'qdrant', 'url': url, 'indexing_threshold': 1, 'full_scan_threshold': 10, 'require_hnsw': True,
                                 'index_timeout': 30})
         try:
             first = build_index(storage, notes, **options)

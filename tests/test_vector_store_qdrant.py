@@ -12,6 +12,8 @@ from obsidian_rag.notes import Note
 from obsidian_rag.vector_store_qdrant import QdrantVectorStore
 
 
+pytestmark = pytest.mark.filterwarnings('ignore:Local mode performs exact.*:UserWarning')
+
 @pytest.fixture
 def data():
     spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2,
@@ -92,3 +94,11 @@ def test_hnsw_readiness_timeout_does_not_claim_a_flat_index_is_built(data):
         assert store.wait_ready(expected_count=1)['points'] == 1
         with pytest.raises(ValueError, match='Timed out'):
             store.wait_ready(expected_count=1, timeout=.01, require_hnsw=True)
+
+
+def test_invalid_full_scan_threshold_fails_before_contacting_server(data):
+    spec, _ = data
+    for threshold in (0, 9, -1, True):
+        with pytest.raises(ValueError, match='full_scan_threshold'):
+            QdrantVectorStore(None, 'test', spec, vault_id='vault', create=True,
+                             full_scan_threshold=threshold)

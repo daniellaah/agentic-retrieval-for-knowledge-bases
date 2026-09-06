@@ -30,13 +30,13 @@ class QdrantVectorStore:
 
     def __init__(self, client: QdrantClient, collection: str, spec: EmbeddingSpec, *,
                  vault_id: str, create: bool = False, hnsw_m: int = 16,
-                 ef_construct: int = 100, indexing_threshold: int = 10000):
+                 ef_construct: int = 100, indexing_threshold: int = 10000, full_scan_threshold: int = 10000):
         if not isinstance(collection, str) or not collection.strip():
             raise ValueError('collection must be nonblank.')
         if not isinstance(vault_id, str) or not vault_id.strip():
             raise ValueError('vault_id must be nonblank.')
         for name, value, minimum in (('hnsw_m', hnsw_m, 2), ('ef_construct', ef_construct, 1),
-                                     ('indexing_threshold', indexing_threshold, 0)):
+                                     ('indexing_threshold', indexing_threshold, 0), ('full_scan_threshold', full_scan_threshold, 10)):
             if type(value) is not int or value < minimum:
                 raise ValueError(f'{name} must be an integer >= {minimum}.')
         self.client, self.collection, self.spec, self.vault_id = client, collection, spec, vault_id
@@ -45,7 +45,7 @@ class QdrantVectorStore:
             client.create_collection(
                 collection_name=collection,
                 vectors_config=models.VectorParams(size=spec.dimensions, distance=models.Distance.COSINE),
-                hnsw_config=models.HnswConfigDiff(m=hnsw_m, ef_construct=ef_construct),
+                hnsw_config=models.HnswConfigDiff(m=hnsw_m, ef_construct=ef_construct, full_scan_threshold=full_scan_threshold),
                 optimizers_config=models.OptimizersConfigDiff(indexing_threshold=indexing_threshold),
                 metadata=self.identity,
             )

@@ -558,7 +558,8 @@ collection and fetch only the returned source records from SQLite. Set
 command accepts `--qdrant-url` for an explicitly restored/moved server.
 
 `--hnsw-m`, `--ef-construct`, `--indexing-threshold` (Qdrant's KB threshold), and
-`--index-timeout` configure construction. Small collections can be query-ready
+`--index-timeout` configure construction. `--full-scan-threshold` controls the
+query planner in KB and must be at least 10. Small collections can be query-ready
 without HNSW. `--require-hnsw` waits until every vector is indexed and fails on
 timeout; use a suitable positive threshold when explicitly testing ANN.
 Before publication the builder verifies every point ID, payload and vector,
@@ -571,3 +572,37 @@ cached embeddings. Historical READY collections remain available to pinned
 queries and rollback workflows; they are not automatically deleted. Record
 metadata includes observed point/index counts. Changing only index parameters
 rebuilds the search projection without recomputing compatible embeddings.
+
+## Evaluate retrieval backends
+
+`evaluation.compare_retrieval` runs the same query vectors against a NumPy exact
+reference and supplied backends. It reports neighbor Recall@k separately from
+source-group recall and union coverage of labeled sections. Section anchors must
+use `body_start_char`/`body_end_char` in loaded `Note.content`; raw-file offsets
+are rejected. Empty reference sets produce an undefined recall, not a perfect
+score. Exact ties and float32 rounding can change rank order, so raw IDs/scores
+are retained. No generated-answer accuracy is inferred from these metrics.
+
+```sh
+uv run --locked python -m obsidian_rag.evaluation \
+  --db .obsidian-rag/index.sqlite --cases path/to/cases.jsonl \
+  --output path/to/new-evaluation --offline --top-k 2
+```
+
+The runner captures an active snapshot, verifies the actual embedding model and
+Qdrant data, embeds each question once, and compares NumPy exact, Qdrant exact,
+and Qdrant ANN when the snapshot uses Qdrant. It writes frozen cases, raw results,
+metrics, source/configuration hashes and runtime metadata into a new directory;
+existing evaluation directories are never overwritten. Search timing includes
+backend I/O but excludes embedding and snapshot load. It reports stored vector
+bytes and SQLite file sizes, not total process or server memory. Build reports
+include `build_seconds` measured inside the writer lock (source scan excluded).
+
+For a controlled HNSW experiment on a small corpus, rebuild with
+`--indexing-threshold 1 --full-scan-threshold 10 --require-hnsw`. The full-scan
+threshold affects the query planner; simply requesting ANN does not prove the
+server used a graph for a small collection. No large-scale latency claim should
+be made from the bundled small corpus. Keep evaluation outputs outside note
+folders. Real end-to-end tests use `OBSIDIAN_RAG_RUN_MODEL_TESTS=1` and optionally
+`OBSIDIAN_RAG_QDRANT_URL`; they check separate-process queries and incremental
+edits/deletes against real services while cleaning their test collections.
