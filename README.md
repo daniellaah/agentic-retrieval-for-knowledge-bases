@@ -214,6 +214,70 @@ OBSIDIAN_RAG_RUN_MODEL_TESTS=1 .venv/bin/python -B -m pytest \
   -p no:cacheprovider -q tests/integration/test_qwen_chunking.py
 ```
 
+## Prepare embedding inputs
+
+`obsidian_rag.embedding_inputs` owns the text formats used by the CLI:
+
+- `prepare_document(chunk)` returns `title + "\n\n" + content` using the versioned
+  `DOCUMENT_TEMPLATE = "title-body-v1"`. Pass `EmbeddingSpec.document_template`
+  explicitly when preparing indexed documents; unsupported templates raise
+  `ValueError` rather than silently changing cache meaning.
+- `prepare_query(question)` uses the existing Qwen retrieval instruction and
+  preserves the original question after `Query:`. Supply `instruction=` to use
+  an index's `IndexManifest.query_instruction`; an empty string returns the raw
+  question. The default instruction is exported as `DEFAULT_QUERY_INSTRUCTION`.
+- `validate_input_tokens(text, tokenizer=..., max_tokens=..., source=...)`
+  returns the complete input token count or raises `ValueError` if it exceeds
+  the supplied limit. Equality with the limit is allowed. The error reports
+  the source and counts without including the input text.
+
+Formatting preserves whitespace, Unicode, Markdown, and literal special markers.
+Neither source paths nor chunk coordinates enter the document input. A title-only
+note is valid; an entirely blank document or question is not. A whitespace-only
+instruction is rejected. Use the exact prepared document text for both
+`EmbeddingSpec.embedding_key(text)` and `embed_texts([text], ...)`.
+
+```python
+from obsidian_rag.chunking import whole_note_chunks
+from obsidian_rag.embedding_inputs import (
+    prepare_document, prepare_query, validate_input_tokens,
+)
+from obsidian_rag.notes import Note
+from obsidian_rag.tokenization import load_tokenizer
+
+note = Note(title="Permanent Notes", content="Develop one idea.", source="idea.md")
+chunk = whole_note_chunks([note])[0]
+text = prepare_document(chunk)
+tokenizer = load_tokenizer(local_files_only=True)  # Requires the cached snapshot.
+input_tokens = validate_input_tokens(
+    text, tokenizer=tokenizer, max_tokens=8192,
+    source=f"{chunk.source}, chunk {chunk.chunk_index}",
+)
+query = prepare_query("How should I write permanent notes?")
+query_tokens = validate_input_tokens(
+    query, tokenizer=tokenizer, max_tokens=8192, source="query",
+)
+```
+
+The `8192` limit above is an example; use the embedding server's actual configured
+per-input context limit. It is not `chunk_size`, which budgets only the body.
+Validation counts the assembled text once with special tokens enabled, because
+BPE counts are not additive across titles, separators, and bodies. The tokenizer
+must match the model/runtime and have padding and truncation disabled. The helper
+does not load tokenizers, discover model limits, truncate text, or contact Ollama.
+
+The CLI now uses the formatting helpers with the same default inputs as before.
+Local budget validation is an explicit API for callers that know the context
+limit; the CLI continues to rely on Ollama's `truncate=False` for limit enforcement.
+The Qwen tokenizer pairing remains restricted to the validated model described
+above. Keep the original question for answer generation, without its instruction.
+
+Regular tests use a small offline BPE tokenizer to check merged title/body
+boundaries, special markers, exact limits, and invalid tokenizer settings. The
+optional `tests/integration/test_qwen_embedding_inputs.py` compares prepared
+document and query counts with Ollama's actual `prompt_eval_count`; enable it
+with `OBSIDIAN_RAG_RUN_MODEL_TESTS=1` and the cached tokenizer/local model.
+
 ## Generate embeddings
 
 `obsidian_rag.embeddings.embed_texts` converts a list of texts into a NumPy matrix
@@ -257,6 +321,7 @@ from ollama import Client
 from functools import partial
 
 from obsidian_rag.chunking import chunk_notes
+from obsidian_rag.embedding_inputs import prepare_document, prepare_query
 from obsidian_rag.tokenization import count_tokens, load_tokenizer
 from obsidian_rag.embeddings import embed_texts
 from obsidian_rag.notes import load_notes
@@ -267,14 +332,11 @@ notes = load_notes(Path("example_notes"))
 tokenizer = load_tokenizer()
 chunks = chunk_notes(notes, count_tokens=partial(count_tokens, tokenizer=tokenizer))
 chunk_vectors = embed_texts(
-    [f"{chunk.title}\n\n{chunk.content}" for chunk in chunks],
+    [prepare_document(chunk) for chunk in chunks],
     client=client,
 )
 question = "When should temporary notes be processed and deleted?"
-query = (
-    "Instruct: Given a question, retrieve relevant notes that help answer it.\n"
-    f"Query:{question}"
-)
+query = prepare_query(question)
 query_vector = embed_texts([query], client=client)[0]
 
 for result in retrieve(chunks, chunk_vectors, query_vector, top_k=2):

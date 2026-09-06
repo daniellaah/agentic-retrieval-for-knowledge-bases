@@ -134,6 +134,21 @@ def test_main_accepts_directory_retrieval_model_and_connection_options(
     ] == ["permanent.md"]
 
 
+def test_main_preserves_query_whitespace_and_unicode_for_embedding_and_generation(
+    client: MagicMock,
+) -> None:
+    question = "  为什么保留 e\u0301？\r\n"
+
+    assert main([question]) == 0
+
+    assert client.embed.call_args_list[1].kwargs["input"] == [
+        "Instruct: Given a question, retrieve relevant notes that help answer it.\n"
+        "Query:  为什么保留 e\u0301？\r\n"
+    ]
+    payload = json.loads(client.chat.call_args.kwargs["messages"][1]["content"])
+    assert payload["question"] == question
+
+
 def test_main_shows_help_without_connecting_to_ollama(
     client_factory: Mock, capsys: pytest.CaptureFixture[str]
 ) -> None:

@@ -11,6 +11,7 @@ from httpx import HTTPError
 from ollama import Client, ResponseError
 
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
+from obsidian_rag.embedding_inputs import prepare_document, prepare_query
 from obsidian_rag.embeddings import embed_texts
 from obsidian_rag.generation import generate_answer
 from obsidian_rag.notes import load_notes
@@ -100,14 +101,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         with Client(host=args.host, timeout=args.timeout, trust_env=False) as client:
             chunk_vectors = embed_texts(
-                [f"{chunk.title}\n\n{chunk.content}" for chunk in chunks],
+                [prepare_document(chunk) for chunk in chunks],
                 client=client,
                 model=args.embedding_model,
             )
-            query = (
-                "Instruct: Given a question, retrieve relevant notes that help answer it.\n"
-                f"Query:{args.question}"
-            )
+            query = prepare_query(args.question)
             query_vector = embed_texts(
                 [query], client=client, model=args.embedding_model
             )[0]
