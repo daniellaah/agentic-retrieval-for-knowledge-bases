@@ -439,3 +439,15 @@ errors and HTTP 429/500/502/503/504 with capped exponential backoff.
 Use `iter_embedding_batches` to save each successful batch before requesting the
 next; failed batches never appear as successful results. Both APIs disable
 truncation. Batch token limits supplement per-input context validation.
+
+## Persistent snapshots
+
+`SQLiteStorage(Path(...))` manages versioned chunk snapshots, immutable vector
+cache entries, build manifests and an active version per vault. Use its context
+manager to close connections, or `read_only=True` for existing query databases.
+Vectors retain the declared float32/float64 representation, are checksummed, and
+are validated on write and read. Publishing verifies counts, source identities,
+and every vector before atomically marking a build ready and changing its active
+pointer. Failed candidates cannot replace active data. The storage schema is
+versioned independently of record fingerprints; unknown versions are rejected.
+SQLite files belong in a local runtime directory, never the retrieval corpus.
