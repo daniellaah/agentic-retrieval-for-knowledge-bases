@@ -160,6 +160,7 @@ def _persistent_parser():
         command.add_argument('--embedding-model', default='qwen3-embedding:0.6b' if name == 'index' else None)
         if name == 'index':
             command.add_argument('--notes-dir', type=Path, default=Path('example_notes'))
+            command.add_argument('--force', action='store_true', help='Rebuild even when unchanged; reuse compatible vectors.')
             command.add_argument('--chunking', choices=('none', 'recursive'), default='recursive')
             command.add_argument('--chunk-size', type=int, default=512)
             command.add_argument('--chunk-overlap', type=int, default=64)
@@ -180,7 +181,7 @@ def _persistent_parser():
 
 
 def _persistent_main(argv: Sequence[str]) -> int:
-    from obsidian_rag.indexing import build_index
+    from obsidian_rag.indexing import build_index, scan_notes
     from obsidian_rag.retrieval import search_index
     from obsidian_rag.storage import SQLiteStorage
 
@@ -209,7 +210,7 @@ def _persistent_main(argv: Sequence[str]) -> int:
             return 0
         if args.command == 'index':
             # Finish the source scan before opening or changing index state.
-            notes = load_notes(args.notes_dir)
+            notes = scan_notes(args.notes_dir)
             tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
             with Client(host=args.host, timeout=args.timeout, trust_env=False) as client:
                 spec = _resolve_spec(client, args.embedding_model, context_length=args.context_length)
@@ -219,7 +220,8 @@ def _persistent_main(argv: Sequence[str]) -> int:
                                          chunking=args.chunking, chunk_size=args.chunk_size,
                                          chunk_overlap=args.chunk_overlap, batch_size=args.batch_size,
                                          max_batch_tokens=args.max_batch_tokens, max_retries=args.max_retries,
-                                         query_instruction=args.query_instruction)
+                                         query_instruction=args.query_instruction, force=args.force,
+                                         source_scope=str(args.notes_dir.resolve()))
                     print(json.dumps(asdict(report), ensure_ascii=False))
             return 0
         with SQLiteStorage(args.db, read_only=True) as storage:

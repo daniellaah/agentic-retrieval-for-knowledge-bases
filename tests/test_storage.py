@@ -111,3 +111,49 @@ def test_cache_validates_shape_and_normalization_before_writing(tmp_path, sample
             with pytest.raises(ValueError):
                 store.put_embeddings(sample[0], ['text'], vectors)
         assert store.connection.execute('SELECT COUNT(*) FROM embeddings').fetchone()[0] == 0
+
+
+def test_writer_lock_is_shared_across_connections_and_symlink_paths(tmp_path):
+    path = tmp_path / 'db'
+    with SQLiteStorage(path) as first:
+        alias = tmp_path / 'alias'
+        alias.symlink_to(path)
+        with SQLiteStorage(alias) as second:
+            with first.writer_lock():
+                with pytest.raises(ValueError, match='Another index build'):
+                    with second.writer_lock():
+                        pytest.fail('second writer acquired the lock')
+            with second.writer_lock():
+                pass
+
+
+def test_process_exit_releases_build_lock(tmp_path):
+    import subprocess
+    import sys
+    script = '''
+import sys, time
+from pathlib import Path
+from obsidian_rag.storage import SQLiteStorage
+with SQLiteStorage(Path(sys.argv[1])) as storage:
+    with storage.writer_lock():
+        print('locked', flush=True)
+        time.sleep(30)
+'''
+    path = tmp_path / 'db'
+    process = subprocess.Popen([sys.executable, '-B', '-c', script, str(path)], stdout=subprocess.PIPE, text=True)
+    try:
+        assert process.stdout.readline().strip() == 'locked'
+        with SQLiteStorage(path) as storage:
+            with pytest.raises(ValueError, match='Another index build'):
+                with storage.writer_lock():
+                    pass
+        process.terminate()
+        process.wait(timeout=5)
+        with SQLiteStorage(path) as storage:
+            with storage.writer_lock():
+                pass
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            process.wait(timeout=5)
+        process.stdout.close()

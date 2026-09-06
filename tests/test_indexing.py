@@ -81,3 +81,56 @@ def test_changed_model_cannot_reuse_previous_document_vectors(setup):
     build_index(storage, notes, **options)
     options['spec'] = replace(options['spec'], model_revision='changed')
     assert build_index(storage, notes, **options).embedded_inputs == 1
+
+
+def test_incremental_edit_rename_delete_and_noop(setup):
+    storage, options = setup
+    notes = [Note(title='A', content='first', source='a.md'), Note(title='B', content='second', source='b.md')]
+    first = build_index(storage, notes, **options)
+    untouched = build_index(storage, notes, **options)
+    assert untouched.reused_index and untouched.manifest == first.manifest
+    assert len(storage.list_builds('vault')) == 1
+    notes[0] = replace(notes[0], content='edited')
+    edited = build_index(storage, notes, **options)
+    assert (edited.embedded_inputs, edited.modified_documents) == (1, 1)
+    notes[0] = replace(notes[0], source='renamed.md')
+    renamed = build_index(storage, notes, **options)
+    assert (renamed.embedded_inputs, renamed.added_documents, renamed.deleted_documents) == (0, 1, 1)
+    assert {r.chunk.source for r in storage.snapshot_records(renamed.manifest.index_version)} == {'renamed.md', 'b.md'}
+    empty = build_index(storage, [], **options)
+    assert empty.deleted_documents == 2 and empty.manifest.chunk_count == 0
+    assert storage.load_snapshot(first.manifest.index_version)[1][0].chunk.content == 'first'
+
+
+def test_forced_rebuild_uses_cache_and_recovers_interrupted_candidates(setup):
+    storage, options = setup
+    notes = [Note(title='A', content='first', source='a.md')]
+    first = build_index(storage, notes, **options)
+    pending = replace(first.manifest, index_version='interrupted', status='building')
+    storage.create_build(pending, corpus_fingerprint='pending')
+    rebuilt = build_index(storage, notes, **options, force=True)
+    assert not rebuilt.reused_index and rebuilt.embedded_inputs == 0
+    assert rebuilt.manifest.index_version != first.manifest.index_version
+    assert storage.get_manifest('interrupted').status == 'failed'
+
+
+def test_vault_scope_cannot_silently_switch_directories(setup):
+    storage, options = setup
+    notes = [Note(title='A', content='first', source='a.md')]
+    original = build_index(storage, notes, **options, source_scope='scope-a')
+    with pytest.raises(ValueError, match='scope'):
+        build_index(storage, [], **options, source_scope='scope-b')
+    assert storage.active_manifest('vault') == original.manifest
+
+
+def test_scan_rejects_changes_during_reading(tmp_path, monkeypatch):
+    import obsidian_rag.indexing as indexing
+    (tmp_path / 'a.md').write_text('# A\nbody')
+    original = indexing.load_notes
+    def changing(directory):
+        notes = original(directory)
+        (directory / 'b.md').write_text('# B\nnew')
+        return notes
+    monkeypatch.setattr(indexing, 'load_notes', changing)
+    with pytest.raises(ValueError, match='changed during scanning'):
+        indexing.scan_notes(tmp_path)

@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 from dataclasses import asdict, replace
 import hashlib
+import fcntl
 import json
 from pathlib import Path
 import sqlite3
@@ -102,6 +103,30 @@ class SQLiteStorage:
             self.connection.execute("ROLLBACK")
             raise
 
+    @contextmanager
+    def writer_lock(self):
+        """Serialize complete builds across processes; OS releases locks on exit."""
+        if self.read_only:
+            raise ValueError('A read-only database cannot acquire a writer lock.')
+        resolved = self.path.resolve()
+        path = resolved.with_name(resolved.name + '.writer.lock')
+        with path.open('a+b') as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as error:
+                raise ValueError('Another index build is running for this database.') from error
+            try:
+                yield
+            finally:
+                fcntl.flock(lock, fcntl.LOCK_UN)
+
+    def recover_builds(self, vault_id: str) -> int:
+        """Call only while holding writer_lock; abandon interrupted candidates."""
+        pending = [m for m in self.list_builds(vault_id) if m.status == 'building']
+        for manifest in pending:
+            self.mark_failed(manifest.index_version, 'Interrupted build; rerun uses cached batches.')
+        return len(pending)
+
     def put_embeddings(self, spec: EmbeddingSpec, texts: list[str], vectors) -> list[str]:
         keys = [spec.embedding_key(text) for text in texts]
         if not texts:
@@ -182,12 +207,12 @@ class SQLiteStorage:
             self.connection.execute("INSERT INTO snapshot_chunks VALUES (?, ?, ?, ?, ?)",
                                     (version, ordinal, record.chunk_id, _json(asdict(record)), spec.embedding_key(text)))
 
-    def load_snapshot(self, version: str):
+    def snapshot_records(self, version: str) -> list[ChunkRecord]:
         manifest = self.get_manifest(version)
         spec = manifest.embedding_spec
         rows = self.connection.execute("SELECT * FROM snapshot_chunks WHERE version=? ORDER BY ordinal",
                                        (version,)).fetchall()
-        records, vectors = [], []
+        records = []
         for ordinal, row in enumerate(rows):
             data = json.loads(row['record'])
             data['chunk'] = Chunk(**data['chunk'])
@@ -196,11 +221,7 @@ class SQLiteStorage:
             if (row['ordinal'] != ordinal or record.chunk_id != row['chunk_id']
                     or record.vault_id != manifest.vault_id or spec.embedding_key(text) != row['embedding_key']):
                 raise ValueError("Corrupt snapshot record identity or ordering.")
-            vector = self.get_embedding(spec, text)
-            if vector is None:
-                raise ValueError("Snapshot embedding is missing.")
             records.append(record)
-            vectors.append(vector)
         revisions = {}
         for record in records:
             previous = revisions.setdefault(record.document_id, record.document_revision)
@@ -208,6 +229,16 @@ class SQLiteStorage:
                 raise ValueError("Snapshot mixes document revisions.")
         if len(records) != manifest.chunk_count or len(revisions) != manifest.document_count:
             raise ValueError("Snapshot counts do not match its manifest.")
+        return records
+
+    def load_snapshot(self, version: str):
+        manifest = self.get_manifest(version)
+        spec = manifest.embedding_spec
+        records = self.snapshot_records(version)
+        vectors = [self.get_embedding(spec, prepare_document(r.chunk, document_template=spec.document_template))
+                   for r in records]
+        if any(vector is None for vector in vectors):
+            raise ValueError('Snapshot embedding is missing.')
         matrix = np.asarray(vectors, dtype=spec.dtype).reshape(len(records), spec.dimensions)
         return manifest, records, matrix
 

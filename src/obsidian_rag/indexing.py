@@ -2,7 +2,8 @@
 
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
-from functools import partial
+from functools import partial, wraps
+from pathlib import Path
 import hashlib
 from uuid import uuid4
 
@@ -13,7 +14,7 @@ from obsidian_rag.chunking import chunk_notes, whole_note_chunks
 from obsidian_rag.embedding_inputs import DEFAULT_QUERY_INSTRUCTION, prepare_document, prepare_query, validate_input_tokens
 from obsidian_rag.embeddings import iter_embedding_batches
 from obsidian_rag.index_schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
-from obsidian_rag.notes import Note
+from obsidian_rag.notes import Note, load_notes
 from obsidian_rag.storage import SQLiteStorage
 from obsidian_rag.tokenization import count_tokens
 from obsidian_rag.vector_store import NumpyVectorStore, VectorStore
@@ -25,12 +26,40 @@ class BuildReport:
     embedded_inputs: int
     cached_inputs: int
     reused_index: bool = False
+    added_documents: int = 0
+    modified_documents: int = 0
+    deleted_documents: int = 0
 
 
 def tokenizer_fingerprint(tokenizer: Tokenizer) -> str:
     return hashlib.sha256(tokenizer.to_str().encode('utf-8')).hexdigest()
 
 
+def scan_notes(directory: Path) -> list[Note]:
+    """Read the existing flat Markdown scope; fail if it changes during scanning."""
+    def inventory():
+        result = {}
+        for path in sorted(directory.iterdir()):
+            if path.suffix == '.md' and path.is_file():
+                stat = path.stat()
+                result[path.name] = (stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
+        return result
+    before = inventory()
+    notes = load_notes(directory)
+    if before != inventory() or {note.source for note in notes} != set(before):
+        raise ValueError('Notes changed during scanning; rerun the index command.')
+    return notes
+
+
+def _exclusive_build(function):
+    @wraps(function)
+    def run(storage, *args, **kwargs):
+        with storage.writer_lock():
+            return function(storage, *args, **kwargs)
+    return run
+
+
+@_exclusive_build
 def build_index(
     storage: SQLiteStorage, notes: Sequence[Note], *, spec: EmbeddingSpec,
     vault_id: str, client: Client, tokenizer: Tokenizer, max_input_tokens: int,
@@ -38,6 +67,7 @@ def build_index(
     query_instruction: str = DEFAULT_QUERY_INSTRUCTION, index_version: str | None = None,
     batch_size: int = 32, max_batch_tokens: int | None = None, max_retries: int = 0,
     vector_store: VectorStore | None = None, backend: dict | None = None,
+    force: bool = False, source_scope: str | None = None,
 ) -> BuildReport:
     """Preflight inputs, reuse cached vectors, checkpoint batches, then publish.
 
@@ -78,13 +108,35 @@ def build_index(
         chunking_fingerprint=fingerprint_config(chunk_config), document_count=len(notes),
         chunk_count=len(records), query_instruction=query_instruction,
     )
+    metadata = dict(backend or {'kind': 'numpy'})
+    metadata['input'] = {'max_tokens': max_input_tokens, 'tokenizer': token_identity}
+    if source_scope is not None:
+        metadata['source_scope'] = source_scope
+    corpus = fingerprint_config({'notes': [asdict(n) for n in notes]})
+    active = storage.active_manifest(vault_id)
+    old_records = []
+    if active is not None:
+        previous = storage.build_metadata(active.index_version)
+        old_scope = previous['backend'].get('source_scope')
+        if old_scope is not None and old_scope != source_scope:
+            raise ValueError('Source scope differs from this vault; use a separate vault ID.')
+        old_records = storage.snapshot_records(active.index_version)
+    storage.recover_builds(vault_id)
+    unique_count = len(set(texts))
+    if (active is not None and not force and index_version is None and vector_store is None
+            and previous['corpus_fingerprint'] == corpus and previous['backend'] == metadata
+            and active.configuration_fingerprint == manifest.configuration_fingerprint):
+        storage.load_snapshot(active.index_version)
+        return BuildReport(active, 0, unique_count, reused_index=True)
+    old = {r.chunk.source: r.document_revision for r in old_records}
+    new = {r.chunk.source: r.document_revision for r in records}
+    added = len(new.keys() - old.keys())
+    modified = sum(old[source] != new[source] for source in new.keys() & old.keys())
+    deleted = len(old.keys() - new.keys())
     projection = vector_store if vector_store is not None else NumpyVectorStore(spec, vault_id=vault_id)
     if projection.spec != spec or projection.vault_id != vault_id or projection.count() != 0:
         raise ValueError('Build requires an empty vector store matching the vault and embedding spec.')
-    metadata = dict(backend or {'kind': 'numpy'})
-    metadata['input'] = {'max_tokens': max_input_tokens, 'tokenizer': token_identity}
-    storage.create_build(manifest, corpus_fingerprint=fingerprint_config({'notes': [asdict(n) for n in notes]}),
-                         backend=metadata)
+    storage.create_build(manifest, corpus_fingerprint=corpus, backend=metadata)
     try:
         unique = dict(zip(texts, counts))
         missing = [text for text in unique if storage.get_embedding(spec, text) is None]
@@ -103,7 +155,8 @@ def build_index(
         if projection.count() != len(records):
             raise ValueError('Vector-store count does not match candidate snapshot.')
         ready = storage.publish(manifest.index_version)
-        return BuildReport(ready, len(missing), len(unique) - len(missing))
+        return BuildReport(ready, len(missing), len(unique) - len(missing),
+                           added_documents=added, modified_documents=modified, deleted_documents=deleted)
     except BaseException as error:
         storage.mark_failed(manifest.index_version, str(error) or type(error).__name__)
         raise

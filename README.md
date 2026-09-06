@@ -506,3 +506,21 @@ embedding work. `--query-instruction ''` saves a raw-query configuration.
 A missing index or mismatched model/tokenizer produces an error instead of
 silently rebuilding on a query. The original `obsidian-rag "question"` invocation
 remains an ephemeral baseline; use `query` to reuse a persistent index.
+
+## Incremental updates and recovery
+
+Repeat `index` to scan for additions, edits, renames, and deletions. Unchanged
+corpus/configuration reuses the published version and makes no document embedding
+requests. `--force` creates a fresh snapshot while reusing compatible cached
+vectors. Reports count added/modified/deleted documents; renames are delete/add
+operations and can reuse vectors when the final input text is unchanged.
+Incremental embedding currently assembles a complete candidate snapshot; it does
+not claim to mutate only changed vector-database records.
+
+A process-level advisory lock serializes builds for a SQLite database. Interrupted
+building snapshots are marked failed by the next writer, and completed embedding
+batches remain reusable. Locks are released by the OS when a process exits.
+The CLI verifies the flat Markdown scope is stable while reading and binds each
+vault to its source directory, so a different or failed scan cannot silently
+replace its corpus. An intentionally emptied directory publishes an empty index.
+Historical snapshots are retained; deletion of the active snapshot is rejected.
