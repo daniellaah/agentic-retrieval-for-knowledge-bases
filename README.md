@@ -472,3 +472,11 @@ inputs. Duplicate text occurrences share vectors but retain separate chunk IDs.
 A later batch failure leaves previous published snapshots available and earlier
 successful batches reusable. Model artifact discovery belongs to the caller;
 changing the declared model revision changes cache identity.
+
+`retrieval.search_index` queries a captured READY snapshot and embeds only the
+question. Supply the actual model spec and tokenizer; mismatches fail before
+model calls. The saved query instruction and context limit are reused. Explicit
+`index_version` pins a request across concurrent publication. Returned chunks
+come from the snapshot, not potentially edited source files; unknown vector hits
+and invalid scores are rejected. The original `retrieve` remains the exact
+in-memory reference function.

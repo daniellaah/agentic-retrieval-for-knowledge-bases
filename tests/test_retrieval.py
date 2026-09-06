@@ -162,3 +162,73 @@ def test_retrieve_returns_distinct_chunks_from_the_same_note() -> None:
         ("def", "same.md", 3), ("abc", "same.md", 0),
     ]
     assert results[0].chunk is chunks[1]
+
+
+@pytest.fixture
+def published_index(tmp_path):
+    from unittest.mock import Mock
+    from ollama import Client, EmbedResponse
+    from tokenizers import Tokenizer, models, pre_tokenizers
+    from obsidian_rag.index_schema import EmbeddingSpec
+    from obsidian_rag.indexing import build_index
+    from obsidian_rag.notes import Note
+    from obsidian_rag.storage import SQLiteStorage
+    tokenizer = Tokenizer(models.WordLevel({'[UNK]': 0}, unk_token='[UNK]'))
+    tokenizer.pre_tokenizer = pre_tokenizers.WhitespaceSplit()
+    spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2, document_template='title-body-v1')
+    client = Mock(spec=Client)
+    client.embed.side_effect = lambda **kw: EmbedResponse(embeddings=[[1, 0] for _ in kw['input']])
+    with SQLiteStorage(tmp_path / 'db') as store:
+        build_index(store, [Note(title='Title', content='Original source text', source='a.md')],
+                    spec=spec, vault_id='vault', tokenizer=tokenizer, max_input_tokens=100,
+                    client=client, chunking='none', index_version='v1', query_instruction='Find evidence.')
+        client.embed.reset_mock()
+        yield store, dict(vault_id='vault', spec=spec, tokenizer=tokenizer, client=client)
+
+
+def test_indexed_search_only_embeds_query_and_restores_snapshot_content(published_index):
+    from obsidian_rag.retrieval import search_index
+    store, kwargs = published_index
+    results = search_index(store, 'Question?', **kwargs)
+    kwargs['client'].embed.assert_called_once_with(
+        model='test', input=['Instruct: Find evidence.\nQuery:Question?'], truncate=False)
+    assert results[0].chunk.content == 'Original source text'
+    assert results[0].chunk.source == 'a.md'
+    assert results[0].score == 1
+
+
+def test_indexed_search_rejects_model_and_tokenizer_mismatches_before_embedding(published_index):
+    from dataclasses import replace
+    from obsidian_rag.retrieval import search_index
+    store, kwargs = published_index
+    with pytest.raises(ValueError, match='incompatible'):
+        search_index(store, 'Question?', **{**kwargs, 'spec': replace(kwargs['spec'], model_revision='changed')})
+    kwargs['tokenizer'].enable_padding(length=10)
+    with pytest.raises(ValueError, match='tokenizer'):
+        search_index(store, 'Question?', **kwargs)
+    kwargs['client'].embed.assert_not_called()
+
+
+def test_indexed_search_rejects_missing_and_unpublished_versions(published_index):
+    from dataclasses import replace
+    from obsidian_rag.retrieval import search_index
+    store, kwargs = published_index
+    with pytest.raises(ValueError, match='No published'):
+        search_index(store, 'Question?', **{**kwargs, 'vault_id': 'missing'})
+    building = replace(store.get_manifest('v1'), index_version='v2', status='building')
+    store.create_build(building, corpus_fingerprint='pending')
+    with pytest.raises(ValueError, match='ready'):
+        search_index(store, 'Question?', **kwargs, index_version='v2')
+    kwargs['client'].embed.assert_not_called()
+
+
+def test_indexed_search_rejects_unknown_backend_hits(published_index):
+    from unittest.mock import Mock
+    from obsidian_rag.retrieval import search_index
+    from obsidian_rag.vector_store import VectorHit
+    store, kwargs = published_index
+    backend = Mock(vault_id='vault')
+    backend.spec = kwargs['spec']
+    backend.search.return_value = [VectorHit('orphan', 0.5)]
+    with pytest.raises(ValueError, match='snapshot'):
+        search_index(store, 'Question?', **kwargs, vector_store=backend)

@@ -2,11 +2,19 @@
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import numpy as np
 from numpy.typing import NDArray
 
 from obsidian_rag.chunking import Chunk
+
+if TYPE_CHECKING:
+    from ollama import Client
+    from tokenizers import Tokenizer
+    from obsidian_rag.index_schema import EmbeddingSpec
+    from obsidian_rag.storage import SQLiteStorage
+    from obsidian_rag.vector_store import VectorStore
 
 
 @dataclass(frozen=True)
@@ -68,3 +76,62 @@ def retrieve(
         SearchResult(chunk=chunks[index], score=float(scores[index]))
         for index in indices
     ]
+
+
+def search_index(
+    storage: "SQLiteStorage", question: str, *, vault_id: str, spec: "EmbeddingSpec",
+    tokenizer: "Tokenizer", client: "Client",
+    top_k: int = 2, source: str | None = None, exact: bool = False,
+    index_version: str | None = None, vector_store: "VectorStore | None" = None,
+) -> list[SearchResult]:
+    """Search one captured READY snapshot, embedding only the query.
+
+    The caller supplies the actual runtime model specification, not an arbitrary
+    model tag. Match it and the tokenizer against the stored configuration before
+    making a model request. A version may be supplied to pin a query while another
+    writer publishes. Document text and positions always come from that snapshot.
+    """
+    from obsidian_rag.embedding_inputs import prepare_query, validate_input_tokens
+    from obsidian_rag.embeddings import embed_texts
+    from obsidian_rag.indexing import tokenizer_fingerprint
+    from obsidian_rag.vector_store import NumpyVectorStore, validate_search
+
+    validate_search(top_k, source, exact)
+    manifest = storage.get_manifest(index_version) if index_version is not None else storage.active_manifest(vault_id)
+    if manifest is None:
+        raise ValueError('No published index for this vault; build an index first.')
+    if manifest.status != 'ready' or manifest.vault_id != vault_id:
+        raise ValueError('Queries require a ready snapshot in the requested vault.')
+    if not manifest.embedding_spec.is_compatible_with(spec):
+        raise ValueError('Query embedding model/configuration is incompatible with the stored index; rebuild it.')
+    metadata = storage.build_metadata(manifest.index_version)['backend']
+    inputs = metadata['input']
+    if tokenizer_fingerprint(tokenizer) != inputs['tokenizer']:
+        raise ValueError('Query tokenizer differs from the indexed tokenizer; rebuild with matching settings.')
+    query = prepare_query(question, instruction=manifest.query_instruction)
+    validate_input_tokens(query, tokenizer=tokenizer, max_tokens=inputs['max_tokens'], source='query')
+    _, records, matrix = storage.load_snapshot(manifest.index_version)
+    if not records:
+        return []
+    if vector_store is None:
+        if metadata['kind'] != 'numpy':
+            raise ValueError('This index requires its configured vector-store backend.')
+        vector_store = NumpyVectorStore(spec, vault_id=vault_id)
+        vector_store.upsert(records, matrix)
+    if vector_store.spec != spec or vector_store.vault_id != vault_id:
+        raise ValueError('Vector store does not match the query embedding spec and vault.')
+    query_vector = embed_texts([query], client=client, model=spec.model,
+                              dimensions=spec.dimensions, dtype=spec.dtype,
+                              normalization=spec.normalization)[0]
+    hits = vector_store.search(query_vector, top_k=top_k, source=source, exact=exact)
+    by_id = {record.chunk_id: record for record in records}
+    if len(hits) > top_k or len({hit.chunk_id for hit in hits}) != len(hits):
+        raise ValueError('Vector store returned invalid or duplicate hits.')
+    results = []
+    for hit in hits:
+        record = by_id.get(hit.chunk_id)
+        if (record is None or not np.isfinite(hit.score) or not -1 <= hit.score <= 1
+                or (source is not None and record.chunk.source != source)):
+            raise ValueError('Vector hit does not match the snapshot, filter, or cosine score contract.')
+        results.append(SearchResult(record.chunk, hit.score))
+    return results
