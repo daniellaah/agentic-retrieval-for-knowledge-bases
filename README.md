@@ -524,3 +524,20 @@ The CLI verifies the flat Markdown scope is stable while reading and binds each
 vault to its source directory, so a different or failed scan cannot silently
 replace its corpus. An intentionally emptied directory publishes an empty index.
 Historical snapshots are retained; deletion of the active snapshot is rejected.
+
+## Qdrant backend
+
+`QdrantVectorStore` implements the same search contract using external vectors,
+with one collection per candidate. Collection metadata binds the embedding spec
+and vault; opening incompatible collections fails without changing their data.
+Payload indexes for vault, embedding spec and source are created before ingestion.
+Chunk SHA-256 IDs map deterministically to UUID point IDs; full identities stay in
+payload and are verified on retrieval. Qdrant stores cosine vectors as float32,
+so allow small score-rounding differences from the NumPy float64 reference.
+`create=True` never recreates an existing collection. Writes/deletes wait for
+completion. Text remains in SQLite, and this adapter never runs an embedding model.
+
+Regular backend tests use Qdrant Local for API behavior only. Real server tests
+are enabled with `OBSIDIAN_RAG_QDRANT_URL=http://127.0.0.1:6333`; they create and
+remove uniquely named test collections. Qdrant Server/client 1.19 are the validated
+pair; ANN and payload-index performance are not inferred from Local Mode tests.
