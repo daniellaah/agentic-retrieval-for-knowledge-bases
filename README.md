@@ -451,3 +451,12 @@ and every vector before atomically marking a build ready and changing its active
 pointer. Failed candidates cannot replace active data. The storage schema is
 versioned independently of record fingerprints; unknown versions are rejected.
 SQLite files belong in a local runtime directory, never the retrieval corpus.
+
+## Vector-store contract
+
+`VectorStore` exposes `upsert`, `search`, `delete`, and `count` for one vault and
+embedding specification. `VectorHit` carries a stable chunk ID and a cosine score
+(larger is better). Source filtering precedes top-k selection. The first backend,
+`NumpyVectorStore`, reuses exact cosine retrieval and preserves insertion order
+on ties; it copies inputs and validates a whole batch before updating entries.
+It is an in-memory search projection, restored from durable SQLite snapshots.
