@@ -460,3 +460,15 @@ embedding specification. `VectorHit` carries a stable chunk ID and a cosine scor
 `NumpyVectorStore`, reuses exact cosine retrieval and preserves insertion order
 on ties; it copies inputs and validates a whole batch before updating entries.
 It is an in-memory search projection, restored from durable SQLite snapshots.
+
+## Build an index snapshot
+
+`indexing.build_index` accepts a complete list of loaded notes, a resolved
+`EmbeddingSpec`, vault ID, matching tokenizer, active context limit, and Ollama
+client. It validates inputs, chunks notes, caches successful embedding batches,
+restores a candidate search projection, verifies the snapshot, then publishes.
+The report includes the published manifest and counts of unique embedded/cached
+inputs. Duplicate text occurrences share vectors but retain separate chunk IDs.
+A later batch failure leaves previous published snapshots available and earlier
+successful batches reusable. Model artifact discovery belongs to the caller;
+changing the declared model revision changes cache identity.
