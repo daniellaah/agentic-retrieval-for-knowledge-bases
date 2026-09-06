@@ -1,5 +1,5 @@
-from contextlib import closing
 """Opt-in real Qdrant Server contract; collections are unique and cleaned up."""
+from contextlib import closing
 import os
 from uuid import uuid4
 

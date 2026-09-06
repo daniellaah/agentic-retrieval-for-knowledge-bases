@@ -82,7 +82,7 @@ def search_index(
     storage: "SQLiteStorage", question: str, *, vault_id: str, spec: "EmbeddingSpec",
     tokenizer: "Tokenizer", client: "Client",
     top_k: int = 2, source: str | None = None, exact: bool = False,
-    index_version: str | None = None, vector_store: "VectorStore | None" = None,
+    index_version: str | None = None, vector_store: "VectorStore | None" = None, qdrant_client=None,
 ) -> list[SearchResult]:
     """Search one captured READY snapshot, embedding only the query.
 
@@ -110,26 +110,31 @@ def search_index(
         raise ValueError('Query tokenizer differs from the indexed tokenizer; rebuild with matching settings.')
     query = prepare_query(question, instruction=manifest.query_instruction)
     validate_input_tokens(query, tokenizer=tokenizer, max_tokens=inputs['max_tokens'], source='query')
-    _, records, matrix = storage.load_snapshot(manifest.index_version)
-    if not records:
+    if manifest.chunk_count == 0:
         return []
     if vector_store is None:
-        if metadata['kind'] != 'numpy':
-            raise ValueError('This index requires its configured vector-store backend.')
-        vector_store = NumpyVectorStore(spec, vault_id=vault_id)
-        vector_store.upsert(records, matrix)
+        if metadata['kind'] == 'qdrant':
+            from obsidian_rag.indexing import _qdrant_projection
+            if qdrant_client is None:
+                raise ValueError('This index requires a Qdrant client.')
+            vector_store = _qdrant_projection(qdrant_client, metadata, manifest, create=False)
+        elif metadata['kind'] == 'numpy':
+            _, records, matrix = storage.load_snapshot(manifest.index_version)
+            vector_store = NumpyVectorStore(spec, vault_id=vault_id)
+            vector_store.upsert(records, matrix)
+        else:
+            raise ValueError('Unsupported index backend.')
     if vector_store.spec != spec or vector_store.vault_id != vault_id:
         raise ValueError('Vector store does not match the query embedding spec and vault.')
     query_vector = embed_texts([query], client=client, model=spec.model,
                               dimensions=spec.dimensions, dtype=spec.dtype,
                               normalization=spec.normalization, context_length=inputs['max_tokens'])[0]
     hits = vector_store.search(query_vector, top_k=top_k, source=source, exact=exact)
-    by_id = {record.chunk_id: record for record in records}
     if len(hits) > top_k or len({hit.chunk_id for hit in hits}) != len(hits):
         raise ValueError('Vector store returned invalid or duplicate hits.')
     results = []
     for hit in hits:
-        record = by_id.get(hit.chunk_id)
+        record = storage.get_record(manifest.index_version, hit.chunk_id)
         if (record is None or not np.isfinite(hit.score) or not -1 <= hit.score <= 1
                 or (source is not None and record.chunk.source != source)):
             raise ValueError('Vector hit does not match the snapshot, filter, or cosine score contract.')

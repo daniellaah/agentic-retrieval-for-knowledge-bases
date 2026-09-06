@@ -276,3 +276,19 @@ class SQLiteStorage:
             if self.connection.execute("SELECT 1 FROM active_indexes WHERE version=?", (version,)).fetchone():
                 raise ValueError("Cannot delete an active snapshot.")
             self.connection.execute("DELETE FROM builds WHERE version=?", (version,))
+
+    def get_record(self, version: str, chunk_id: str) -> ChunkRecord:
+        """Fetch one verified source record without loading any document vectors."""
+        manifest = self.get_manifest(version)
+        row = self.connection.execute('SELECT * FROM snapshot_chunks WHERE version=? AND chunk_id=?',
+                                      (version, chunk_id)).fetchone()
+        if row is None:
+            raise ValueError('Vector hit is absent from the snapshot.')
+        data = json.loads(row['record'])
+        data['chunk'] = Chunk(**data['chunk'])
+        record = ChunkRecord(**data)
+        text = prepare_document(record.chunk, document_template=manifest.embedding_spec.document_template)
+        if (record.chunk_id != chunk_id or record.vault_id != manifest.vault_id
+                or manifest.embedding_spec.embedding_key(text) != row['embedding_key']):
+            raise ValueError('Corrupt snapshot hit identity.')
+        return record

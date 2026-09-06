@@ -110,3 +110,54 @@ class QdrantVectorStore:
 
     def count(self) -> int:
         return self.client.count(collection_name=self.collection, exact=True).count
+
+    def verify_snapshot(self, records: Sequence[ChunkRecord], vectors) -> None:
+        """Verify every point and vector before SQLite can publish this collection."""
+        import numpy as np
+        if self.count() != len(records):
+            raise ValueError('Qdrant point count does not match snapshot.')
+        for start in range(0, len(records), 128):
+            batch = records[start:start + 128]
+            points = self.client.retrieve(self.collection, ids=[point_id(r.chunk_id) for r in batch],
+                                          with_payload=True, with_vectors=True)
+            by_id = {str(point.id): point for point in points}
+            for index, record in enumerate(batch, start):
+                point = by_id.get(point_id(record.chunk_id))
+                if point is None:
+                    raise ValueError('Qdrant snapshot is missing a point.')
+                expected = {'chunk_id': record.chunk_id, 'vault_id': self.vault_id,
+                            'embedding_spec': self.spec.fingerprint, 'source': record.chunk.source,
+                            'document_id': record.document_id, 'document_revision': record.document_revision,
+                            'chunk_index': record.chunk.chunk_index}
+                if point.payload != expected:
+                    raise ValueError('Qdrant snapshot payload differs from source records.')
+                target = np.asarray(vectors[index], dtype=np.float64)
+                target = target / np.linalg.norm(target)
+                actual = np.asarray(point.vector, dtype=np.float64)
+                if actual.shape != target.shape or not np.allclose(actual, target, atol=1e-6, rtol=1e-5):
+                    raise ValueError('Qdrant snapshot vector differs from cached vector.')
+
+    def wait_ready(self, *, expected_count: int, timeout: float = 30,
+                   require_hnsw: bool = False) -> dict:
+        """Distinguish query-ready small collections from fully built HNSW indexes."""
+        import time
+        if not math.isfinite(timeout) or timeout <= 0:
+            raise ValueError('Index readiness timeout must be positive and finite.')
+        deadline = time.monotonic() + timeout
+        while True:
+            info = self.check_configuration()
+            if info.optimizer_status != 'ok' or info.status == models.CollectionStatus.RED:
+                raise ValueError(f'Qdrant optimizer failed: {info.optimizer_status}.')
+            indexed = info.indexed_vectors_count or 0
+            if (info.status == models.CollectionStatus.GREEN and self.count() == expected_count
+                    and (not require_hnsw or indexed >= expected_count)):
+                return {'points': expected_count, 'indexed_vectors': indexed, 'status': 'green'}
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise ValueError('Timed out waiting for the requested Qdrant index readiness.')
+            time.sleep(min(.2, remaining))
+
+    def drop(self) -> None:
+        """Delete only an explicitly selected collection with matching ownership."""
+        self.check_configuration()
+        self.client.delete_collection(self.collection)

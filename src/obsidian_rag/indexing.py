@@ -67,7 +67,7 @@ def build_index(
     query_instruction: str = DEFAULT_QUERY_INSTRUCTION, index_version: str | None = None,
     batch_size: int = 32, max_batch_tokens: int | None = None, max_retries: int = 0,
     vector_store: VectorStore | None = None, backend: dict | None = None,
-    force: bool = False, source_scope: str | None = None,
+    force: bool = False, source_scope: str | None = None, qdrant_client=None,
 ) -> BuildReport:
     """Preflight inputs, reuse cached vectors, checkpoint batches, then publish.
 
@@ -109,6 +109,10 @@ def build_index(
         chunk_count=len(records), query_instruction=query_instruction,
     )
     metadata = dict(backend or {'kind': 'numpy'})
+    if metadata['kind'] not in ('numpy', 'qdrant'):
+        raise ValueError('Unsupported vector-store backend.')
+    if metadata['kind'] == 'qdrant' and qdrant_client is None:
+        raise ValueError('Qdrant indexing requires an explicit client.')
     metadata['input'] = {'max_tokens': max_input_tokens, 'tokenizer': token_identity}
     if source_scope is not None:
         metadata['source_scope'] = source_scope
@@ -122,11 +126,19 @@ def build_index(
             raise ValueError('Source scope differs from this vault; use a separate vault ID.')
         old_records = storage.snapshot_records(active.index_version)
     storage.recover_builds(vault_id)
+    if metadata['kind'] == 'qdrant':
+        cleanup_failed_qdrant(storage, vault_id=vault_id, client=qdrant_client, url=metadata['url'])
     unique_count = len(set(texts))
     if (active is not None and not force and index_version is None and vector_store is None
-            and previous['corpus_fingerprint'] == corpus and previous['backend'] == metadata
+            and previous['corpus_fingerprint'] == corpus and _backend_settings(previous['backend']) == _backend_settings(metadata)
             and active.configuration_fingerprint == manifest.configuration_fingerprint):
-        storage.load_snapshot(active.index_version)
+        _, prior_records, prior_vectors = storage.load_snapshot(active.index_version)
+        if metadata['kind'] == 'qdrant':
+            remote = _qdrant_projection(qdrant_client, previous['backend'], active, create=False)
+            remote.verify_snapshot(prior_records, prior_vectors)
+            remote.wait_ready(expected_count=active.chunk_count,
+                              timeout=metadata.get('index_timeout', 30),
+                              require_hnsw=metadata.get('require_hnsw', False))
         return BuildReport(active, 0, unique_count, reused_index=True)
     old = {r.chunk.source: r.document_revision for r in old_records}
     new = {r.chunk.source: r.document_revision for r in records}
@@ -134,10 +146,14 @@ def build_index(
     modified = sum(old[source] != new[source] for source in new.keys() & old.keys())
     deleted = len(old.keys() - new.keys())
     projection = vector_store if vector_store is not None else NumpyVectorStore(spec, vault_id=vault_id)
+    if metadata['kind'] == 'qdrant':
+        metadata['collection'] = 'obsidian_rag_' + fingerprint_config({'version': manifest.index_version, 'vault': vault_id})[:32]
     if projection.spec != spec or projection.vault_id != vault_id or projection.count() != 0:
         raise ValueError('Build requires an empty vector store matching the vault and embedding spec.')
     storage.create_build(manifest, corpus_fingerprint=corpus, backend=metadata)
     try:
+        if metadata['kind'] == 'qdrant':
+            projection = _qdrant_projection(qdrant_client, metadata, manifest, create=True)
         unique = dict(zip(texts, counts))
         missing = [text for text in unique if storage.get_embedding(spec, text) is None]
         for start, vectors in iter_embedding_batches(
@@ -154,9 +170,44 @@ def build_index(
             projection.upsert(loaded, vectors)
         if projection.count() != len(records):
             raise ValueError('Vector-store count does not match candidate snapshot.')
+        if metadata['kind'] == 'qdrant':
+            projection.verify_snapshot(loaded, vectors)
+            metadata['index_stats'] = projection.wait_ready(
+                expected_count=len(records), timeout=metadata.get('index_timeout', 30),
+                require_hnsw=metadata.get('require_hnsw', False))
+            storage.set_backend(manifest.index_version, metadata)
         ready = storage.publish(manifest.index_version)
         return BuildReport(ready, len(missing), len(unique) - len(missing),
                            added_documents=added, modified_documents=modified, deleted_documents=deleted)
     except BaseException as error:
         storage.mark_failed(manifest.index_version, str(error) or type(error).__name__)
         raise
+
+
+def _backend_settings(metadata: dict) -> dict:
+    return {key: value for key, value in metadata.items() if key not in ('collection', 'index_stats')}
+
+
+def _qdrant_projection(client, metadata: dict, manifest: IndexManifest, *, create: bool):
+    from obsidian_rag.vector_store_qdrant import QdrantVectorStore
+    return QdrantVectorStore(client, metadata['collection'], manifest.embedding_spec,
+                             vault_id=manifest.vault_id, create=create,
+                             hnsw_m=metadata.get('hnsw_m', 16), ef_construct=metadata.get('ef_construct', 100),
+                             indexing_threshold=metadata.get('indexing_threshold', 10000))
+
+
+def cleanup_failed_qdrant(storage: SQLiteStorage, *, vault_id: str, client, url: str) -> int:
+    """Under the writer lock, remove only owned failed candidates on this server.
+
+    Historical READY collections are retained for rollback and in-flight readers.
+    Failed build records and their successful embedding caches remain available.
+    """
+    count = 0
+    for manifest in storage.list_builds(vault_id):
+        metadata = storage.build_metadata(manifest.index_version)['backend']
+        collection = metadata.get('collection')
+        if (manifest.status == 'failed' and metadata.get('kind') == 'qdrant'
+                and metadata.get('url') == url and collection and client.collection_exists(collection)):
+            _qdrant_projection(client, metadata, manifest, create=False).drop()
+            count += 1
+    return count

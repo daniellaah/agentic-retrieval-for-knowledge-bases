@@ -134,3 +134,18 @@ def test_scan_rejects_changes_during_reading(tmp_path, monkeypatch):
     monkeypatch.setattr(indexing, 'load_notes', changing)
     with pytest.raises(ValueError, match='changed during scanning'):
         indexing.scan_notes(tmp_path)
+
+
+def test_projection_failure_never_publishes_the_candidate(setup):
+    from obsidian_rag.vector_store import NumpyVectorStore
+    storage, options = setup
+    notes = [Note(title='A', content='first', source='a.md')]
+    original = build_index(storage, notes, **options)
+    class BrokenProjection(NumpyVectorStore):
+        def upsert(self, records, vectors):
+            raise ValueError('projection unavailable')
+    broken = BrokenProjection(options['spec'], vault_id='vault')
+    with pytest.raises(ValueError, match='projection unavailable'):
+        build_index(storage, notes, **options, vector_store=broken, index_version='failed-projection')
+    assert storage.active_manifest('vault') == original.manifest
+    assert storage.get_manifest('failed-projection').status == 'failed'

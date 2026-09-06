@@ -69,3 +69,26 @@ def test_invalid_vectors_and_foreign_vault_fail_before_upsert(data):
             with pytest.raises(ValueError):
                 store.upsert(items, vectors)
         assert store.count() == 0
+
+
+def test_snapshot_verification_detects_payload_and_vector_corruption(data):
+    from obsidian_rag.vector_store_qdrant import point_id
+    spec, records = data
+    with closing(QdrantClient(':memory:')) as client:
+        store = create(client, spec)
+        vectors = [[1, 0], [.6, .8], [0, 1]]
+        store.upsert(records, vectors)
+        store.verify_snapshot(records, vectors)
+        client.set_payload('test', payload={'source': 'wrong.md'}, points=[point_id(records[0].chunk_id)])
+        with pytest.raises(ValueError, match='payload'):
+            store.verify_snapshot(records, vectors)
+
+
+def test_hnsw_readiness_timeout_does_not_claim_a_flat_index_is_built(data):
+    spec, records = data
+    with closing(QdrantClient(':memory:')) as client:
+        store = create(client, spec)
+        store.upsert(records[:1], [[1, 0]])
+        assert store.wait_ready(expected_count=1)['points'] == 1
+        with pytest.raises(ValueError, match='Timed out'):
+            store.wait_ready(expected_count=1, timeout=.01, require_hnsw=True)

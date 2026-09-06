@@ -4,6 +4,9 @@ import argparse
 import math
 import json
 import sqlite3
+import os
+from contextlib import ExitStack, closing
+from urllib.parse import urlsplit
 from dataclasses import asdict
 import sys
 from collections.abc import Sequence
@@ -160,6 +163,13 @@ def _persistent_parser():
         command.add_argument('--embedding-model', default='qwen3-embedding:0.6b' if name == 'index' else None)
         if name == 'index':
             command.add_argument('--notes-dir', type=Path, default=Path('example_notes'))
+            command.add_argument('--backend', choices=('numpy', 'qdrant'), default='numpy')
+            command.add_argument('--qdrant-url', default='http://127.0.0.1:6333')
+            command.add_argument('--hnsw-m', type=int, default=16)
+            command.add_argument('--ef-construct', type=int, default=100)
+            command.add_argument('--indexing-threshold', type=int, default=10000)
+            command.add_argument('--index-timeout', type=float, default=30)
+            command.add_argument('--require-hnsw', action='store_true')
             command.add_argument('--force', action='store_true', help='Rebuild even when unchanged; reuse compatible vectors.')
             command.add_argument('--chunking', choices=('none', 'recursive'), default='recursive')
             command.add_argument('--chunk-size', type=int, default=512)
@@ -171,6 +181,7 @@ def _persistent_parser():
             command.add_argument('--max-retries', type=int, default=2)
             command.add_argument('--query-instruction', default=DEFAULT_QUERY_INSTRUCTION)
         else:
+            command.add_argument('--qdrant-url', help='Override the saved Qdrant endpoint, e.g. after restoring a server.')
             command.add_argument('question')
             command.add_argument('--top-k', type=int, default=2)
             command.add_argument('--source')
@@ -184,6 +195,7 @@ def _persistent_main(argv: Sequence[str]) -> int:
     from obsidian_rag.indexing import build_index, scan_notes
     from obsidian_rag.retrieval import search_index
     from obsidian_rag.storage import SQLiteStorage
+    from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
     parser = _persistent_parser()
     args = parser.parse_args(argv)
@@ -192,6 +204,10 @@ def _persistent_main(argv: Sequence[str]) -> int:
     if args.command != 'status' and (not math.isfinite(args.timeout) or args.timeout <= 0):
         parser.error('--timeout must be positive and finite')
     if args.command == 'index':
+        if (args.hnsw_m < 2 or args.ef_construct <= 0 or args.indexing_threshold < 0
+                or not math.isfinite(args.index_timeout) or args.index_timeout <= 0
+                or (args.require_hnsw and args.indexing_threshold == 0)):
+            parser.error('Invalid Qdrant HNSW configuration or readiness timeout')
         if args.context_length <= 0 or args.batch_size <= 0 or not 0 <= args.max_retries <= 8:
             parser.error('context/batch sizes must be positive and retries must be between 0 and 8')
         if args.max_batch_tokens is not None and args.max_batch_tokens <= 0:
@@ -202,7 +218,7 @@ def _persistent_main(argv: Sequence[str]) -> int:
         parser.error('question must not be blank and --top-k must be positive')
     try:
         if args.command == 'status':
-            with SQLiteStorage(args.db, read_only=True) as storage:
+            with ExitStack() as resources, SQLiteStorage(args.db, read_only=True) as storage:
                 active = storage.active_manifest(args.vault_id)
                 print(json.dumps({'vault_id': args.vault_id,
                                   'active_version': active.index_version if active else None,
@@ -214,37 +230,58 @@ def _persistent_main(argv: Sequence[str]) -> int:
             tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
             with Client(host=args.host, timeout=args.timeout, trust_env=False) as client:
                 spec = _resolve_spec(client, args.embedding_model, context_length=args.context_length)
-                with SQLiteStorage(args.db) as storage:
+                with ExitStack() as resources, SQLiteStorage(args.db) as storage:
+                    qclient = None
+                    backend = {'kind': args.backend}
+                    if args.backend == 'qdrant':
+                        qclient = resources.enter_context(closing(_connect_qdrant(args.qdrant_url, args.timeout)))
+                        backend.update(url=args.qdrant_url, hnsw_m=args.hnsw_m, ef_construct=args.ef_construct,
+                                       indexing_threshold=args.indexing_threshold, index_timeout=args.index_timeout,
+                                       require_hnsw=args.require_hnsw)
                     report = build_index(storage, notes, spec=spec, vault_id=args.vault_id, client=client,
                                          tokenizer=tokenizer, max_input_tokens=args.context_length,
                                          chunking=args.chunking, chunk_size=args.chunk_size,
                                          chunk_overlap=args.chunk_overlap, batch_size=args.batch_size,
                                          max_batch_tokens=args.max_batch_tokens, max_retries=args.max_retries,
                                          query_instruction=args.query_instruction, force=args.force,
-                                         source_scope=str(args.notes_dir.resolve()))
+                                         source_scope=str(args.notes_dir.resolve()), backend=backend, qdrant_client=qclient)
                     print(json.dumps(asdict(report), ensure_ascii=False))
             return 0
-        with SQLiteStorage(args.db, read_only=True) as storage:
+        with ExitStack() as resources, SQLiteStorage(args.db, read_only=True) as storage:
             manifest = storage.active_manifest(args.vault_id)
             if manifest is None:
                 raise ValueError('No published index; run the index command first.')
             metadata = storage.build_metadata(manifest.index_version)['backend']
+            qclient = None
+            if metadata['kind'] == 'qdrant':
+                qclient = resources.enter_context(closing(_connect_qdrant(args.qdrant_url or metadata['url'], args.timeout)))
             tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
             with Client(host=args.host, timeout=args.timeout, trust_env=False) as client:
                 spec = _resolve_spec(client, args.embedding_model or manifest.embedding_spec.model,
                                      context_length=metadata['input']['max_tokens'])
                 results = search_index(storage, args.question, vault_id=args.vault_id, spec=spec,
                                        tokenizer=tokenizer, client=client, top_k=args.top_k,
-                                       source=args.source, exact=args.exact, index_version=manifest.index_version)
+                                       source=args.source, exact=args.exact, index_version=manifest.index_version,
+                                       qdrant_client=qclient)
                 if args.json:
                     print(json.dumps({'index_version': manifest.index_version, 'question': args.question,
                                       'results': [asdict(r) for r in results]}, ensure_ascii=False))
                 else:
                     print(generate_answer(args.question, results, client=client, model=args.generation_model))
         return 0
-    except (OSError, ValueError, sqlite3.Error, ResponseError, HTTPError) as error:
+    except (OSError, ValueError, sqlite3.Error, ResponseError, HTTPError,
+            ResponseHandlingException, UnexpectedResponse) as error:
         print(f'Error: {error}', file=sys.stderr)
         return 1
+
+
+def _connect_qdrant(url: str, timeout: float):
+    from qdrant_client import QdrantClient
+    parts = urlsplit(url)
+    if (parts.scheme not in ('http', 'https') or not parts.hostname or parts.username
+            or parts.password or parts.query or parts.fragment):
+        raise ValueError('Use an HTTP(S) Qdrant URL without embedded credentials; set QDRANT_API_KEY if needed.')
+    return QdrantClient(url=url, api_key=os.environ.get('QDRANT_API_KEY'), timeout=timeout, trust_env=False)
 
 
 def main(argv: Sequence[str] | None = None) -> int:

@@ -541,3 +541,33 @@ Regular backend tests use Qdrant Local for API behavior only. Real server tests
 are enabled with `OBSIDIAN_RAG_QDRANT_URL=http://127.0.0.1:6333`; they create and
 remove uniquely named test collections. Qdrant Server/client 1.19 are the validated
 pair; ANN and payload-index performance are not inferred from Local Mode tests.
+
+## Publish Qdrant indexes
+
+Run a local server separately (for example the validated `qdrant/qdrant:v1.19.0`
+Docker image), then select the backend explicitly:
+
+```sh
+uv run --locked obsidian-rag index --backend qdrant --qdrant-url http://127.0.0.1:6333 --offline
+uv run --locked obsidian-rag query "What does chunking preserve?" --offline --json
+```
+
+The endpoint and collection are saved with the snapshot; queries open that exact
+collection and fetch only the returned source records from SQLite. Set
+`QDRANT_API_KEY` when needed; credentials are never saved in manifests. The query
+command accepts `--qdrant-url` for an explicitly restored/moved server.
+
+`--hnsw-m`, `--ef-construct`, `--indexing-threshold` (Qdrant's KB threshold), and
+`--index-timeout` configure construction. Small collections can be query-ready
+without HNSW. `--require-hnsw` waits until every vector is indexed and fails on
+timeout; use a suitable positive threshold when explicitly testing ANN.
+Before publication the builder verifies every point ID, payload and vector,
+then checks optimizer health/readiness. SQLite's active-version transaction is
+the publication authority; no cross-database atomic transaction is assumed.
+
+A failed build leaves the previous active collection unchanged. The next writer
+cleans only owned FAILED collections on the same configured server and reuses
+cached embeddings. Historical READY collections remain available to pinned
+queries and rollback workflows; they are not automatically deleted. Record
+metadata includes observed point/index counts. Changing only index parameters
+rebuilds the search projection without recomputing compatible embeddings.
