@@ -21,6 +21,7 @@ from obsidian_rag.knowledge_base.embeddings import (
     validate_vectors,
 )
 from obsidian_rag.knowledge_base.loaders import Note
+from obsidian_rag.knowledge_base.sources import KnowledgeSnapshot
 from .qdrant import QdrantIndex
 from obsidian_rag.knowledge_base.vector_index.manifest import (
     ChunkRecord,
@@ -72,8 +73,8 @@ def build_index(
     The caller resolves the model artifact and supplies its matching tokenizer
     and active input limit. Sources must be unique within a complete vault scan.
     Source errors and input validation happen before creating a candidate. Every
-    successful embedding batch is durable even if a later batch fails. NumPy reads
-    the validated SQLite snapshot directly; Qdrant receives a separate candidate
+    successful embedding batch is durable even if a later batch fails.
+    Qdrant receives a separate candidate
     collection that must be verified before publication.
     """
     notes = list(notes)
@@ -91,8 +92,8 @@ def build_index(
         chunks = whole_note_chunks(notes)
     else:
         raise ValueError('chunking must be recursive or none.')
-    source_notes = {note.source: note for note in notes}
-    records = [ChunkRecord.from_note(chunk, note=source_notes[chunk.source], vault_id=vault_id) for chunk in chunks]
+    snapshot = KnowledgeSnapshot.from_notes(notes, vault_id=vault_id)
+    records = list(snapshot.bind_chunks(chunks))
     texts = [prepare_document(record.chunk, document_template=spec.document_template) for record in records]
     counts = [validate_input_tokens(text, tokenizer=tokenizer, max_tokens=max_input_tokens,
                                    source=f'{r.chunk.source}, chunk {r.chunk.chunk_index}')
@@ -106,10 +107,10 @@ def build_index(
         chunking_fingerprint=fingerprint_config(chunk_config), document_count=len(notes),
         chunk_count=len(records), query_instruction=query_instruction,
     )
-    metadata = dict(backend or {'kind': 'numpy'})
-    if metadata['kind'] not in ('numpy', 'qdrant'):
-        raise ValueError('Unsupported vector-store backend.')
-    if metadata['kind'] == 'qdrant' and qdrant_client is None:
+    metadata = dict(backend or {'kind': 'qdrant', 'url': 'http://127.0.0.1:6333'})
+    if metadata.get('kind') != 'qdrant':
+        raise ValueError('Only Qdrant indexes are supported; rebuild legacy indexes in Qdrant.')
+    if qdrant_client is None:
         raise ValueError('Qdrant indexing requires an explicit client.')
     metadata['input'] = {'max_tokens': max_input_tokens, 'tokenizer': token_identity}
     if source_scope is not None:
@@ -124,31 +125,27 @@ def build_index(
             raise ValueError('Source scope differs from this vault; use a separate vault ID.')
         old_records = storage.snapshot_records(active.index_version)
     storage.recover_builds(vault_id)
-    if metadata['kind'] == 'qdrant':
-        cleanup_failed_qdrant(storage, vault_id=vault_id, client=qdrant_client, url=metadata['url'])
+    cleanup_failed_qdrant(storage, vault_id=vault_id, client=qdrant_client, url=metadata['url'])
     unique_count = len(set(texts))
     if (active is not None and not force and index_version is None
             and previous['corpus_fingerprint'] == corpus and _backend_settings(previous['backend']) == _backend_settings(metadata)
             and active.configuration_fingerprint == manifest.configuration_fingerprint):
         _, prior_records, prior_vectors = storage.load_snapshot(active.index_version)
-        if metadata['kind'] == 'qdrant':
-            remote = _qdrant_index(qdrant_client, previous['backend'], active, create=False)
-            remote.verify_snapshot(prior_records, prior_vectors)
-            remote.wait_ready(expected_count=active.chunk_count,
-                              timeout=metadata.get('index_timeout', 30),
-                              require_hnsw=metadata.get('require_hnsw', False))
+        remote = _qdrant_index(qdrant_client, previous['backend'], active, create=False)
+        remote.verify_snapshot(prior_records, prior_vectors)
+        remote.wait_ready(expected_count=active.chunk_count,
+                          timeout=metadata.get('index_timeout', 30),
+                          require_hnsw=metadata.get('require_hnsw', False))
         return BuildReport(active, 0, unique_count, reused_index=True)
     old = {r.chunk.source: r.document_revision for r in old_records}
     new = {r.chunk.source: r.document_revision for r in records}
     added = len(new.keys() - old.keys())
     modified = sum(old[source] != new[source] for source in new.keys() & old.keys())
     deleted = len(old.keys() - new.keys())
-    if metadata['kind'] == 'qdrant':
-        metadata['collection'] = 'obsidian_rag_' + fingerprint_config({'version': manifest.index_version, 'vault': vault_id})[:32]
+    metadata['collection'] = 'obsidian_rag_' + fingerprint_config({'version': manifest.index_version, 'vault': vault_id})[:32]
     storage.create_build(manifest, corpus_fingerprint=corpus, backend=metadata)
     try:
-        if metadata['kind'] == 'qdrant':
-            remote = _qdrant_index(qdrant_client, metadata, manifest, create=True)
+        remote = _qdrant_index(qdrant_client, metadata, manifest, create=True)
         unique = dict(zip(texts, counts))
         missing = [text for text in unique if storage.get_embedding(spec, text) is None]
         for start, vectors in iter_embedding_batches(
@@ -163,14 +160,13 @@ def build_index(
         _, loaded, vectors = storage.load_snapshot(manifest.index_version)
         if len(loaded) != len(records):
             raise ValueError('Candidate snapshot count does not match source records.')
-        if metadata['kind'] == 'qdrant':
-            if loaded:
-                remote.upsert(loaded, vectors)
-            remote.verify_snapshot(loaded, vectors)
-            metadata['index_stats'] = remote.wait_ready(
-                expected_count=len(records), timeout=metadata.get('index_timeout', 30),
-                require_hnsw=metadata.get('require_hnsw', False))
-            storage.set_backend(manifest.index_version, metadata)
+        if loaded:
+            remote.upsert(loaded, vectors)
+        remote.verify_snapshot(loaded, vectors)
+        metadata['index_stats'] = remote.wait_ready(
+            expected_count=len(records), timeout=metadata.get('index_timeout', 30),
+            require_hnsw=metadata.get('require_hnsw', False))
+        storage.set_backend(manifest.index_version, metadata)
         ready = storage.publish(manifest.index_version)
         return BuildReport(ready, len(missing), len(unique) - len(missing),
                            added_documents=added, modified_documents=modified, deleted_documents=deleted)

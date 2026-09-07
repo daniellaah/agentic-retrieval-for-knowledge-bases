@@ -185,12 +185,13 @@ def published_index(tmp_path):
     spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2, document_template='title-body-v1')
     client = Mock(spec=Client)
     client.embed.side_effect = lambda **kw: EmbedResponse(embeddings=[[1, 0] for _ in kw['input']])
-    with SQLiteStorage(tmp_path / 'db') as store:
+    with closing(QdrantClient(':memory:')) as qc, SQLiteStorage(tmp_path / 'db') as store:
         build_index(store, [Note(title='Title', content='Original source text', source='a.md')],
                     spec=spec, vault_id='vault', tokenizer=tokenizer, max_input_tokens=100,
-                    client=client, chunking='none', index_version='v1', query_instruction='Find evidence.')
+                    client=client, chunking='none', index_version='v1', query_instruction='Find evidence.', qdrant_client=qc,
+                    backend={'kind': 'qdrant', 'url': 'http://test'})
         client.embed.reset_mock()
-        yield store, dict(vault_id='vault', spec=spec, tokenizer=tokenizer, client=client)
+        yield store, dict(vault_id='vault', spec=spec, tokenizer=tokenizer, client=client, qdrant_client=qc)
 
 
 def test_indexed_search_only_embeds_query_and_restores_snapshot_content(published_index):
@@ -235,7 +236,7 @@ def test_indexed_search_rejects_unknown_backend_hits(published_index, monkeypatc
     from obsidian_rag.retrieval import search_index
     from obsidian_rag.knowledge_base.vector_index.manifest import VectorHit
     store, kwargs = published_index
-    monkeypatch.setattr('obsidian_rag.retrieval.search_numpy', lambda *a, **kw: [VectorHit('orphan', 0.5)])
+    monkeypatch.setattr('obsidian_rag.retrieval.search_qdrant', lambda *a, **kw: [VectorHit('orphan', 0.5)])
     with pytest.raises(ValueError, match='snapshot'):
         search_index(store, 'Question?', **kwargs)
 
@@ -348,7 +349,8 @@ def test_search_keeps_requested_snapshot_after_a_new_revision_is_published(publi
     build_index(store, [Note('Title', 'Updated source text', 'a.md')],
                 spec=kwargs['spec'], vault_id='vault', tokenizer=kwargs['tokenizer'],
                 max_input_tokens=100, client=kwargs['client'], chunking='none',
-                index_version='v2', query_instruction='Find evidence.')
+                index_version='v2', query_instruction='Find evidence.', qdrant_client=kwargs['qdrant_client'],
+                    backend={'kind': 'qdrant', 'url': 'http://test'})
     old = search_index(store, 'Question?', **kwargs, index_version='v1')[0]
     new = search_index(store, 'Question?', **kwargs)[0]
     assert old.chunk.content == 'Original source text'

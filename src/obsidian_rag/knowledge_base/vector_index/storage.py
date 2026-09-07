@@ -166,7 +166,7 @@ class SQLiteStorage:
         with self._transaction():
             self.connection.execute("INSERT INTO builds VALUES (?, ?, ?, ?, ?, NULL)",
                                     (manifest.index_version, manifest.vault_id, _json(asdict(manifest)),
-                                     corpus_fingerprint, _json(backend or {"kind": "numpy"})))
+                                     corpus_fingerprint, _json(backend or {"kind": "qdrant"})))
 
     def get_manifest(self, version: str) -> IndexManifest:
         row = self.connection.execute("SELECT manifest FROM builds WHERE version=?", (version,)).fetchone()

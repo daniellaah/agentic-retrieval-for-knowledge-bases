@@ -15,6 +15,8 @@ from obsidian_rag.knowledge_base.vector_index.manifest import EmbeddingSpec, Chu
 from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
 
 
+pytestmark = pytest.mark.filterwarnings('ignore:.*local Qdrant.*:UserWarning')
+
 @pytest.fixture
 def setup(tmp_path):
     tokenizer = Tokenizer(models.WordLevel({'[UNK]': 0, '[END]': 1}, unk_token='[UNK]'))
@@ -23,9 +25,10 @@ def setup(tmp_path):
     client = Mock(spec=Client)
     client.embed.side_effect = lambda **kw: EmbedResponse(embeddings=[[1., 0.] for _ in kw['input']])
     spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2, document_template='title-body-v1')
-    with SQLiteStorage(tmp_path / 'index.sqlite') as storage:
+    with closing(QdrantClient(':memory:')) as qc, SQLiteStorage(tmp_path / 'index.sqlite') as storage:
         yield storage, dict(spec=spec, vault_id='vault', client=client, tokenizer=tokenizer,
-                            max_input_tokens=100, chunking='none')
+                            max_input_tokens=100, chunking='none', qdrant_client=qc,
+                            backend={'kind': 'qdrant', 'url': 'http://test'})
 
 
 def test_complete_build_preserves_duplicate_occurrences_and_reuses_cache(setup):
@@ -210,3 +213,11 @@ def test_invalid_full_scan_threshold_fails_before_contacting_server(qdrant_data)
         with pytest.raises(ValueError, match='full_scan_threshold'):
             QdrantIndex(None, 'test', spec, vault_id='vault', create=True,
                              full_scan_threshold=threshold)
+
+
+def test_numpy_backend_cannot_be_built_anymore(setup):
+    storage, options = setup
+    with pytest.raises(ValueError, match='Qdrant'):
+        build_index(storage, [Note('A', 'body', 'a.md')], **{**options, 'backend': {'kind': 'numpy'}})
+    options['client'].embed.assert_not_called()
+    assert storage.list_builds('vault') == []
