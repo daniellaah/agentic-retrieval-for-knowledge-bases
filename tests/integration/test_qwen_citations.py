@@ -69,3 +69,34 @@ def test_citation_cli_memory_and_persistent_subprocess(tmp_path):
     assert saved['sources'][0]['origins'][0]['index_version'] == indexed['manifest']['index_version']
     retrieved = run('query', 'What is the project code?', '--db', str(db), '--offline', '--json')
     assert 'results' in retrieved and 'answer' not in retrieved
+
+
+def test_citation_evaluation_cli_records_results_without_modifying_index(tmp_path):
+    notes = tmp_path / 'notes'
+    notes.mkdir()
+    (notes / 'project.md').write_text('# Project\nThe project code is ORCHID-42.\n')
+    db = tmp_path / 'index.sqlite'
+    cases = tmp_path / 'cases.jsonl'
+    cases.write_text(json.dumps({'id': 'code', 'question': 'What is the project code?',
+                                 'required_source_groups': [['project.md']]}) + '\n')
+    out = tmp_path / 'evaluation'
+    repo = Path(__file__).resolve().parents[2]
+    built = subprocess.run([sys.executable, '-B', '-m', 'obsidian_rag.cli', 'index',
+                            '--db', str(db), '--notes-dir', str(notes), '--offline'],
+                           cwd=repo, capture_output=True, text=True, timeout=180)
+    assert built.returncode == 0, built.stderr
+    before = db.read_bytes()
+    command = [sys.executable, '-B', '-m', 'obsidian_rag.evaluation', '--db', str(db),
+               '--cases', str(cases), '--output', str(out), '--offline', '--context', '--citations']
+    process = subprocess.run(command, cwd=repo, capture_output=True, text=True, timeout=180)
+    assert process.returncode == 0, process.stderr
+    report = json.loads((out / 'metrics.json').read_text())
+    assert report['citations']['summary']['success_count'] == 1
+    assert report['citations']['summary']['supported_claim_rate'] is None
+    row = json.loads((out / 'citation_results.jsonl').read_text())
+    assert row['raw_response'] and row['context']['citation_sources']
+    assert db.read_bytes() == before
+    preserved = (out / 'citation_results.jsonl').read_bytes()
+    repeated = subprocess.run(command, cwd=repo, capture_output=True, text=True, timeout=30)
+    assert repeated.returncode == 2
+    assert (out / 'citation_results.jsonl').read_bytes() == preserved

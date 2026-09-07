@@ -79,3 +79,78 @@ def test_context_comparison_isolates_processing_from_budget_and_measures_span_un
     assert modes['built']['context']['citation_map'] == {'a.md': [0]}
     with pytest.raises(ValueError, match='snapshot-identified'):
         compare_contexts('Q?', [SearchResult(hits[0].chunk, .5)], case, config=config, counter=counter)
+
+
+def citation_fixture():
+    from obsidian_rag.context import ContextConfig, GenerationCounter, build_context
+    from obsidian_rag.retrieval import SearchResult
+    note = Note('Title', 'Only small datasets were faster.', 'a.md')
+    chunk = whole_note_chunks([note])[0]
+    counter = GenerationCounter('test', 'chars', lambda m: 10 + sum(len(x['content']) for x in m))
+    return build_context('Which datasets were faster?', [SearchResult(chunk, .9)],
+                          config=ContextConfig(), counter=counter, citation_mode='structured')
+
+
+def test_citation_metrics_separate_valid_links_from_wrong_claims_and_missing_facts():
+    import json
+    from obsidian_rag.evaluation import citation_statistics
+    raw = json.dumps({'status': 'answered', 'claims': [
+        {'text': 'Every dataset was faster.', 'source_ids': ['S1']},
+        {'text': 'It was also cheaper.', 'source_ids': []}], 'missing_information': []})
+    sources = citation_fixture().citation_sources
+    unreviewed = citation_statistics(raw, sources)
+    assert unreviewed['citation_id_validity'] == 1
+    assert unreviewed['claim_reference_coverage'] == .5
+    assert unreviewed['references_valid'] is False
+    assert unreviewed['supported_claim_rate'] is None
+    review = {'reviewer': 'fixture', 'claim_support': ['contradicted', 'insufficient'],
+              'answer_correct': False, 'answer_complete': False}
+    checked = citation_statistics(raw, sources, review=review)
+    assert checked['supported_claim_rate'] == 0 and checked['support_review_coverage'] == 1
+    assert checked['answer_correct'] is False
+    with pytest.raises(ValueError, match='valid source'):
+        citation_statistics(raw, sources, review={**review, 'claim_support': ['contradicted', 'supported']})
+
+
+def test_citation_metrics_keep_undefined_denominators_and_partial_review_visible():
+    import json
+    from obsidian_rag.evaluation import citation_statistics
+    sources = citation_fixture().citation_sources
+    abstain = json.dumps({'status': 'insufficient_evidence', 'claims': [], 'missing_information': ['No evidence.']})
+    metrics = citation_statistics(abstain, sources)
+    assert metrics['citation_id_validity'] is metrics['claim_reference_coverage'] is None
+    assert citation_statistics('{', sources)['claim_count'] is None
+    raw = json.dumps({'status': 'answered', 'claims': [
+        {'text': 'A', 'source_ids': ['S1']}, {'text': 'B', 'source_ids': ['S1']}], 'missing_information': []})
+    checked = citation_statistics(raw, sources, review={'reviewer': 'fixture', 'claim_support': ['supported', None]})
+    assert checked['supported_claim_rate'] == 1 and checked['support_review_coverage'] == .5
+    with pytest.raises(ValueError, match='one support label'):
+        citation_statistics(raw, sources, review={'reviewer': 'fixture', 'claim_support': ['supported']})
+
+
+def test_citation_evaluation_retains_failed_raw_output_and_counts_failures():
+    from unittest.mock import Mock
+    from ollama import Client, ChatResponse, Message
+    from obsidian_rag.evaluation import evaluate_citation_context, summarize_citations
+    client = Mock(spec=Client)
+    client.chat.return_value = ChatResponse(message=Message(role='assistant', content='{'), done_reason='length')
+    row = evaluate_citation_context(citation_fixture(), client=client)
+    assert row['success'] is False and row['raw_response'] == '{'
+    assert row['error']['code'] == 'truncated_output'
+    assert row['context']['citation_sources'][0]['content'] == 'Only small datasets were faster.'
+    summary = summarize_citations([row])
+    assert summary['error_count'] == 1 and summary['structure_valid'] == 0
+    assert summary['supported_claim_rate'] is None
+    assert summary['citation_id_validity_defined_cases'] == 0
+
+
+def test_citation_case_records_prompt_budget_failure_without_calling_model():
+    from unittest.mock import Mock
+    from obsidian_rag.context import ContextConfig
+    from obsidian_rag.evaluation import evaluate_citation_case
+    context = citation_fixture()
+    client = Mock()
+    row = evaluate_citation_case('Question?', list(context.evidence_blocks[0].origins),
+                                 config=ContextConfig(30, 10, 0), counter=context.counter, client=client)
+    assert row['error']['code'] == 'context_budget' and row['context'] is None
+    client.chat.assert_not_called()

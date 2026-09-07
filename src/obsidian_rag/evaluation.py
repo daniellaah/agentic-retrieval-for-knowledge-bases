@@ -176,6 +176,114 @@ def compare_contexts(question, results, case, *, config, counter) -> dict:
         entry['metrics']['section_coverage_retention'] = coverage / reference if reference else None
     return modes
 
+
+def citation_statistics(raw_response, sources, *, review: dict | None = None) -> dict:
+    """Reference membership and coverage, separately from supplied human/judge labels.
+
+    Every model claim is treated as requiring evidence. This does not detect
+    omitted answer facts or multiple facts hidden in one claim. Support labels
+    judge the cited sources jointly; the rate uses reviewed claims only and is
+    always accompanied by review coverage. No labels means no semantic score.
+    """
+    from obsidian_rag.citation import CitationParseError, parse_cited_answer, validate_citations
+    metrics = {'structure_valid': False, 'references_valid': False, 'claim_count': None,
+               'reference_count': None, 'valid_reference_count': None,
+               'citation_id_validity': None, 'claim_reference_coverage': None,
+               'support_review_coverage': None, 'supported_claim_rate': None,
+               'answer_correct': None, 'answer_complete': None, 'issues': []}
+    try:
+        answer = parse_cited_answer(raw_response)
+    except CitationParseError:
+        metrics['issues'] = [{'code': 'invalid_structure'}]
+        return metrics
+    validation = validate_citations(answer, sources)
+    known = {s.source_id for s in sources}
+    references = [s for c in answer.claims for s in c.source_ids]
+    valid = sum(s in known for s in references)
+    count = len(answer.claims)
+    metrics.update(structure_valid=True, references_valid=validation.references_valid,
+                   claim_count=count, reference_count=len(references), valid_reference_count=valid,
+                   citation_id_validity=valid / len(references) if references else None,
+                   claim_reference_coverage=sum(any(s in known for s in c.source_ids) for c in answer.claims) / count if count else None,
+                   issues=validation.to_dict()['issues'])
+    if review is not None:
+        labels = review.get('claim_support')
+        if (not isinstance(review.get('reviewer'), str) or not review['reviewer'].strip()
+                or not isinstance(labels, list) or len(labels) != count
+                or any(label not in (None, 'supported', 'partial', 'contradicted', 'insufficient') for label in labels)):
+            raise ValueError('Review requires an identified reviewer and one support label per claim.')
+        # A supplied semantic score cannot bless missing or out-of-context references.
+        for claim, label in zip(answer.claims, labels):
+            if label == 'supported' and (not claim.source_ids or any(s not in known for s in claim.source_ids)):
+                raise ValueError('A supported claim must have valid source references.')
+        reviewed = [label for label in labels if label is not None]
+        metrics['support_review_coverage'] = len(reviewed) / count if count else None
+        metrics['supported_claim_rate'] = reviewed.count('supported') / len(reviewed) if reviewed else None
+        for key in ('answer_correct', 'answer_complete'):
+            value = review.get(key)
+            if value is not None and type(value) is not bool:
+                raise ValueError(f'{key} review must be boolean or null.')
+            metrics[key] = value
+    return metrics
+
+
+def evaluate_citation_context(context, *, client) -> dict:
+    """Run one frozen context once, preserving failures as well as successes."""
+    from httpx import HTTPError
+    from ollama import ResponseError
+    from obsidian_rag.citation import citation_json_schema
+    from obsidian_rag.generation import CitedGenerationError, generate_cited_answer
+    context.verify_citation_mapping()
+    sources = context.citation_sources
+    row = {'context': context.to_dict(), 'response_schema': citation_json_schema([s.source_id for s in sources]),
+           'success': False, 'result': None, 'raw_response': None, 'error': None}
+    started = perf_counter()
+    try:
+        result = generate_cited_answer(context, client=client)
+        payload = result.to_dict()
+        payload.pop('raw_response')
+        row.update(success=True, result=payload, raw_response=result.raw_response)
+        # No-evidence short circuit has no model response; evaluate the application result.
+        metric_input = result.raw_response if result.raw_response is not None else json.dumps(result.answer.to_dict())
+    except (CitedGenerationError, ValueError, OSError, HTTPError, ResponseError) as error:
+        row['raw_response'] = getattr(error, 'raw_response', None)
+        row['error'] = {'code': getattr(error, 'code', type(error).__name__), 'message': str(error)}
+        row['error']['token_usage'] = getattr(error, 'token_usage', None)
+        metric_input = row['raw_response']
+    row['generation_ms'] = (perf_counter() - started) * 1000
+    row['metrics'] = citation_statistics(metric_input, sources)
+    return row
+
+
+def evaluate_citation_case(question, results, *, config, counter, client) -> dict:
+    """Retain per-question budget failures instead of aborting a batch evaluation."""
+    from obsidian_rag.context import ContextBudgetError, build_context
+    try:
+        context = build_context(question, results, config=config, counter=counter, citation_mode='structured')
+    except ContextBudgetError as error:
+        return {'context': None, 'response_schema': None, 'success': False, 'result': None,
+                'raw_response': None, 'generation_ms': 0,
+                'error': {'code': 'context_budget', 'message': str(error)},
+                'metrics': citation_statistics(None, [])}
+    return evaluate_citation_context(context, client=client)
+
+
+def summarize_citations(rows) -> dict:
+    """Macro rates on defined cases, with failures/counts reported alongside."""
+    if not rows:
+        raise ValueError('Citation summary requires at least one case.')
+    summary = {'case_count': len(rows), 'success_count': sum(r['success'] for r in rows),
+               'error_count': sum(not r['success'] for r in rows),
+               'mean_generation_ms': float(np.mean([r['generation_ms'] for r in rows]))}
+    for key in ('structure_valid', 'references_valid', 'citation_id_validity', 'claim_reference_coverage',
+                'support_review_coverage', 'supported_claim_rate', 'answer_correct', 'answer_complete'):
+        values = [r['metrics'][key] for r in rows if r['metrics'][key] is not None]
+        summary[key] = float(np.mean(values)) if values else None
+        summary[key + '_defined_cases'] = len(values)
+    summary['claim_count'] = sum(r['metrics']['claim_count'] or 0 for r in rows)
+    summary['reference_count'] = sum(r['metrics']['reference_count'] or 0 for r in rows)
+    return summary
+
 def main(argv=None) -> int:
     """Evaluate an existing snapshot and save a new, non-overwriting artifact folder."""
     from importlib.metadata import version
@@ -200,6 +308,7 @@ def main(argv=None) -> int:
     parser.add_argument('--tokenizer-cache', type=Path)
     parser.add_argument('--qdrant-url')
     parser.add_argument('--context', action='store_true', help='Also compare context policies on the same NumPy hits.')
+    parser.add_argument('--citations', action='store_true', help='Generate and evaluate structured citations on the same NumPy hits.')
     parser.add_argument('--generation-model', default='qwen3.5:4b')
     parser.add_argument('--context-window', type=int, default=8192)
     parser.add_argument('--max-output-tokens', type=int, default=1024)
@@ -208,7 +317,7 @@ def main(argv=None) -> int:
     if args.output.exists():
         parser.error('--output must be a new directory; old evaluation artifacts are preserved')
     context_config = None
-    if args.context:
+    if args.context or args.citations:
         from obsidian_rag.context import ContextConfig, load_generation_counter
         try:
             context_config = ContextConfig(args.context_window, args.max_output_tokens, args.context_safety_margin)
@@ -250,8 +359,9 @@ def main(argv=None) -> int:
             modes = {'qdrant_exact': (search, True), 'qdrant_ann': (search, False)}
         report = compare_retrieval(records, vectors, queries, cases, spec=spec, vault_id=args.vault_id,
                                    backends=modes, top_k=args.top_k)
-        context_rows = []
-        if args.context:
+        context_rows, citation_rows = [], []
+        if args.context or args.citations:
+            from obsidian_rag.context import build_context
             from obsidian_rag.retrieval import SearchResult
             counter = load_generation_counter(client=ollama, model=args.generation_model,
                                               cache_dir=args.tokenizer_cache, local_files_only=args.offline)
@@ -259,8 +369,18 @@ def main(argv=None) -> int:
             for case, row in zip(cases, report['results']):
                 hits = [SearchResult(by_id[h['chunk_id']].chunk, h['score'], by_id[h['chunk_id']], manifest.index_version)
                         for h in row['modes']['numpy_exact']['hits']]
-                context_rows.append({'id': case['id'], 'question': case['question'],
-                                     'modes': compare_contexts(case['question'], hits, case, config=context_config, counter=counter)})
+                if args.context:
+                    context_rows.append({'id': case['id'], 'question': case['question'],
+                                         'modes': compare_contexts(case['question'], hits, case, config=context_config, counter=counter)})
+                if args.citations:
+                    citation_rows.append({'id': case['id'], 'question': case['question'],
+                                          **evaluate_citation_case(case['question'], hits, config=context_config,
+                                                                  counter=counter, client=ollama)})
+        if citation_rows:
+            report['citations'] = {'config': asdict(context_config), 'counter': counter.identity,
+                                   'summary': summarize_citations(citation_rows),
+                                   'limits': 'Source membership is checked; claim support and answer accuracy are not judged.'}
+        if context_rows:
             report['context'] = {'config': asdict(context_config), 'counter': counter.identity,
                                  'generation_model': counter.model, 'is_estimate': counter.is_estimate,
                                  'summary': {}}
@@ -281,9 +401,12 @@ def main(argv=None) -> int:
                'query_embedding_seconds': embedding_seconds,
                'sqlite_bytes': args.db.stat().st_size, 'sqlite_wal_bytes': Path(str(args.db) + '-wal').stat().st_size
                if Path(str(args.db) + '-wal').exists() else 0,
-               'limits': 'Search timings include backend I/O, exclude embedding and snapshot load; small fixed corpus, no answer generation.'}
+               'limits': 'Search timings exclude embedding and snapshot load. Citation timings include generation and validation when enabled. No semantic scoring without reviews.'}
         args.output.mkdir(parents=True, exist_ok=False)
         (args.output / 'cases.jsonl').write_bytes(raw_cases)
+        if citation_rows:
+            (args.output / 'citation_results.jsonl').write_text(
+                ''.join(json.dumps(row, ensure_ascii=False) + '\n' for row in citation_rows))
         if context_rows:
             (args.output / 'context_results.jsonl').write_text(
                 ''.join(json.dumps(row, ensure_ascii=False) + '\n' for row in context_rows))

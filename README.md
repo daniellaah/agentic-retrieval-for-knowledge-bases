@@ -753,3 +753,19 @@ uv run --locked python -m obsidian_rag.evaluation \
   --output path/to/new-context-evaluation --offline --top-k 2 --context \
   --context-window 8192 --max-output-tokens 1024
 ```
+
+Add `--citations` to generate structured answers once on the same frozen NumPy
+hits. `citation_results.jsonl` includes final messages, response schemas, source
+registries, raw model output, validation failures, token usage and generation
+time. Existing output directories are rejected. This can be combined with
+`--context`; it does not modify the index or document vectors.
+
+`evaluation.citation_statistics` measures ID validity and the fraction of emitted
+claims having a known reference. These metrics do not identify omitted facts or
+prove support. Optional review data supplies an identified `reviewer`, one
+`claim_support` label per claim (`supported`, `partial`, `contradicted`,
+`insufficient`, or null), and optional boolean `answer_correct` / `answer_complete`.
+Support is judged against the cited sources jointly. The supported-claim rate
+uses reviewed claims only and reports review coverage separately. Zero
+denominators and absent semantic reviews remain null, never perfect scores.
+Summaries include failed cases and each metric's number of defined cases.

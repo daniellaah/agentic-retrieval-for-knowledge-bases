@@ -23,11 +23,12 @@ _NO_EVIDENCE = "The provided notes do not contain enough information to answer t
 class CitedGenerationError(ValueError):
     """A failed response retained for diagnostics; never silently repaired."""
 
-    def __init__(self, code, raw_response, *, validation=None):
+    def __init__(self, code, raw_response, *, validation=None, token_usage=None):
         super().__init__(f'Cited generation failed: {code}.')
         self.code = code
         self.raw_response = raw_response
         self.validation = validation
+        self.token_usage = token_usage
 
 
 @dataclass(frozen=True)
@@ -114,15 +115,17 @@ def generate_cited_answer(
     response = _chat(context, client=client, model=model,
                      schema=citation_json_schema([s.source_id for s in sources]))
     raw = response.message.content
+    usage = {'prompt_tokens': context.prompt_tokens, 'actual_prompt_tokens': response.prompt_eval_count,
+             'output_tokens': response.eval_count}
     if response.done_reason == 'length':
-        raise CitedGenerationError('truncated_output', raw)
+        raise CitedGenerationError('truncated_output', raw, token_usage=usage)
     try:
         answer = parse_cited_answer(raw)
     except CitationParseError as error:
-        raise CitedGenerationError('invalid_structure', raw) from error
+        raise CitedGenerationError('invalid_structure', raw, token_usage=usage) from error
     validation = validate_citations(answer, sources)
     if not validation.references_valid:
-        raise CitedGenerationError('invalid_references', raw, validation=validation)
+        raise CitedGenerationError('invalid_references', raw, validation=validation, token_usage=usage)
     return CitedGeneration(answer, sources, context.context_id, raw, context.prompt_tokens,
                            response.prompt_eval_count, response.eval_count)
 
