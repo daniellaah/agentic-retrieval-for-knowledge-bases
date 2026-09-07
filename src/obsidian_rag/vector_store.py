@@ -1,14 +1,13 @@
 """Small vector-store contract and the exact NumPy reference implementation."""
 
 from collections.abc import Sequence
-from dataclasses import replace
 from typing import Protocol
 
 import numpy as np
 
 from obsidian_rag.embeddings import validate_vectors
 from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, VectorHit, validate_records
-from obsidian_rag.retrieval import retrieve
+from obsidian_rag.retrieval import search_numpy, validate_search
 
 
 class VectorStore(Protocol):
@@ -27,15 +26,6 @@ class VectorStore(Protocol):
                exact: bool = False) -> list[VectorHit]: ...
     def delete(self, chunk_ids: Sequence[str]) -> None: ...
     def count(self) -> int: ...
-
-
-def validate_search(top_k: int, source: str | None, exact: bool) -> None:
-    if type(top_k) is not int or top_k <= 0:
-        raise ValueError("top_k must be a positive integer.")
-    if source is not None and (not isinstance(source, str) or not source.strip()):
-        raise ValueError("source must be a nonblank filename or None.")
-    if type(exact) is not bool:
-        raise ValueError("exact must be a boolean.")
 
 
 class NumpyVectorStore:
@@ -62,17 +52,10 @@ class NumpyVectorStore:
 
     def search(self, query_vector, *, top_k: int = 2, source: str | None = None,
                exact: bool = False) -> list[VectorHit]:
-        validate_search(top_k, source, exact)
-        query = validate_vectors([query_vector], rows=1, dimensions=self.spec.dimensions,
-                                 dtype=self.spec.dtype, normalization=self.spec.normalization)[0]
-        entries = [(record, vector) for record, vector in self._entries.values()
-                   if source is None or record.chunk.source == source]
-        if not entries:
-            return []
-        chunks = [replace(record.chunk) for record, _ in entries]
-        ids = {id(chunk): record.chunk_id for chunk, (record, _) in zip(chunks, entries)}
-        results = retrieve(chunks, np.stack([v for _, v in entries]), query, top_k=top_k)
-        return [VectorHit(ids[id(result.chunk)], result.score) for result in results]
+        records = [record for record, _ in self._entries.values()]
+        vectors = np.stack([vector for _, vector in self._entries.values()]) if records else np.empty((0, self.spec.dimensions))
+        return search_numpy(records, vectors, query_vector, spec=self.spec, vault_id=self.vault_id,
+                            top_k=top_k, source=source, exact=exact)
 
     def delete(self, chunk_ids: Sequence[str]) -> None:
         for chunk_id in chunk_ids:

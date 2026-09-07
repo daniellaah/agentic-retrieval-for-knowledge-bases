@@ -1,3 +1,5 @@
+from functools import partial
+
 import numpy as np
 import pytest
 
@@ -5,7 +7,7 @@ from obsidian_rag.chunking import Chunk, whole_note_chunks
 from obsidian_rag.evaluation import compare_retrieval, evidence_statistics, recall_at_k
 from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
 from obsidian_rag.loaders import Note
-from obsidian_rag.vector_store import NumpyVectorStore
+from obsidian_rag.retrieval import search_numpy
 
 
 def test_neighbor_recall_counts_unique_exact_neighbors_and_handles_no_reference():
@@ -35,8 +37,7 @@ def test_comparison_separates_neighbor_recall_from_evidence_coverage():
     notes = [Note(title='T', content='evidence', source=f'{i}.md') for i in range(2)]
     records = [ChunkRecord.from_note(whole_note_chunks([n])[0], note=n, vault_id='v') for n in notes]
     vectors = np.eye(2)
-    alternate = NumpyVectorStore(spec, vault_id='v')
-    alternate.upsert(records, vectors[::-1])
+    alternate = partial(search_numpy, records, vectors[::-1], spec=spec, vault_id='v')
     cases = [{'id': 'q1', 'question': 'Question?', 'required_source_groups': [['1.md']],
               'evidence_anchors': [{'source': '1.md', 'body_start_char': 0, 'body_end_char': 8}]}]
     result = compare_retrieval(records, vectors, [[1, 0]], cases, spec=spec, vault_id='v', top_k=1,

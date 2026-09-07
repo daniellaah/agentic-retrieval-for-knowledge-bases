@@ -12,7 +12,6 @@ import json
 import re
 from typing import Literal
 from uuid import NAMESPACE_URL, uuid5
-
 from obsidian_rag.chunking import Chunk
 from obsidian_rag.loaders import Note
 
@@ -262,3 +261,8 @@ def point_id(chunk_id: str) -> str:
     if not isinstance(chunk_id, str) or re.fullmatch('[0-9a-f]{64}', chunk_id) is None:
         raise ValueError('Expected a SHA-256 chunk ID.')
     return str(uuid5(NAMESPACE_URL, 'obsidian-rag/chunk/' + chunk_id))
+
+
+def qdrant_identity(spec: EmbeddingSpec, vault_id: str) -> dict:
+    """Metadata identifying one owned Qdrant collection's embedding space."""
+    return {'owner': 'obsidian-rag', 'schema': 1, 'embedding_spec': spec.fingerprint, 'vault_id': vault_id}

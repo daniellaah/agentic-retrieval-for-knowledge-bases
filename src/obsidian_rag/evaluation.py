@@ -3,6 +3,7 @@
 import argparse
 from contextlib import ExitStack, closing
 from dataclasses import asdict
+from functools import partial
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -10,11 +11,9 @@ from pathlib import Path
 import platform
 import subprocess
 from time import perf_counter
-
 import numpy as np
-
 from obsidian_rag.embeddings import validate_vectors
-from obsidian_rag.vector_store import NumpyVectorStore
+from obsidian_rag.retrieval import search_numpy
 
 
 def recall_at_k(reference: list[str], candidate: list[str], k: int) -> float | None:
@@ -62,7 +61,9 @@ def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spe
                       vault_id: str, backends: dict | None = None, top_k: int = 2) -> dict:
     """Compare identical vectors/queries; timings cover search only, including backend I/O.
 
-    Additional backends map mode names to (VectorStore, exact flag). Mode order
+    Additional backends map mode names to (search callable, exact flag).
+    Each callable receives a query vector, top_k and exact; callers bind the
+    already validated snapshot, embedding spec and vault when preparing it. Mode order
     rotates between cases to reduce a fixed warm-order advantage. Exact ranking
     ties may select different IDs; raw IDs/scores are retained for inspection.
     """
@@ -72,16 +73,14 @@ def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spe
         raise ValueError('top_k must be positive.')
     query_vectors = validate_vectors(query_vectors, rows=len(cases), dimensions=spec.dimensions,
                                      dtype=spec.dtype, normalization=spec.normalization)
-    reference = NumpyVectorStore(spec, vault_id=vault_id)
-    if records:
-        reference.upsert(records, vectors)
+    reference = partial(search_numpy, records, vectors, spec=spec, vault_id=vault_id)
     modes = {'numpy_exact': (reference, True)}
     if backends and 'numpy_exact' in backends:
         raise ValueError('numpy_exact is reserved for the reference.')
     modes.update(backends or {})
-    for store, _ in modes.values():
-        if store.spec != spec or store.vault_id != vault_id:
-            raise ValueError('Evaluation backends must share the same embedding spec and vault.')
+    for search, exact in modes.values():
+        if not callable(search) or type(exact) is not bool:
+            raise ValueError('Evaluation requires search callables and boolean exact flags.')
     by_id = {r.chunk_id: r for r in records}
     for case in cases:
         if not isinstance(case.get('question'), str) or not case['question'].strip():
@@ -97,9 +96,9 @@ def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spe
         row = {'id': case['id'], 'question': case['question'], 'modes': {}}
         order = names[i % len(names):] + names[:i % len(names)]
         for name in order:
-            store, exact = modes[name]
+            search, exact = modes[name]
             started = perf_counter()
-            hits = store.search(query, top_k=top_k, exact=exact)
+            hits = search(query, top_k=top_k, exact=exact)
             elapsed = (perf_counter() - started) * 1000
             if len(hits) > top_k or any(h.chunk_id not in by_id for h in hits):
                 raise ValueError('Evaluation backend returned unknown or excess hits.')
@@ -190,7 +189,7 @@ def main(argv=None) -> int:
             info = store.check_configuration()
             server_info = {'version': client.info().version, 'indexed_vectors': info.indexed_vectors_count,
                            'hnsw_config': info.config.hnsw_config.model_dump(mode='json')}
-            modes = {'qdrant_exact': (store, True), 'qdrant_ann': (store, False)}
+            modes = {'qdrant_exact': (store.search, True), 'qdrant_ann': (store.search, False)}
         report = compare_retrieval(records, vectors, queries, cases, spec=spec, vault_id=args.vault_id,
                                    backends=modes, top_k=args.top_k)
         repo = Path(__file__).resolve().parents[2]

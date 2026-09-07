@@ -2,12 +2,17 @@
 
 from collections.abc import Sequence
 import math
-
 from qdrant_client import QdrantClient, models
-
 from obsidian_rag.embeddings import validate_vectors
-from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, point_id
-from obsidian_rag.vector_store import VectorHit, validate_records, validate_search
+from obsidian_rag.schema import (
+    ChunkRecord,
+    EmbeddingSpec,
+    point_id,
+    VectorHit,
+    validate_records,
+    qdrant_identity,
+)
+from obsidian_rag.retrieval import check_qdrant_collection, search_qdrant
 
 
 class QdrantVectorStore:
@@ -32,7 +37,7 @@ class QdrantVectorStore:
             if type(value) is not int or value < minimum:
                 raise ValueError(f'{name} must be an integer >= {minimum}.')
         self.client, self.collection, self.spec, self.vault_id = client, collection, spec, vault_id
-        self.identity = {'owner': 'obsidian-rag', 'schema': 1, 'embedding_spec': spec.fingerprint, 'vault_id': vault_id}
+        self.identity = qdrant_identity(spec, vault_id)
         if create:
             client.create_collection(
                 collection_name=collection,
@@ -47,12 +52,7 @@ class QdrantVectorStore:
         self.check_configuration()
 
     def check_configuration(self):
-        info = self.client.get_collection(self.collection)
-        vectors = info.config.params.vectors
-        if (not isinstance(vectors, models.VectorParams) or vectors.size != self.spec.dimensions
-                or vectors.distance != models.Distance.COSINE or info.config.metadata != self.identity):
-            raise ValueError('Qdrant collection configuration does not match the embedding spec and vault.')
-        return info
+        return check_qdrant_collection(self.client, self.collection, spec=self.spec, vault_id=self.vault_id)
 
     def upsert(self, records: Sequence[ChunkRecord], vectors) -> None:
         records = list(records)
@@ -69,30 +69,8 @@ class QdrantVectorStore:
 
     def search(self, query_vector, *, top_k: int = 2, source: str | None = None,
                exact: bool = False, ef_search: int | None = None) -> list[VectorHit]:
-        validate_search(top_k, source, exact)
-        if ef_search is not None and (type(ef_search) is not int or ef_search <= 0):
-            raise ValueError('ef_search must be positive.')
-        query = validate_vectors([query_vector], rows=1, dimensions=self.spec.dimensions,
-                                 dtype=self.spec.dtype, normalization=self.spec.normalization)[0]
-        values = {'vault_id': self.vault_id, 'embedding_spec': self.spec.fingerprint}
-        if source is not None:
-            values['source'] = source
-        query_filter = models.Filter(must=[models.FieldCondition(key=k, match=models.MatchValue(value=v))
-                                           for k, v in values.items()])
-        points = self.client.query_points(
-            collection_name=self.collection, query=query.tolist(), query_filter=query_filter,
-            limit=top_k, with_payload=True, with_vectors=False,
-            search_params=models.SearchParams(exact=exact, hnsw_ef=ef_search),
-        ).points
-        hits = []
-        for point in points:
-            payload = point.payload or {}
-            chunk_id = payload.get('chunk_id')
-            if (point_id(chunk_id) != str(point.id) or any(payload.get(k) != v for k, v in values.items())
-                    or not math.isfinite(point.score) or not -1.00001 <= point.score <= 1.00001):
-                raise ValueError('Qdrant returned invalid identity, filter metadata, or cosine score.')
-            hits.append(VectorHit(chunk_id, max(-1.0, min(1.0, float(point.score)))))
-        return sorted(hits, key=lambda hit: (-hit.score, hit.chunk_id))
+        return search_qdrant(self.client, self.collection, query_vector, spec=self.spec,
+                             vault_id=self.vault_id, top_k=top_k, source=source, exact=exact, ef_search=ef_search)
 
     def delete(self, chunk_ids: Sequence[str]) -> None:
         ids = [point_id(chunk_id) for chunk_id in chunk_ids]
