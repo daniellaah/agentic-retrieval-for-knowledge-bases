@@ -202,6 +202,8 @@ def test_indexed_search_only_embeds_query_and_restores_snapshot_content(publishe
     assert results[0].chunk.content == 'Original source text'
     assert results[0].chunk.source == 'a.md'
     assert results[0].score == 1
+    assert results[0].index_version == 'v1'
+    assert results[0].record == store.snapshot_records('v1')[0]
 
 
 def test_indexed_search_rejects_model_and_tokenizer_mismatches_before_embedding(published_index):
@@ -326,3 +328,31 @@ def test_numpy_distinct_records_can_reference_the_same_chunk_object(vector_data)
     second = replace(first, document_revision='a' * 64)
     hits = search_numpy([first, second], [[1, 0], [0, 1]], [1, 0], spec=spec, vault_id='vault')
     assert [h.chunk_id for h in hits] == [first.chunk_id, second.chunk_id]
+
+
+def test_search_result_rejects_partial_or_inconsistent_identity(vector_data):
+    from obsidian_rag.retrieval import SearchResult
+    _, records = vector_data
+    record = records[0]
+    for kwargs in ({'record': record}, {'index_version': 'v1'},
+                   {'record': record, 'index_version': ''},
+                   {'record': records[1], 'index_version': 'v1'}):
+        with pytest.raises(ValueError):
+            SearchResult(record.chunk, .5, **kwargs)
+
+
+def test_search_keeps_requested_snapshot_after_a_new_revision_is_published(published_index):
+    from obsidian_rag.indexing import build_index
+    from obsidian_rag.retrieval import search_index
+    store, kwargs = published_index
+    build_index(store, [Note('Title', 'Updated source text', 'a.md')],
+                spec=kwargs['spec'], vault_id='vault', tokenizer=kwargs['tokenizer'],
+                max_input_tokens=100, client=kwargs['client'], chunking='none',
+                index_version='v2', query_instruction='Find evidence.')
+    old = search_index(store, 'Question?', **kwargs, index_version='v1')[0]
+    new = search_index(store, 'Question?', **kwargs)[0]
+    assert old.chunk.content == 'Original source text'
+    assert old.index_version == 'v1'
+    assert new.index_version == 'v2'
+    assert old.record.document_id == new.record.document_id
+    assert old.record.document_revision != new.record.document_revision

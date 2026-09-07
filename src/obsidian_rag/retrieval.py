@@ -30,10 +30,25 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class SearchResult:
-    """A retrieved chunk and its cosine similarity to a query."""
+    """A cosine hit, optionally tied to a verified immutable snapshot.
+
+    Legacy in-memory hits have neither record nor index_version. They must not
+    be treated as evidence of a known document revision when merging content.
+    """
 
     chunk: Chunk
     score: float
+    record: ChunkRecord | None = None
+    index_version: str | None = None
+
+    def __post_init__(self) -> None:
+        if (self.record is None) != (self.index_version is None):
+            raise ValueError('record and index_version must be supplied together.')
+        if self.record is not None:
+            if not isinstance(self.record, ChunkRecord) or self.record.chunk != self.chunk:
+                raise ValueError('Search result chunk must match its source record.')
+            if not isinstance(self.index_version, str) or not self.index_version.strip():
+                raise ValueError('index_version must be nonblank.')
 
 
 def _rank_vectors(chunk_vectors, query_vector, *, rows: int, top_k: int):
@@ -218,7 +233,7 @@ def search_index(
         if (record is None or not np.isfinite(hit.score) or not -1 <= hit.score <= 1
                 or (source is not None and record.chunk.source != source)):
             raise ValueError('Vector hit does not match the snapshot, filter, or cosine score contract.')
-        results.append(SearchResult(record.chunk, hit.score))
+        results.append(SearchResult(record.chunk, hit.score, record, manifest.index_version))
     return results
 
 

@@ -31,3 +31,35 @@ def test_context_handles_empty_evidence_and_rejects_blank_question():
     assert json.loads(built.messages[1]['content'])['notes'] == []
     with pytest.raises(ValueError, match='blank'):
         build_context(' \n', [])
+
+
+def test_context_preserves_snapshot_provenance_without_exposing_it_in_prompt():
+    from obsidian_rag.loaders import Note
+    from obsidian_rag.schema import ChunkRecord
+    note = Note('Title', 'A fact.', 'notes/a.md')
+    chunk = Chunk(note.content, note.title, note.source, 0, 0, len(note.content))
+    record = ChunkRecord.from_note(chunk, note=note, vault_id='v')
+    hit = SearchResult(chunk, .8, record, 'snapshot-1')
+    built = build_context('Question?', [hit])
+    block = built.citation_map['notes/a.md'][0]
+    assert block.origins == (hit,)
+    assert block.origins[0].record.chunk_id == record.chunk_id
+    assert block.origins[0].record.document_revision == record.document_revision
+    assert block.origins[0].index_version == 'snapshot-1'
+    assert 'snapshot-1' not in built.messages[1]['content']
+    payload = built.messages
+    payload[1]['content'] = 'mutated'
+    assert built.messages[1]['content'] != 'mutated'
+
+
+def test_context_rejects_invalid_source_coordinates():
+    bad = Chunk('abc', 'T', 'a.md', 0, 2, 6)
+    with pytest.raises(ValueError, match='span'):
+        build_context('Question?', [SearchResult(bad, .5)])
+
+
+def test_legacy_context_keeps_unknown_revision_explicit():
+    chunk = Chunk('abc', 'T', 'a.md', 0, 0, 3)
+    origin = build_context('Q?', [SearchResult(chunk, .5)]).evidence_blocks[0].origins[0]
+    assert origin.record is None
+    assert origin.index_version is None
