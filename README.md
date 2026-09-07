@@ -781,3 +781,13 @@ Support is judged against the cited sources jointly. The supported-claim rate
 uses reviewed claims only and reports review coverage separately. Zero
 denominators and absent semantic reviews remain null, never perfect scores.
 Summaries include failed cases and each metric's number of defined cases.
+
+## Shared knowledge content
+
+`knowledge_base.loaders` and `knowledge_base.chunking` operate independently of
+embeddings or indexes. `knowledge_base.sources.KnowledgeSnapshot.from_notes`
+freezes loaded notes, exposes source references and checked character-span reads,
+and binds chunks to the original note revision with `bind_chunks`. Coordinates
+remain Python character offsets in the normalized `Note.content`. The snapshot
+is in memory; editing source files does not change its content. Duplicate source
+paths are rejected. Existing document and chunk identities remain unchanged.

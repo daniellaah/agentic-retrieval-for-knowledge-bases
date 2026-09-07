@@ -1,0 +1,37 @@
+from obsidian_rag.knowledge_base.loaders import load_notes
+from obsidian_rag.knowledge_base.sources import KnowledgeSnapshot
+
+
+def test_loaded_notes_can_be_read_from_an_immutable_snapshot_without_embeddings(tmp_path):
+    path = tmp_path / 'memory.md'
+    path.write_text('# Memory\n\n短期与长期记忆。', encoding='utf-8')
+    snapshot = KnowledgeSnapshot.from_notes(load_notes(tmp_path), vault_id='personal')
+    reference = snapshot.note_refs()[0]
+    path.write_text('# Changed\nNew content', encoding='utf-8')
+    assert reference.path == 'memory.md'
+    assert snapshot.read_note(reference).content == '短期与长期记忆。'
+    excerpt = snapshot.read_span(reference, 3, 7)
+    assert excerpt.content == '长期记忆'
+    assert (excerpt.start_char, excerpt.end_char) == (3, 7)
+
+
+def test_snapshot_rejects_ambiguous_duplicate_source_paths():
+    import pytest
+    from obsidian_rag.knowledge_base.models import Note
+    notes = [Note('A', 'old', 'a.md'), Note('A', 'new', 'a.md')]
+    with pytest.raises(ValueError, match='unique'):
+        KnowledgeSnapshot.from_notes(notes, vault_id='personal')
+
+
+def test_chunks_can_be_bound_to_a_snapshot_without_a_vector_index():
+    import pytest
+    from dataclasses import replace
+    from obsidian_rag.knowledge_base.models import Note
+    from obsidian_rag.knowledge_base.chunking import chunk_notes
+    snapshot = KnowledgeSnapshot.from_notes([Note('A', 'alpha beta gamma', 'a.md')], vault_id='personal')
+    chunks = chunk_notes(snapshot.notes, count_tokens=lambda text: len(text.split()), chunk_size=2, chunk_overlap=0)
+    records = snapshot.bind_chunks(chunks)
+    assert [r.chunk.content for r in records] == ['alpha beta ', 'gamma']
+    assert records[0].document_id == snapshot.note_refs()[0].document_id
+    with pytest.raises(ValueError, match='source'):
+        snapshot.bind_chunks([replace(chunks[0], content='invalid body')])
