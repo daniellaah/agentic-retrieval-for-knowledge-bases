@@ -3,15 +3,17 @@
 import argparse
 from contextlib import ExitStack, closing
 from dataclasses import asdict
-from functools import partial
 from datetime import datetime, timezone
+from functools import partial
 import hashlib
 import json
 from pathlib import Path
 import platform
 import subprocess
 from time import perf_counter
+
 import numpy as np
+
 from obsidian_rag.embeddings import validate_vectors
 from obsidian_rag.retrieval import search_numpy
 

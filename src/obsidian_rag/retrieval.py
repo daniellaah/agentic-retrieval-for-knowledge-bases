@@ -1,13 +1,15 @@
 """Query immutable snapshots with NumPy or Qdrant and return source evidence."""
 
-import math
-import os
-from urllib.parse import urlsplit
 from collections.abc import Sequence
 from dataclasses import dataclass
+import math
+import os
 from typing import TYPE_CHECKING
+from urllib.parse import urlsplit
+
 import numpy as np
 from numpy.typing import NDArray
+
 from obsidian_rag.chunking import Chunk
 from obsidian_rag.embeddings import validate_vectors
 from obsidian_rag.schema import (

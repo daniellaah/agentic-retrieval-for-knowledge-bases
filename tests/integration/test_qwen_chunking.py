@@ -1,7 +1,7 @@
 """Opt-in chunking checks with the cached Qwen tokenizer; no Ollama required."""
 
-import os
 from functools import partial
+import os
 
 import pytest
 from tokenizers import Tokenizer

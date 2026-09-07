@@ -2,12 +2,14 @@
 
 from contextlib import contextmanager
 from dataclasses import asdict, replace
-import hashlib
 import fcntl
+import hashlib
 import json
 from pathlib import Path
 import sqlite3
+
 import numpy as np
+
 from obsidian_rag.chunking import Chunk
 from obsidian_rag.embeddings import prepare_document, validate_vectors
 from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest

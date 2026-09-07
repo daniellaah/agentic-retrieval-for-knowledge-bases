@@ -2,8 +2,8 @@
 
 import os
 
-import pytest
 from ollama import Client
+import pytest
 
 from obsidian_rag.chunking import whole_note_chunks
 from obsidian_rag.embeddings import prepare_document, prepare_query, validate_input_tokens

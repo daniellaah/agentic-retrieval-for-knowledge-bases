@@ -1,15 +1,17 @@
-import numpy as np
-import pytest
-from numpy.typing import NDArray
-from obsidian_rag.chunking import Chunk, chunk_notes, whole_note_chunks
-from obsidian_rag.loaders import Note
-from obsidian_rag.retrieval import retrieve, search_qdrant, search_numpy
 from contextlib import closing
 from dataclasses import replace
 import warnings
+
+import numpy as np
+from numpy.typing import NDArray
+import pytest
 from qdrant_client import QdrantClient
-from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
+
+from obsidian_rag.chunking import Chunk, chunk_notes, whole_note_chunks
 from obsidian_rag.indexing import QdrantIndex
+from obsidian_rag.loaders import Note
+from obsidian_rag.retrieval import retrieve, search_qdrant, search_numpy
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
 
 
 @pytest.fixture

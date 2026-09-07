@@ -6,6 +6,43 @@ The repository includes a command-line interface, a Markdown note loader, an
 Ollama embedding client function, cosine similarity search, answer generation,
 and sample Markdown notes in `example_notes/`.
 
+## Python modules
+
+The package stays flat: one module per stage, with both retrieval backends in
+`retrieval.py` and all embedding preparation and model calls in `embeddings.py`.
+
+| File in `src/obsidian_rag/` | Responsibility |
+| --- | --- |
+| `__init__.py` | Package marker |
+| `loaders.py` | Note records, Markdown loading, and consistent source-directory scans |
+| `chunking.py` | Whole-note and recursive splitting with source positions and section metadata |
+| `tokenization.py` | Pinned tokenizer loading, token counting, and tokenizer fingerprints |
+| `embeddings.py` | Document/query input preparation, token budgets, model identity, batching, retries, and vector validation |
+| `schema.py` | Shared embedding specs, chunk records, manifests, search hits, and stable identity rules |
+| `storage.py` | SQLite embedding cache, immutable snapshots, build states, writer locks, and atomic publication |
+| `indexing.py` | Complete/incremental builds, Qdrant writes, HNSW readiness, verification, and failed-candidate cleanup |
+| `retrieval.py` | NumPy exact search, Qdrant exact/ANN search, query embedding, and snapshot evidence lookup |
+| `generation.py` | Grounded answer generation from retrieved chunks |
+| `evaluation.py` | Fixed-case backend comparisons, evidence metrics, and reproducible run artifacts |
+| `cli.py` | Command arguments, resource setup, workflow calls, and output |
+
+Each functional module has a corresponding `tests/test_<module>.py` file.
+Real-service tests live in `tests/integration/`: `test_qwen_tokenizer.py`,
+`test_qwen_chunking.py`, `test_qwen_embeddings.py`, `test_qdrant_retrieval.py`,
+`test_qdrant_indexing.py`, and `test_indexing_lifecycle.py`.
+
+Python imports changed with this refactor: `notes` became `loaders`,
+`index_schema` became `schema`, and `embedding_inputs` merged into `embeddings`.
+The former vector-store adapters were removed. Use `retrieval.search_numpy` or
+`retrieval.search_qdrant` for search, and `indexing.QdrantIndex` for collection
+writes and lifecycle operations. `build_index` and `search_index` select their
+backend from snapshot settings; their former `vector_store` injection argument
+was removed. Evaluation backends now supply `(search_callable, exact_flag)` pairs.
+
+CLI commands, input templates, chunk/cache identity rules, SQLite schema, and
+Qdrant collection metadata remain compatible. Existing indexes can be reopened
+without migrating data or embedding the corpus again.
+
 ## Requirements
 
 - Python 3.13

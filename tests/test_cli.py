@@ -2,9 +2,9 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, Mock
 
-import pytest
 from httpx import ReadError, ReadTimeout
 from ollama import ChatResponse, Client, EmbedResponse, Message, ResponseError
+import pytest
 from tokenizers import Tokenizer, models, pre_tokenizers, processors
 
 from obsidian_rag.cli import main

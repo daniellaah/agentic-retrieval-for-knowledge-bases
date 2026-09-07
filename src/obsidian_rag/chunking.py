@@ -1,9 +1,9 @@
 """Split loaded notes into source-addressable text chunks."""
 
-import re
 from collections import deque
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+import re
 
 from obsidian_rag.loaders import Note
 

@@ -1,17 +1,19 @@
 """Answer questions about Markdown notes from the command line."""
 
 import argparse
-import math
-import json
-import sqlite3
+from collections.abc import Sequence
 from contextlib import ExitStack, closing
 from dataclasses import asdict
-import sys
-from collections.abc import Sequence
 from functools import partial
+import json
+import math
 from pathlib import Path
+import sqlite3
+import sys
+
 from httpx import HTTPError
 from ollama import Client, ResponseError
+
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
 from obsidian_rag.embeddings import prepare_document, prepare_query, embed_texts, resolve_embedding_spec
 from obsidian_rag.generation import generate_answer

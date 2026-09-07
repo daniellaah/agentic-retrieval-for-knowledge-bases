@@ -2,8 +2,8 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import httpx
-import pytest
 from huggingface_hub.errors import LocalEntryNotFoundError
+import pytest
 from tokenizers import Tokenizer, models, normalizers, pre_tokenizers, processors
 
 from obsidian_rag.tokenization import count_tokens, load_tokenizer

@@ -7,6 +7,7 @@ import sys
 import pytest
 
 from obsidian_rag.chunking import Chunk, chunk_notes, whole_note_chunks
+from obsidian_rag.loaders import Note
 from obsidian_rag.schema import (
     SCHEMA_VERSION,
     ChunkRecord,
@@ -14,7 +15,6 @@ from obsidian_rag.schema import (
     IndexManifest,
     fingerprint_config,
 )
-from obsidian_rag.loaders import Note
 
 
 @pytest.fixture

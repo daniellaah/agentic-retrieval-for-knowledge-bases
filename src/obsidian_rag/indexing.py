@@ -3,10 +3,14 @@
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass, replace
 from functools import partial, wraps
-from uuid import uuid4
+import math
 from time import perf_counter
+from uuid import uuid4
+
 from ollama import Client
+from qdrant_client import QdrantClient, models
 from tokenizers import Tokenizer
+
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
 from obsidian_rag.embeddings import (
     DEFAULT_QUERY_INSTRUCTION,
@@ -16,6 +20,8 @@ from obsidian_rag.embeddings import (
     iter_embedding_batches,
     validate_vectors,
 )
+from obsidian_rag.loaders import Note
+from obsidian_rag.retrieval import check_qdrant_collection
 from obsidian_rag.schema import (
     ChunkRecord,
     EmbeddingSpec,
@@ -25,12 +31,8 @@ from obsidian_rag.schema import (
     validate_records,
     qdrant_identity,
 )
-from obsidian_rag.loaders import Note
 from obsidian_rag.storage import SQLiteStorage
 from obsidian_rag.tokenization import count_tokens, tokenizer_fingerprint
-import math
-from qdrant_client import QdrantClient, models
-from obsidian_rag.retrieval import check_qdrant_collection
 
 
 @dataclass(frozen=True)
@@ -146,7 +148,7 @@ def build_index(
     storage.create_build(manifest, corpus_fingerprint=corpus, backend=metadata)
     try:
         if metadata['kind'] == 'qdrant':
-            projection = _qdrant_index(qdrant_client, metadata, manifest, create=True)
+            remote = _qdrant_index(qdrant_client, metadata, manifest, create=True)
         unique = dict(zip(texts, counts))
         missing = [text for text in unique if storage.get_embedding(spec, text) is None]
         for start, vectors in iter_embedding_batches(
@@ -163,9 +165,9 @@ def build_index(
             raise ValueError('Candidate snapshot count does not match source records.')
         if metadata['kind'] == 'qdrant':
             if loaded:
-                projection.upsert(loaded, vectors)
-            projection.verify_snapshot(loaded, vectors)
-            metadata['index_stats'] = projection.wait_ready(
+                remote.upsert(loaded, vectors)
+            remote.verify_snapshot(loaded, vectors)
+            metadata['index_stats'] = remote.wait_ready(
                 expected_count=len(records), timeout=metadata.get('index_timeout', 30),
                 require_hnsw=metadata.get('require_hnsw', False))
             storage.set_backend(manifest.index_version, metadata)
@@ -183,10 +185,10 @@ def _backend_settings(metadata: dict) -> dict:
 
 def _qdrant_index(client, metadata: dict, manifest: IndexManifest, *, create: bool):
     return QdrantIndex(client, metadata['collection'], manifest.embedding_spec,
-                             vault_id=manifest.vault_id, create=create,
-                             hnsw_m=metadata.get('hnsw_m', 16), ef_construct=metadata.get('ef_construct', 100),
-                             indexing_threshold=metadata.get('indexing_threshold', 10000),
-                             full_scan_threshold=metadata.get('full_scan_threshold', 10000))
+                       vault_id=manifest.vault_id, create=create,
+                       hnsw_m=metadata.get('hnsw_m', 16), ef_construct=metadata.get('ef_construct', 100),
+                       indexing_threshold=metadata.get('indexing_threshold', 10000),
+                       full_scan_threshold=metadata.get('full_scan_threshold', 10000))
 
 
 def cleanup_failed_qdrant(storage: SQLiteStorage, *, vault_id: str, client, url: str) -> int:

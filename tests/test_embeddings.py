@@ -1,7 +1,12 @@
+from dataclasses import replace
 from unittest.mock import Mock
+
 import numpy as np
-import pytest
 from ollama import Client, EmbedResponse, ResponseError
+import pytest
+from tokenizers import Tokenizer, models, processors
+
+from obsidian_rag.chunking import Chunk, whole_note_chunks
 from obsidian_rag.embeddings import (
     embed_texts,
     DEFAULT_QUERY_INSTRUCTION,
@@ -10,11 +15,8 @@ from obsidian_rag.embeddings import (
     prepare_query,
     validate_input_tokens,
 )
-from dataclasses import replace
-from tokenizers import Tokenizer, models, processors
-from obsidian_rag.chunking import Chunk, whole_note_chunks
-from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
 from obsidian_rag.loaders import Note
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
 
 
 @pytest.fixture

@@ -12,6 +12,7 @@ import json
 import re
 from typing import Literal
 from uuid import NAMESPACE_URL, uuid5
+
 from obsidian_rag.chunking import Chunk
 from obsidian_rag.loaders import Note
 

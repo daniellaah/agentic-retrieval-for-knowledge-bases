@@ -5,9 +5,9 @@ import pytest
 
 from obsidian_rag.chunking import Chunk, whole_note_chunks
 from obsidian_rag.evaluation import compare_retrieval, evidence_statistics, recall_at_k
-from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
 from obsidian_rag.loaders import Note
 from obsidian_rag.retrieval import search_numpy
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
 
 
 def test_neighbor_recall_counts_unique_exact_neighbors_and_handles_no_reference():

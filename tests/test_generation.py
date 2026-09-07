@@ -1,8 +1,8 @@
 import json
 from unittest.mock import Mock
 
-import pytest
 from ollama import ChatResponse, Client, Message, ResponseError
+import pytest
 
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
 from obsidian_rag.generation import generate_answer

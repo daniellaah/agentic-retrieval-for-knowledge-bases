@@ -13,6 +13,7 @@ from qdrant_client import QdrantClient
 
 from obsidian_rag.storage import SQLiteStorage
 
+
 pytestmark = pytest.mark.skipif(os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',
                                reason='Enable real model integration tests explicitly.')
 

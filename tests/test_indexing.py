@@ -1,17 +1,18 @@
+from contextlib import closing
 from dataclasses import replace
 from unittest.mock import Mock
-import pytest
+import warnings
+
 from ollama import Client, EmbedResponse
+import pytest
+from qdrant_client import QdrantClient
 from tokenizers import Tokenizer, models, pre_tokenizers, processors
-from obsidian_rag.schema import EmbeddingSpec, ChunkRecord
+
+from obsidian_rag.chunking import whole_note_chunks
 from obsidian_rag.indexing import build_index, QdrantIndex
 from obsidian_rag.loaders import Note
+from obsidian_rag.schema import EmbeddingSpec, ChunkRecord
 from obsidian_rag.storage import SQLiteStorage
-from contextlib import closing
-import warnings
-import numpy as np
-from qdrant_client import QdrantClient
-from obsidian_rag.chunking import whole_note_chunks
 
 
 @pytest.fixture
