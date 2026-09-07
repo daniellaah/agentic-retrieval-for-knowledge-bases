@@ -1,14 +1,16 @@
 """Build model messages from retrieved evidence without calling a model."""
 
 from collections.abc import Callable, Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 import hashlib
 import json
 import math
 from pathlib import Path
 
 from obsidian_rag.citation import CitationOrigin, CitationSource
-from obsidian_rag.retrieval import SearchResult
+from obsidian_rag.retrieval.models import SearchResult, SearchScore, ChunkTarget, SpanTarget
+from obsidian_rag.knowledge_base.sources import SourceRef, SourceExcerpt
+from obsidian_rag.knowledge_base.identity import digest
 
 
 _SYSTEM_PROMPT = """Answer the user's question using only the provided notes.
@@ -176,16 +178,17 @@ class EvidenceBlock:
             raise ValueError('Evidence span must match its content length.')
         if not self.origins:
             raise ValueError('Evidence must retain its source origins.')
-        if len(self.origins) > 1 and (self.origins[0].record is None or
+        if len(self.origins) > 1 and (_document_key(self.origins[0]) is None or
                 len({_document_key(hit) for hit in self.origins}) != 1):
             raise ValueError('Merged evidence requires one known document revision and snapshot.')
         for hit in self.origins:
-            chunk = hit.chunk
-            if (chunk.source != self.source or chunk.title != self.title
-                    or chunk.start_char < self.start_char or chunk.end_char > self.end_char
-                    or self.content[chunk.start_char - self.start_char:chunk.end_char - self.start_char]
-                    != chunk.content):
-                raise ValueError('Evidence must contain the verbatim source spans.')
+            if hit.source.path != self.source or hit.source.title != self.title:
+                raise ValueError('Evidence must retain its source identity.')
+            for excerpt in hit.excerpts:
+                if (excerpt.start_char < self.start_char or excerpt.end_char > self.end_char
+                        or self.content[excerpt.start_char-self.start_char:excerpt.end_char-self.start_char] != excerpt.content):
+                    raise ValueError('Evidence must contain the verbatim source spans.')
+
 
 
 @dataclass(frozen=True)
@@ -215,13 +218,18 @@ class BuiltContext:
         for i, block in enumerate(self.evidence_blocks, 1):
             origins = []
             for hit in block.origins:
-                r = hit.record
-                origins.append(CitationOrigin(
-                    hit.chunk.start_char, hit.chunk.end_char, hit.score,
-                    r.chunk_id if r else None, r.document_id if r else None,
-                    r.document_revision if r else None, r.vault_id if r else None,
-                    hit.index_version,
-                ))
+                source = hit.source
+                known = source.document_revision is not None
+                for excerpt in hit.excerpts:
+                    origins.append(CitationOrigin(
+                        excerpt.start_char, excerpt.end_char,
+                        hit.score.value if hit.score else None,
+                        hit.target.chunk_id if isinstance(hit.target, ChunkTarget) else None,
+                        source.document_id if known else None,
+                        source.document_revision, source.vault_id if known else None,
+                        source.snapshot_id, score_metric=hit.score.metric if hit.score else None,
+                        retrieval_method=hit.method,
+                    ))
             sources.append(CitationSource(f'S{i}', block.source, block.title, block.content,
                                           block.start_char, block.end_char, tuple(origins)))
         return tuple(sources)
@@ -269,15 +277,20 @@ class BuiltContext:
         for block in self.evidence_blocks:
             origins = []
             for hit in block.origins:
-                record = hit.record
-                origins.append({
-                    'chunk_id': record.chunk_id if record else None,
-                    'document_id': record.document_id if record else None,
-                    'document_revision': record.document_revision if record else None,
-                    'vault_id': record.vault_id if record else None,
-                    'index_version': hit.index_version, 'score': hit.score,
-                    'start_char': hit.chunk.start_char, 'end_char': hit.chunk.end_char,
-                })
+                source = hit.source
+                known = source.document_revision is not None
+                for excerpt in hit.excerpts:
+                    origins.append({
+                        'chunk_id': hit.target.chunk_id if isinstance(hit.target, ChunkTarget) else None,
+                        'document_id': source.document_id if known else None,
+                        'document_revision': source.document_revision,
+                        'vault_id': source.vault_id if known else None,
+                        'index_version': source.snapshot_id,
+                        'score': hit.score.value if hit.score else None,
+                        'score_metric': hit.score.metric if hit.score else None,
+                        'retrieval_method': hit.method,
+                        'start_char': excerpt.start_char, 'end_char': excerpt.end_char,
+                    })
             blocks.append({'title': block.title, 'source': block.source, 'content': block.content,
                            'start_char': block.start_char, 'end_char': block.end_char, 'origins': origins})
         return {
@@ -358,28 +371,48 @@ def _pack_evidence(question, candidates, config, counter, decisions, *, merge, c
 
 
 def _document_key(hit: SearchResult) -> tuple | None:
-    if hit.record is None:
+    source = hit.source
+    if source.document_revision is None or source.snapshot_id is None:
         return None
-    return (hit.index_version, hit.record.document_id, hit.record.document_revision)
+    return (source.snapshot_id, source.vault_id, source.document_id, source.document_revision)
+
+
+def _common_result(hit, rank):
+    # Transitional adapter while the CLI and evaluation migrate to vector_search.
+    if isinstance(hit, SearchResult):
+        return hit
+    from obsidian_rag.retrieval import SearchResult as LegacyResult
+    if not isinstance(hit, LegacyResult):
+        raise ValueError('Expected a SearchResult.')
+    score = SearchScore(hit.score, 'cosine')
+    if hit.record is not None:
+        return SearchResult.from_record(hit.record, score, snapshot_id=hit.index_version, rank=rank, method='vector')
+    chunk = hit.chunk
+    source = SourceRef('legacy', digest('document-id', {'vault_id':'legacy','source':chunk.source}),
+                       chunk.source, chunk.title, None, None)
+    excerpt = SourceExcerpt(source, chunk.start_char, chunk.end_char, chunk.content)
+    return SearchResult(source, SpanTarget(chunk.start_char, chunk.end_char), 'vector', rank, (excerpt,), score)
 
 
 def _prepare_evidence(results: Sequence[SearchResult], *, process_evidence: bool = True):
     candidates, decisions, seen = [], [], set()
-    for rank, hit in enumerate(results):
-        if not isinstance(hit, SearchResult) or not math.isfinite(hit.score) or not -1 <= hit.score <= 1:
-            raise ValueError('Expected a search result with a finite cosine score.')
-        chunk = hit.chunk
-        block = EvidenceBlock(chunk.content, chunk.title, chunk.source,
-                              chunk.start_char, chunk.end_char, (hit,))
-        if process_evidence and not chunk.content.strip():
-            decisions.append((rank, 'empty'))
-            continue
-        key = (hit.index_version, hit.record.chunk_id) if hit.record else (None, chunk)
-        if process_evidence and key in seen:
-            decisions.append((rank, 'duplicate'))
-            continue
-        seen.add(key)
-        candidates.append((rank, block))
+    for rank, item in enumerate(results):
+        hit = _common_result(item, rank + 1)
+        if not hit.excerpts:
+            decisions.append((rank, 'needs_inspection'))
+        for excerpt in hit.excerpts:
+            origin = replace(hit, excerpts=(excerpt,))
+            block = EvidenceBlock(excerpt.content, hit.source.title, hit.source.path,
+                                  excerpt.start_char, excerpt.end_char, (origin,))
+            if process_evidence and not excerpt.content.strip():
+                decisions.append((rank, 'empty'))
+                continue
+            key = (hit.method, hit.source, hit.target, excerpt)
+            if process_evidence and key in seen:
+                decisions.append((rank, 'duplicate'))
+                continue
+            seen.add(key)
+            candidates.append((rank, block))
     return candidates, decisions
 
 

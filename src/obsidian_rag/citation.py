@@ -34,18 +34,28 @@ def _span(start, end):
 class CitationOrigin:
     start_char: int
     end_char: int
-    score: float
+    score: float | None
     chunk_id: str | None = None
     document_id: str | None = None
     document_revision: str | None = None
     vault_id: str | None = None
     index_version: str | None = None
+    score_metric: str | None = "cosine"
+    retrieval_method: str | None = None
 
     def __post_init__(self):
         _span(self.start_char, self.end_char)
-        if type(self.score) not in (int, float) or not math.isfinite(self.score) or not -1 <= self.score <= 1:
-            raise ValueError('Origin score must be a finite cosine score.')
-        identity = (self.chunk_id, self.document_id, self.document_revision, self.vault_id)
+        if self.score is not None:
+            if type(self.score) not in (int, float) or not math.isfinite(self.score):
+                raise ValueError('Origin score must be finite.')
+            _text(self.score_metric, 'score_metric')
+            if self.score_metric == 'cosine' and not -1 <= self.score <= 1:
+                raise ValueError('Cosine score must be in [-1, 1].')
+        identity = (self.document_id, self.document_revision, self.vault_id)
+        if self.chunk_id is not None:
+            _text(self.chunk_id, 'chunk_id')
+            if any(value is None for value in identity):
+                raise ValueError('Chunk origins require source identity.')
         if any(v is not None for v in identity):
             for value in identity:
                 _text(value, 'Origin identity')

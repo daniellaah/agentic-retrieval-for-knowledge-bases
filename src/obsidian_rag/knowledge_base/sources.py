@@ -13,8 +13,8 @@ class SourceRef:
     document_id: str
     path: str
     title: str
-    document_revision: str
-    snapshot_id: str
+    document_revision: str | None
+    snapshot_id: str | None
 
     @classmethod
     def from_note(cls, note: Note, *, vault_id: str, snapshot_id: str):

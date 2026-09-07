@@ -54,7 +54,7 @@ def test_comparison_separates_neighbor_recall_from_evidence_coverage():
 def test_context_comparison_isolates_processing_from_budget_and_measures_span_union():
     from obsidian_rag.context import ContextConfig, GenerationCounter, build_context
     from obsidian_rag.evaluation import compare_contexts
-    from obsidian_rag.retrieval import SearchResult
+    from tests.result_fixtures import make_result as SearchResult, chunk_of, record_of
     note = Note('Title', 'x' * 300, 'a.md')
     hits = []
     for index, (start, end) in enumerate([(0, 200), (150, 300)]):
@@ -78,12 +78,12 @@ def test_context_comparison_isolates_processing_from_budget_and_measures_span_un
     assert built['body_characters'] == 300 and built['block_count'] == 1
     assert modes['built']['context']['citation_map'] == {'a.md': [0]}
     with pytest.raises(ValueError, match='snapshot-identified'):
-        compare_contexts('Q?', [SearchResult(hits[0].chunk, .5)], case, config=config, counter=counter)
+        compare_contexts('Q?', [SearchResult(chunk_of(hits[0]), .5)], case, config=config, counter=counter)
 
 
 def citation_fixture():
     from obsidian_rag.context import ContextConfig, GenerationCounter, build_context
-    from obsidian_rag.retrieval import SearchResult
+    from tests.result_fixtures import make_result as SearchResult, chunk_of, record_of
     note = Note('Title', 'Only small datasets were faster.', 'a.md')
     chunk = whole_note_chunks([note])[0]
     counter = GenerationCounter('test', 'chars', lambda m: 10 + sum(len(x['content']) for x in m))

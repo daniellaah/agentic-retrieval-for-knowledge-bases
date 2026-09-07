@@ -13,7 +13,7 @@ from obsidian_rag.knowledge_base.chunking import whole_note_chunks
 from obsidian_rag.context import ContextConfig, build_context, load_generation_counter
 from obsidian_rag.generation import CitedGenerationError, generate_cited_answer
 from obsidian_rag.knowledge_base.loaders import Note
-from obsidian_rag.retrieval import SearchResult
+from tests.result_fixtures import make_result as SearchResult, chunk_of, record_of
 
 
 pytestmark = pytest.mark.skipif(os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',

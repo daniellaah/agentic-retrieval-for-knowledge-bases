@@ -139,9 +139,11 @@ def compare_contexts(question, results, case, *, config, counter) -> dict:
     """
     from obsidian_rag.context import build_context
 
-    if any(hit.record is None for hit in results):
+    from obsidian_rag.context import _common_result
+    results = [_common_result(hit, i + 1) for i, hit in enumerate(results)]
+    if any(hit.source.document_revision is None for hit in results):
         raise ValueError('Context evaluation requires snapshot-identified hits.')
-    identities = {(h.index_version, h.record.vault_id) for h in results}
+    identities = {(h.source.snapshot_id, h.source.vault_id) for h in results}
     if len(identities) > 1:
         raise ValueError('Context evaluation requires one snapshot and vault.')
     modes = {}
@@ -153,7 +155,7 @@ def compare_contexts(question, results, case, *, config, counter) -> dict:
         groups = {}
         for block in blocks:
             hit = block.origins[0]
-            key = (hit.index_version, hit.record.document_id, hit.record.document_revision)
+            key = (hit.source.snapshot_id, hit.source.document_id, hit.source.document_revision)
             groups.setdefault(key, []).append((block.start_char, block.end_char))
         unique_chars = 0
         for intervals in groups.values():
