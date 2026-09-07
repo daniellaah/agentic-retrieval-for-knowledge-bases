@@ -7,12 +7,9 @@ import fcntl
 import json
 from pathlib import Path
 import sqlite3
-
 import numpy as np
-
 from obsidian_rag.chunking import Chunk
-from obsidian_rag.embedding_inputs import prepare_document
-from obsidian_rag.embeddings import validate_vectors
+from obsidian_rag.embeddings import prepare_document, validate_vectors
 from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest
 
 

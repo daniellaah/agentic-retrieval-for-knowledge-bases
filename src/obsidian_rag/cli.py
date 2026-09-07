@@ -4,24 +4,19 @@ import argparse
 import math
 import json
 import sqlite3
-import os
 from contextlib import ExitStack, closing
-from urllib.parse import urlsplit
 from dataclasses import asdict
 import sys
 from collections.abc import Sequence
 from functools import partial
 from pathlib import Path
-
 from httpx import HTTPError
 from ollama import Client, ResponseError
-
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
-from obsidian_rag.embedding_inputs import prepare_document, prepare_query
-from obsidian_rag.embeddings import embed_texts
+from obsidian_rag.embeddings import prepare_document, prepare_query, embed_texts, resolve_embedding_spec
 from obsidian_rag.generation import generate_answer
 from obsidian_rag.loaders import load_notes
-from obsidian_rag.retrieval import retrieve
+from obsidian_rag.retrieval import retrieve, connect_qdrant
 from obsidian_rag.tokenization import count_tokens, load_tokenizer
 
 
@@ -127,27 +122,8 @@ def _legacy_main(argv: Sequence[str] | None = None) -> int:
     return 0
 
 
-def _resolve_spec(client: Client, model: str, *, context_length: int):
-    from obsidian_rag.embedding_inputs import DOCUMENT_TEMPLATE
-    from obsidian_rag.schema import EmbeddingSpec
-    if model != 'qwen3-embedding:0.6b':
-        raise ValueError('Persistent indexing currently requires the validated qwen3-embedding:0.6b tokenizer pairing.')
-    matches = [entry for entry in client.list().models if entry.model == model]
-    if len(matches) != 1 or not matches[0].digest:
-        raise ValueError(f'Embedding model is not installed or its digest is unavailable: {model}.')
-    info = client.show(model).modelinfo or {}
-    dimensions = [value for key, value in info.items() if key.endswith('.embedding_length')]
-    limits = [value for key, value in info.items() if key.endswith('.context_length')]
-    if len(dimensions) != 1 or len(limits) != 1 or type(limits[0]) is not int:
-        raise ValueError('Embedding model dimensions/context metadata are unavailable.')
-    if context_length > limits[0]:
-        raise ValueError('Requested context length exceeds the model context limit.')
-    return EmbeddingSpec(model=model, model_revision=matches[0].digest, dimensions=dimensions[0],
-                         document_template=DOCUMENT_TEMPLATE)
-
-
 def _persistent_parser():
-    from obsidian_rag.embedding_inputs import DEFAULT_QUERY_INSTRUCTION
+    from obsidian_rag.embeddings import DEFAULT_QUERY_INSTRUCTION
     parser = argparse.ArgumentParser(prog='obsidian-rag')
     commands = parser.add_subparsers(dest='command', required=True)
     for name in ('index', 'query', 'status'):
@@ -193,7 +169,8 @@ def _persistent_parser():
 
 
 def _persistent_main(argv: Sequence[str]) -> int:
-    from obsidian_rag.indexing import build_index, scan_notes
+    from obsidian_rag.indexing import build_index
+    from obsidian_rag.loaders import scan_notes
     from obsidian_rag.retrieval import search_index
     from obsidian_rag.storage import SQLiteStorage
     from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
@@ -230,12 +207,12 @@ def _persistent_main(argv: Sequence[str]) -> int:
             notes = scan_notes(args.notes_dir)
             tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
             with Client(host=args.host, timeout=args.timeout, trust_env=False) as client:
-                spec = _resolve_spec(client, args.embedding_model, context_length=args.context_length)
+                spec = resolve_embedding_spec(client, args.embedding_model, context_length=args.context_length)
                 with ExitStack() as resources, SQLiteStorage(args.db) as storage:
                     qclient = None
                     backend = {'kind': args.backend}
                     if args.backend == 'qdrant':
-                        qclient = resources.enter_context(closing(_connect_qdrant(args.qdrant_url, args.timeout)))
+                        qclient = resources.enter_context(closing(connect_qdrant(args.qdrant_url, args.timeout)))
                         backend.update(url=args.qdrant_url, hnsw_m=args.hnsw_m, ef_construct=args.ef_construct,
                                        indexing_threshold=args.indexing_threshold, full_scan_threshold=args.full_scan_threshold,
                                        index_timeout=args.index_timeout,
@@ -256,10 +233,10 @@ def _persistent_main(argv: Sequence[str]) -> int:
             metadata = storage.build_metadata(manifest.index_version)['backend']
             qclient = None
             if metadata['kind'] == 'qdrant':
-                qclient = resources.enter_context(closing(_connect_qdrant(args.qdrant_url or metadata['url'], args.timeout)))
+                qclient = resources.enter_context(closing(connect_qdrant(args.qdrant_url or metadata['url'], args.timeout)))
             tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
             with Client(host=args.host, timeout=args.timeout, trust_env=False) as client:
-                spec = _resolve_spec(client, args.embedding_model or manifest.embedding_spec.model,
+                spec = resolve_embedding_spec(client, args.embedding_model or manifest.embedding_spec.model,
                                      context_length=metadata['input']['max_tokens'])
                 results = search_index(storage, args.question, vault_id=args.vault_id, spec=spec,
                                        tokenizer=tokenizer, client=client, top_k=args.top_k,
@@ -275,15 +252,6 @@ def _persistent_main(argv: Sequence[str]) -> int:
             ResponseHandlingException, UnexpectedResponse) as error:
         print(f'Error: {error}', file=sys.stderr)
         return 1
-
-
-def _connect_qdrant(url: str, timeout: float):
-    from qdrant_client import QdrantClient
-    parts = urlsplit(url)
-    if (parts.scheme not in ('http', 'https') or not parts.hostname or parts.username
-            or parts.password or parts.query or parts.fragment):
-        raise ValueError('Use an HTTP(S) Qdrant URL without embedded credentials; set QDRANT_API_KEY if needed.')
-    return QdrantClient(url=url, api_key=os.environ.get('QDRANT_API_KEY'), timeout=timeout, trust_env=False)
 
 
 def main(argv: Sequence[str] | None = None) -> int:

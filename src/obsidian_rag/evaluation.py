@@ -136,10 +136,12 @@ def main(argv=None) -> int:
     """Evaluate an existing snapshot and save a new, non-overwriting artifact folder."""
     from importlib.metadata import version
     from ollama import Client
-    from obsidian_rag.cli import _connect_qdrant, _resolve_spec
-    from obsidian_rag.embedding_inputs import prepare_query, validate_input_tokens
+    from obsidian_rag.retrieval import connect_qdrant
+    from obsidian_rag.embeddings import resolve_embedding_spec
+    from obsidian_rag.embeddings import prepare_query, validate_input_tokens
     from obsidian_rag.embeddings import embed_texts
-    from obsidian_rag.indexing import _qdrant_projection, tokenizer_fingerprint
+    from obsidian_rag.indexing import _qdrant_projection
+    from obsidian_rag.tokenization import tokenizer_fingerprint
     from obsidian_rag.storage import SQLiteStorage
     from obsidian_rag.tokenization import load_tokenizer
 
@@ -169,7 +171,7 @@ def main(argv=None) -> int:
             raise ValueError('Evaluation tokenizer differs from the snapshot.')
         ollama = resources.enter_context(Client(host=args.host, timeout=180, trust_env=False))
         limit = metadata['backend']['input']['max_tokens']
-        spec = _resolve_spec(ollama, manifest.embedding_spec.model, context_length=limit)
+        spec = resolve_embedding_spec(ollama, manifest.embedding_spec.model, context_length=limit)
         if spec != manifest.embedding_spec:
             raise ValueError('Evaluation model differs from the snapshot.')
         prepared = [prepare_query(case['question'], instruction=manifest.query_instruction) for case in cases]
@@ -182,7 +184,7 @@ def main(argv=None) -> int:
         embedding_seconds = perf_counter() - started
         modes, server_info = {}, None
         if metadata['backend']['kind'] == 'qdrant':
-            client = resources.enter_context(closing(_connect_qdrant(args.qdrant_url or metadata['backend']['url'], 30)))
+            client = resources.enter_context(closing(connect_qdrant(args.qdrant_url or metadata['backend']['url'], 30)))
             store = _qdrant_projection(client, metadata['backend'], manifest, create=False)
             store.verify_snapshot(records, vectors)
             info = store.check_configuration()

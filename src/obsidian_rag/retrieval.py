@@ -1,5 +1,7 @@
 """Rank document chunks by cosine similarity."""
 
+import os
+from urllib.parse import urlsplit
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -91,9 +93,9 @@ def search_index(
     making a model request. A version may be supplied to pin a query while another
     writer publishes. Document text and positions always come from that snapshot.
     """
-    from obsidian_rag.embedding_inputs import prepare_query, validate_input_tokens
+    from obsidian_rag.embeddings import prepare_query, validate_input_tokens
     from obsidian_rag.embeddings import embed_texts
-    from obsidian_rag.indexing import tokenizer_fingerprint
+    from obsidian_rag.tokenization import tokenizer_fingerprint
     from obsidian_rag.vector_store import NumpyVectorStore, validate_search
 
     validate_search(top_k, source, exact)
@@ -140,3 +142,12 @@ def search_index(
             raise ValueError('Vector hit does not match the snapshot, filter, or cosine score contract.')
         results.append(SearchResult(record.chunk, hit.score))
     return results
+
+
+def connect_qdrant(url: str, timeout: float):
+    from qdrant_client import QdrantClient
+    parts = urlsplit(url)
+    if (parts.scheme not in ('http', 'https') or not parts.hostname or parts.username
+            or parts.password or parts.query or parts.fragment):
+        raise ValueError('Use an HTTP(S) Qdrant URL without embedded credentials; set QDRANT_API_KEY if needed.')
+    return QdrantClient(url=url, api_key=os.environ.get('QDRANT_API_KEY'), timeout=timeout, trust_env=False)

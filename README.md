@@ -216,7 +216,7 @@ OBSIDIAN_RAG_RUN_MODEL_TESTS=1 .venv/bin/python -B -m pytest \
 
 ## Prepare embedding inputs
 
-`obsidian_rag.embedding_inputs` owns the text formats used by the CLI:
+`obsidian_rag.embeddings` owns the text formats used by the CLI:
 
 - `prepare_document(chunk)` returns `title + "\n\n" + content` using the versioned
   `DOCUMENT_TEMPLATE = "title-body-v1"`. Pass `EmbeddingSpec.document_template`
@@ -239,7 +239,7 @@ instruction is rejected. Use the exact prepared document text for both
 
 ```python
 from obsidian_rag.chunking import whole_note_chunks
-from obsidian_rag.embedding_inputs import (
+from obsidian_rag.embeddings import (
     prepare_document, prepare_query, validate_input_tokens,
 )
 from obsidian_rag.loaders import Note
@@ -274,7 +274,7 @@ above. Keep the original question for answer generation, without its instruction
 
 Regular tests use a small offline BPE tokenizer to check merged title/body
 boundaries, special markers, exact limits, and invalid tokenizer settings. The
-optional `tests/integration/test_qwen_embedding_inputs.py` compares prepared
+optional `tests/integration/test_qwen_embeddings.py` compares prepared
 document and query counts with Ollama's actual `prompt_eval_count`; enable it
 with `OBSIDIAN_RAG_RUN_MODEL_TESTS=1` and the cached tokenizer/local model.
 
@@ -321,7 +321,7 @@ from ollama import Client
 from functools import partial
 
 from obsidian_rag.chunking import chunk_notes
-from obsidian_rag.embedding_inputs import prepare_document, prepare_query
+from obsidian_rag.embeddings import prepare_document, prepare_query
 from obsidian_rag.tokenization import count_tokens, load_tokenizer
 from obsidian_rag.embeddings import embed_texts
 from obsidian_rag.loaders import load_notes

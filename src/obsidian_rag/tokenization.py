@@ -1,5 +1,6 @@
 """Load the pinned Qwen3-Embedding-0.6B tokenizer for local token counting."""
 
+import hashlib
 from pathlib import Path
 
 from huggingface_hub import hf_hub_download
@@ -57,3 +58,7 @@ def count_tokens(
     enabling padding or truncation, which would change the measured length.
     """
     return len(tokenizer.encode(text, add_special_tokens=add_special_tokens).ids)
+
+
+def tokenizer_fingerprint(tokenizer: Tokenizer) -> str:
+    return hashlib.sha256(tokenizer.to_str().encode('utf-8')).hexdigest()

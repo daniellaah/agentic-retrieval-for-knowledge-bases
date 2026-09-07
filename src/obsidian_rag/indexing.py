@@ -3,21 +3,22 @@
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass, replace
 from functools import partial, wraps
-from pathlib import Path
-import hashlib
 from uuid import uuid4
 from time import perf_counter
-
 from ollama import Client
 from tokenizers import Tokenizer
-
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
-from obsidian_rag.embedding_inputs import DEFAULT_QUERY_INSTRUCTION, prepare_document, prepare_query, validate_input_tokens
-from obsidian_rag.embeddings import iter_embedding_batches
+from obsidian_rag.embeddings import (
+    DEFAULT_QUERY_INSTRUCTION,
+    prepare_document,
+    prepare_query,
+    validate_input_tokens,
+    iter_embedding_batches,
+)
 from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
-from obsidian_rag.loaders import Note, load_notes
+from obsidian_rag.loaders import Note
 from obsidian_rag.storage import SQLiteStorage
-from obsidian_rag.tokenization import count_tokens
+from obsidian_rag.tokenization import count_tokens, tokenizer_fingerprint
 from obsidian_rag.vector_store import NumpyVectorStore, VectorStore
 
 
@@ -31,26 +32,6 @@ class BuildReport:
     modified_documents: int = 0
     deleted_documents: int = 0
     build_seconds: float = 0.0
-
-
-def tokenizer_fingerprint(tokenizer: Tokenizer) -> str:
-    return hashlib.sha256(tokenizer.to_str().encode('utf-8')).hexdigest()
-
-
-def scan_notes(directory: Path) -> list[Note]:
-    """Read the existing flat Markdown scope; fail if it changes during scanning."""
-    def inventory():
-        result = {}
-        for path in sorted(directory.iterdir()):
-            if path.suffix == '.md' and path.is_file():
-                stat = path.stat()
-                result[path.name] = (stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
-        return result
-    before = inventory()
-    notes = load_notes(directory)
-    if before != inventory() or {note.source for note in notes} != set(before):
-        raise ValueError('Notes changed during scanning; rerun the index command.')
-    return notes
 
 
 def _exclusive_build(function):

@@ -92,3 +92,16 @@ def test_load_notes_reads_only_markdown_files_in_the_given_directory(
 
 def test_load_notes_returns_an_empty_list_for_an_empty_directory(tmp_path: Path) -> None:
     assert load_notes(tmp_path) == []
+
+
+def test_scan_rejects_changes_during_reading(tmp_path, monkeypatch):
+    import obsidian_rag.loaders as loaders
+    (tmp_path / 'a.md').write_text('# A\nbody')
+    original = loaders.load_notes
+    def changing(directory):
+        notes = original(directory)
+        (directory / 'b.md').write_text('# B\nnew')
+        return notes
+    monkeypatch.setattr(loaders, 'load_notes', changing)
+    with pytest.raises(ValueError, match='changed during scanning'):
+        loaders.scan_notes(tmp_path)

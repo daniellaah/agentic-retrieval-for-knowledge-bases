@@ -123,18 +123,6 @@ def test_vault_scope_cannot_silently_switch_directories(setup):
     assert storage.active_manifest('vault') == original.manifest
 
 
-def test_scan_rejects_changes_during_reading(tmp_path, monkeypatch):
-    import obsidian_rag.indexing as indexing
-    (tmp_path / 'a.md').write_text('# A\nbody')
-    original = indexing.load_notes
-    def changing(directory):
-        notes = original(directory)
-        (directory / 'b.md').write_text('# B\nnew')
-        return notes
-    monkeypatch.setattr(indexing, 'load_notes', changing)
-    with pytest.raises(ValueError, match='changed during scanning'):
-        indexing.scan_notes(tmp_path)
-
 
 def test_projection_failure_never_publishes_the_candidate(setup):
     from obsidian_rag.vector_store import NumpyVectorStore
