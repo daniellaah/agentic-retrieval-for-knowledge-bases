@@ -69,3 +69,37 @@ def test_benchmark_index_reuses_cache_and_rejects_changed_corpus(dataset, tmp_pa
         with pytest.raises(ValueError, match='corpus.*hash'):
             build_benchmark_index(prepared, storage=storage, **runtime)
         assert storage.active_manifest(manifest['vault_id']) == first.manifest
+
+
+def test_retrieval_run_records_failures_and_scores_all_questions_without_index_writes(dataset, tmp_path, runtime):
+    from obsidian_rag.benchmark import build_benchmark_index, run_benchmark
+    from obsidian_rag.storage import SQLiteStorage
+    corpus, cases = dataset
+    prepared = tmp_path / 'prepared'
+    prepare_benchmark(corpus, cases, prepared, dataset_revision='fixture-v1')
+    db = tmp_path / 'index.sqlite'
+    with SQLiteStorage(db) as storage:
+        built = build_benchmark_index(prepared, storage=storage, **runtime)
+    embed = runtime['client'].embed.side_effect
+    def sometimes_fails(**kw):
+        if any('Broken?' in text for text in kw['input']):
+            raise OSError('fixture unavailable')
+        return embed(**kw)
+    runtime['client'].embed.side_effect = sometimes_fails
+    before = db.read_bytes()
+    output = tmp_path / 'run'
+    with SQLiteStorage(db, read_only=True) as storage:
+        summary = run_benchmark(prepared, storage=storage, output=output,
+                                client=runtime['client'], tokenizer=runtime['tokenizer'], spec=runtime['spec'],
+                                chunk_top_k=2, doc_ks=(1, 5))
+    rows = [json.loads(line) for line in (output / 'results.jsonl').read_text().splitlines()]
+    assert [r['query_id'] for r in rows] == ['1', '2']
+    assert rows[0]['documents'][0]['docid'] == '1'
+    assert rows[0]['index_version'] == built.manifest.index_version
+    assert rows[1]['error']['stage'] == 'retrieval'
+    assert summary['error_count'] == 1
+    assert summary['retrieval']['evidence']['1']['recall'] == .5
+    assert summary['retrieval']['evidence']['1']['defined_cases'] == 2
+    assert db.read_bytes() == before
+    for call in runtime['client'].embed.call_args_list:
+        assert all('LABEL-ONLY' not in text for text in call.kwargs['input'])

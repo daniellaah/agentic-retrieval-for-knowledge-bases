@@ -5,6 +5,9 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
+import platform
+import subprocess
+from time import perf_counter
 
 from obsidian_rag.browsecomp import (
     AnswerLabels, BenchmarkQuestion, document_note, file_sha256, read_cases,
@@ -12,6 +15,7 @@ from obsidian_rag.browsecomp import (
 )
 from obsidian_rag.chunking import whole_note_chunks
 from obsidian_rag.schema import ChunkRecord
+from obsidian_rag.evaluation import qrel_statistics, rank_documents
 
 
 def _write_json(path, value):
@@ -130,3 +134,125 @@ def build_benchmark_index(prepared: Path, *, storage, client, tokenizer, spec,
     return build_index(storage, notes, client=client, tokenizer=tokenizer, spec=spec,
                        vault_id=manifest['vault_id'], max_input_tokens=max_input_tokens,
                        source_scope=manifest['source_scope'], **settings)
+
+
+def _capture_snapshot(storage, manifest, sources, spec, index_version):
+    active = storage.get_manifest(index_version) if index_version else storage.active_manifest(manifest['vault_id'])
+    if active is None or active.status != 'ready' or active.vault_id != manifest['vault_id']:
+        raise ValueError('A ready benchmark snapshot is required.')
+    if active.embedding_spec != spec:
+        raise ValueError('Runtime embedding specification differs from the snapshot.')
+    metadata = storage.build_metadata(active.index_version)
+    if metadata['backend'].get('source_scope') != manifest['source_scope']:
+        raise ValueError('Snapshot source scope differs from the frozen corpus.')
+    seen = set()
+    for record in storage.snapshot_records(active.index_version):
+        source = sources.get(record.chunk.source)
+        if source is None or record.document_revision != source['document_revision']:
+            raise ValueError('Snapshot document differs from the frozen corpus.')
+        seen.add(record.chunk.source)
+    if seen != set(sources):
+        raise ValueError('Snapshot does not cover the frozen corpus.')
+    return active, metadata
+
+
+class _EmbeddingTimer:
+    """Measure Ollama embedding request time without changing retrieval behavior."""
+    def __init__(self, client):
+        self.client = client
+        self.milliseconds = 0.0
+
+    def embed(self, **kwargs):
+        started = perf_counter()
+        try:
+            return self.client.embed(**kwargs)
+        finally:
+            self.milliseconds += (perf_counter() - started) * 1000
+
+
+def score_retrieval(prepared: Path, rows, *, doc_ks) -> dict:
+    labels = load_labels(prepared)
+    rows = list(rows)
+    if [row['query_id'] for row in rows] != list(labels):
+        raise ValueError('Results must include each frozen question exactly once, in order.')
+    result = {}
+    for group in ('evidence', 'gold'):
+        result[group] = {}
+        for k in doc_ks:
+            values = [qrel_statistics([doc['docid'] for doc in row['documents']],
+                       getattr(labels[row['query_id']], group + '_docids'), k=k) for row in rows]
+            defined = [v for v in values if v['recall'] is not None]
+            result[group][str(k)] = {key: sum(v[key] for v in defined) / len(defined) if defined else None
+                                     for key in ('recall', 'ndcg')}
+            result[group][str(k)]['defined_cases'] = len(defined)
+    return result
+
+
+def _code_identity():
+    source = Path(__file__).parent
+    git = subprocess.run(['git', '-C', str(source.parents[1]), 'rev-parse', 'HEAD'],
+                         capture_output=True, text=True)
+    return {'commit': git.stdout.strip() if git.returncode == 0 else None,
+            'python': platform.python_version(),
+            'source_hashes': {path.name: file_sha256(path) for path in sorted(source.glob('*.py'))}}
+
+
+def run_benchmark(prepared: Path, *, storage, output: Path, client, tokenizer, spec,
+                  chunk_top_k: int = 2, doc_ks=(5, 10, 100, 1000),
+                  index_version=None, exact: bool = True, qdrant_client=None) -> dict:
+    """Retrieve each frozen question once; retain failures and score them too.
+
+    Each row is flushed before continuing. An interrupted run has no summary
+    and cannot be mistaken for a complete evaluation. No answer labels enter
+    retrieval, and scoring only reads them after all raw results are saved.
+    """
+    from obsidian_rag.retrieval import search_index
+    if output.exists():
+        raise FileExistsError(output)
+    if type(chunk_top_k) is not int or chunk_top_k <= 0 or type(exact) is not bool:
+        raise ValueError('Use a positive chunk_top_k and boolean exact.')
+    doc_ks = tuple(doc_ks)
+    if not doc_ks or any(type(k) is not int or k <= 0 for k in doc_ks) or len(set(doc_ks)) != len(doc_ks):
+        raise ValueError('doc_ks must contain unique positive cutoffs.')
+    manifest, questions, sources = load_prepared(prepared)
+    active, metadata = _capture_snapshot(storage, manifest, sources, spec, index_version)
+    mapping = {source: value['docid'] for source, value in sources.items()}
+    output.mkdir(parents=True, exist_ok=False)
+    run = {'format_version': 1, 'created_at': datetime.now(timezone.utc).isoformat(),
+           'prepared_path': str(prepared.resolve()), 'prepared_sha256': file_sha256(prepared / 'manifest.json'),
+           'query_ids': manifest['query_ids'], 'snapshot': asdict(active), 'build_metadata': metadata,
+           'chunk_top_k': chunk_top_k, 'doc_ks': doc_ks, 'exact': exact,
+           'document_ranking': 'max retrieved chunk score, ties ascending docid',
+           'code': _code_identity(),
+           'timing_scope': 'query_embedding_ms measures embed requests; retrieval_ms includes query preparation, snapshot loading and search.'}
+    _write_json(output / 'run.json', run)
+    rows = []
+    with (output / 'results.jsonl').open('x', encoding='utf-8') as stream:
+        for question in questions:
+            row = {'query_id': question.query_id, 'question': question.question,
+                   'index_version': active.index_version, 'success': False,
+                   'retrieval_success': False, 'error': None, 'hits': [], 'documents': []}
+            timer = _EmbeddingTimer(client)
+            started = perf_counter()
+            try:
+                hits = search_index(storage, question.question, vault_id=manifest['vault_id'],
+                                    spec=spec, tokenizer=tokenizer, client=timer, top_k=chunk_top_k,
+                                    exact=exact, index_version=active.index_version, qdrant_client=qdrant_client)
+                row['documents'] = rank_documents(hits, mapping)
+                row['hits'] = [{'record': asdict(hit.record), 'score': hit.score,
+                                'docid': mapping[hit.chunk.source]} for hit in hits]
+                row.update(success=True, retrieval_success=True)
+            except Exception as error:
+                # Per-query failures stay inspectable; interrupts still propagate.
+                row['error'] = {'stage': 'retrieval', 'type': type(error).__name__, 'message': str(error)}
+            row['timings'] = {'query_embedding_ms': timer.milliseconds,
+                              'retrieval_ms': (perf_counter() - started) * 1000}
+            stream.write(json.dumps(row, ensure_ascii=False, allow_nan=False) + '\n')
+            stream.flush()
+            rows.append(row)
+    summary = {'query_count': len(rows), 'success_count': sum(row['success'] for row in rows),
+               'error_count': sum(not row['success'] for row in rows),
+               'retrieval': score_retrieval(prepared, rows, doc_ks=doc_ks),
+               'results_sha256': file_sha256(output / 'results.jsonl')}
+    _write_json(output / 'summary.json', summary)
+    return summary
