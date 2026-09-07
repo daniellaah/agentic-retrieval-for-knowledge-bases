@@ -103,3 +103,42 @@ def test_retrieval_run_records_failures_and_scores_all_questions_without_index_w
     assert db.read_bytes() == before
     for call in runtime['client'].embed.call_args_list:
         assert all('LABEL-ONLY' not in text for text in call.kwargs['input'])
+
+
+@pytest.mark.parametrize('mode', ['valid', 'truncated', 'context_exhausted'])
+def test_generation_tracks_retrieved_sent_and_cited_evidence_and_preserves_failures(dataset, tmp_path, runtime, mode):
+    from ollama import ChatResponse
+    from obsidian_rag.benchmark import build_benchmark_index, run_benchmark
+    from obsidian_rag.context import ContextConfig, GenerationCounter
+    from obsidian_rag.storage import SQLiteStorage
+    corpus, cases = dataset
+    prepared = tmp_path / 'prepared'
+    prepare_benchmark(corpus, cases, prepared, query_ids=['1'], dataset_revision='fixture-v1')
+    raw = json.dumps({'status': 'answered', 'claims': [{'text': 'The code is ORCHID-42.',
+                                                     'source_ids': ['S1']}], 'missing_information': []})
+    runtime['client'].chat.return_value = ChatResponse(message={'role': 'assistant', 'content': raw},
+        done_reason='length' if mode == 'truncated' else 'stop', prompt_eval_count=100, eval_count=20)
+    counter = GenerationCounter('test', 'fixture-counter', lambda messages: 100)
+    config = ContextConfig(64, 1, 0) if mode == 'context_exhausted' else ContextConfig()
+    with SQLiteStorage(tmp_path / 'index.sqlite') as storage:
+        build_benchmark_index(prepared, storage=storage, **runtime)
+        result = run_benchmark(prepared, storage=storage, output=tmp_path / 'run',
+            client=runtime['client'], tokenizer=runtime['tokenizer'], spec=runtime['spec'],
+            chunk_top_k=3, doc_ks=(1,), generate=True, context_top_k=1,
+            generation_counter=counter, context_config=config)
+    row = json.loads((tmp_path / 'run' / 'results.jsonl').read_text())
+    assert row['retrieval_success'] and len(row['documents']) == 3
+    if mode == 'valid':
+        assert row['context_docids'] == row['cited_docids'] == ['1']
+        assert row['generation']['raw_response'] == raw
+        assert row['generation']['metrics']['supported_claim_rate'] is None
+        assert result['success_count'] == 1
+    elif mode == 'truncated':
+        assert row['generation']['raw_response'] == raw
+        assert row['error']['code'] == 'truncated_output'
+        assert result['error_count'] == 1
+    else:
+        assert row['error']['stage'] == 'context'
+        runtime['client'].chat.assert_not_called()
+    for call in runtime['client'].chat.call_args_list:
+        assert 'LABEL-ONLY' not in json.dumps(call.kwargs['messages'])

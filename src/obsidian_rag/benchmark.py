@@ -199,7 +199,9 @@ def _code_identity():
 
 def run_benchmark(prepared: Path, *, storage, output: Path, client, tokenizer, spec,
                   chunk_top_k: int = 2, doc_ks=(5, 10, 100, 1000),
-                  index_version=None, exact: bool = True, qdrant_client=None) -> dict:
+                  index_version=None, exact: bool = True, qdrant_client=None,
+                  generate: bool = False, generation_client=None, generation_counter=None,
+                  context_config=None, context_top_k: int | None = None) -> dict:
     """Retrieve each frozen question once; retain failures and score them too.
 
     Each row is flushed before continuing. An interrupted run has no summary
@@ -207,10 +209,22 @@ def run_benchmark(prepared: Path, *, storage, output: Path, client, tokenizer, s
     retrieval, and scoring only reads them after all raw results are saved.
     """
     from obsidian_rag.retrieval import search_index
+    from obsidian_rag.context import ContextConfig
     if output.exists():
         raise FileExistsError(output)
     if type(chunk_top_k) is not int or chunk_top_k <= 0 or type(exact) is not bool:
         raise ValueError('Use a positive chunk_top_k and boolean exact.')
+    if type(generate) is not bool:
+        raise ValueError('generate must be boolean.')
+    if generate:
+        if generation_counter is None:
+            raise ValueError('Generation requires an explicit validated generation_counter.')
+        context_config = context_config or ContextConfig()
+        context_top_k = chunk_top_k if context_top_k is None else context_top_k
+        if type(context_top_k) is not int or not 0 < context_top_k <= chunk_top_k:
+            raise ValueError('context_top_k must be between 1 and chunk_top_k.')
+    elif any(v is not None for v in (generation_client, generation_counter, context_config, context_top_k)):
+        raise ValueError('Generation settings require generate=True.')
     doc_ks = tuple(doc_ks)
     if not doc_ks or any(type(k) is not int or k <= 0 for k in doc_ks) or len(set(doc_ks)) != len(doc_ks):
         raise ValueError('doc_ks must contain unique positive cutoffs.')
@@ -222,6 +236,11 @@ def run_benchmark(prepared: Path, *, storage, output: Path, client, tokenizer, s
            'prepared_path': str(prepared.resolve()), 'prepared_sha256': file_sha256(prepared / 'manifest.json'),
            'query_ids': manifest['query_ids'], 'snapshot': asdict(active), 'build_metadata': metadata,
            'chunk_top_k': chunk_top_k, 'doc_ks': doc_ks, 'exact': exact,
+           'generation': {'enabled': generate, 'context_top_k': context_top_k,
+                          'config': asdict(context_config) if generate else None,
+                          'model': generation_counter.model if generate else None,
+                          'counter': generation_counter.identity if generate else None,
+                          'citation_mode': 'structured', 'temperature': 0, 'think': False},
            'document_ranking': 'max retrieved chunk score, ties ascending docid',
            'code': _code_identity(),
            'timing_scope': 'query_embedding_ms measures embed requests; retrieval_ms includes query preparation, snapshot loading and search.'}
@@ -231,7 +250,8 @@ def run_benchmark(prepared: Path, *, storage, output: Path, client, tokenizer, s
         for question in questions:
             row = {'query_id': question.query_id, 'question': question.question,
                    'index_version': active.index_version, 'success': False,
-                   'retrieval_success': False, 'error': None, 'hits': [], 'documents': []}
+                   'retrieval_success': False, 'error': None, 'hits': [], 'documents': [],
+                   'context_docids': [], 'cited_docids': [], 'generation': None}
             timer = _EmbeddingTimer(client)
             started = perf_counter()
             try:
@@ -246,7 +266,12 @@ def run_benchmark(prepared: Path, *, storage, output: Path, client, tokenizer, s
                 # Per-query failures stay inspectable; interrupts still propagate.
                 row['error'] = {'stage': 'retrieval', 'type': type(error).__name__, 'message': str(error)}
             row['timings'] = {'query_embedding_ms': timer.milliseconds,
-                              'retrieval_ms': (perf_counter() - started) * 1000}
+                              'retrieval_ms': (perf_counter() - started) * 1000,
+                              'context_ms': None, 'generation_validation_ms': None}
+            if row['retrieval_success'] and generate:
+                _generate_row(row, hits[:context_top_k], mapping, config=context_config,
+                              counter=generation_counter, client=generation_client or client)
+            row['timings']['total_ms'] = (perf_counter() - started) * 1000
             stream.write(json.dumps(row, ensure_ascii=False, allow_nan=False) + '\n')
             stream.flush()
             rows.append(row)
@@ -256,3 +281,31 @@ def run_benchmark(prepared: Path, *, storage, output: Path, client, tokenizer, s
                'results_sha256': file_sha256(output / 'results.jsonl')}
     _write_json(output / 'summary.json', summary)
     return summary
+
+
+def _generate_row(row, hits, mapping, *, config, counter, client):
+    from obsidian_rag.context import ContextBudgetError, build_context
+    from obsidian_rag.evaluation import evaluate_citation_context
+    started = perf_counter()
+    try:
+        context = build_context(row['question'], hits, config=config, counter=counter,
+                                citation_mode='structured')
+        if context.status == 'budget_exhausted':
+            raise ContextBudgetError('No evidence fits the generation budget.')
+        row['context_docids'] = list(dict.fromkeys(mapping[s.source] for s in context.citation_sources))
+    except Exception as error:
+        row.update(success=False, error={'stage': 'context', 'type': type(error).__name__, 'message': str(error)})
+        return
+    finally:
+        row['timings']['context_ms'] = (perf_counter() - started) * 1000
+    try:
+        generated = evaluate_citation_context(context, client=client)
+        row['generation'] = generated
+        row['timings']['generation_validation_ms'] = generated['generation_ms']
+        row['success'] = generated['success']
+        if generated['success']:
+            row['cited_docids'] = list(dict.fromkeys(mapping[s['source']] for s in generated['result']['sources']))
+        else:
+            row['error'] = {'stage': 'generation', **generated['error']}
+    except Exception as error:
+        row.update(success=False, error={'stage': 'generation', 'type': type(error).__name__, 'message': str(error)})
