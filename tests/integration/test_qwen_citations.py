@@ -47,7 +47,7 @@ def test_real_output_truncation_is_reported():
     assert error.value.code == 'truncated_output'
 
 
-def test_citation_cli_memory_and_persistent_subprocess(tmp_path):
+def test_citation_cli_shorthand_and_persistent_subprocess(tmp_path, citation_qdrant):
     notes = tmp_path / 'notes'
     notes.mkdir()
     (notes / 'project.md').write_text('# Project\nThe project code is ORCHID-42.\n')
@@ -60,18 +60,18 @@ def test_citation_cli_memory_and_persistent_subprocess(tmp_path):
         assert process.returncode == 0, process.stderr
         return json.loads(process.stdout)
 
-    memory = run('What is the project code?', '--notes-dir', str(notes), '--offline', '--answer-json')
-    assert memory['sources'][0]['origins'][0]['index_version'].startswith('memory:')
-    indexed = run('index', '--db', str(db), '--notes-dir', str(notes), '--offline')
+    indexed = run('index', '--db', str(db), '--notes-dir', str(notes), '--offline', '--qdrant-url', citation_qdrant)
+    shorthand = run('What is the project code?', '--db', str(db), '--offline', '--answer-json')
+    assert shorthand['sources'][0]['origins'][0]['index_version'] == indexed['manifest']['index_version']
     (notes / 'project.md').write_text('# Project\nThe live file has changed.\n')
     saved = run('query', 'What is the project code?', '--db', str(db), '--offline', '--answer-json')
     assert 'ORCHID-42' in saved['text']
     assert saved['sources'][0]['origins'][0]['index_version'] == indexed['manifest']['index_version']
     retrieved = run('query', 'What is the project code?', '--db', str(db), '--offline', '--json')
-    assert 'results' in retrieved and 'answer' not in retrieved
+    assert 'items' in retrieved and 'answer' not in retrieved
 
 
-def test_citation_evaluation_cli_records_results_without_modifying_index(tmp_path):
+def test_citation_evaluation_cli_records_results_without_modifying_index(tmp_path, citation_qdrant):
     notes = tmp_path / 'notes'
     notes.mkdir()
     (notes / 'project.md').write_text('# Project\nThe project code is ORCHID-42.\n')
@@ -82,7 +82,7 @@ def test_citation_evaluation_cli_records_results_without_modifying_index(tmp_pat
     out = tmp_path / 'evaluation'
     repo = Path(__file__).resolve().parents[2]
     built = subprocess.run([sys.executable, '-B', '-m', 'obsidian_rag.cli', 'index',
-                            '--db', str(db), '--notes-dir', str(notes), '--offline'],
+                            '--db', str(db), '--notes-dir', str(notes), '--offline', '--qdrant-url', citation_qdrant],
                            cwd=repo, capture_output=True, text=True, timeout=180)
     assert built.returncode == 0, built.stderr
     before = db.read_bytes()
@@ -91,6 +91,8 @@ def test_citation_evaluation_cli_records_results_without_modifying_index(tmp_pat
     process = subprocess.run(command, cwd=repo, capture_output=True, text=True, timeout=180)
     assert process.returncode == 0, process.stderr
     report = json.loads((out / 'metrics.json').read_text())
+    assert set(report['summary']) == {'qdrant_exact', 'qdrant_ann'}
+    assert report['settings']['reference'] == 'qdrant_exact'
     assert report['citations']['summary']['success_count'] == 1
     assert report['citations']['summary']['supported_claim_rate'] is None
     row = json.loads((out / 'citation_results.jsonl').read_text())
@@ -114,3 +116,23 @@ def test_real_quoted_generation_preserves_unicode_and_computes_offsets():
     for quote in result.validation.quotes:
         assert body[quote.start_char:quote.end_char] == quote.text
     assert 'ORCHID-42' in result.text
+
+
+@pytest.fixture
+def citation_qdrant(tmp_path):
+    from contextlib import closing
+    from qdrant_client import QdrantClient
+    from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
+    url = os.environ.get('OBSIDIAN_RAG_QDRANT_URL')
+    if not url:
+        pytest.skip('Set OBSIDIAN_RAG_QDRANT_URL for persistent CLI tests.')
+    try:
+        yield url
+    finally:
+        db = tmp_path / 'index.sqlite'
+        if db.exists():
+            with SQLiteStorage(db, read_only=True) as storage, closing(QdrantClient(url=url, trust_env=False)) as client:
+                for manifest in storage.list_builds('default'):
+                    name = storage.build_metadata(manifest.index_version)['backend'].get('collection')
+                    if name and client.collection_exists(name):
+                        client.delete_collection(name)
