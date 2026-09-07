@@ -1,7 +1,7 @@
 """Build model messages from retrieved evidence without calling a model."""
 
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import hashlib
 import json
 import math
@@ -197,18 +197,52 @@ class BuiltContext:
         return {source: tuple(b for b in self.evidence_blocks if b.source == source)
                 for source in sources}
 
+    def to_dict(self) -> dict:
+        """JSON diagnostics containing exactly the sent evidence and its origins."""
+        blocks = []
+        for block in self.evidence_blocks:
+            origins = []
+            for hit in block.origins:
+                record = hit.record
+                origins.append({
+                    'chunk_id': record.chunk_id if record else None,
+                    'document_id': record.document_id if record else None,
+                    'document_revision': record.document_revision if record else None,
+                    'vault_id': record.vault_id if record else None,
+                    'index_version': hit.index_version, 'score': hit.score,
+                    'start_char': hit.chunk.start_char, 'end_char': hit.chunk.end_char,
+                })
+            blocks.append({'title': block.title, 'source': block.source, 'content': block.content,
+                           'start_char': block.start_char, 'end_char': block.end_char, 'origins': origins})
+        return {
+            'status': self.status, 'messages': self.messages, 'evidence_blocks': blocks,
+            'citation_map': {source: [i for i, b in enumerate(self.evidence_blocks) if b.source == source]
+                             for source in self.citation_map},
+            'decisions': [{'input_rank': rank, 'action': action} for rank, action in self.decisions],
+            'config': asdict(self.config) if self.config else None,
+            'token_usage': {'prompt_tokens': self.prompt_tokens,
+                            'input_budget': self.config.input_budget if self.config else None,
+                            'counter': self.counter.identity if self.counter else None,
+                            'model': self.counter.model if self.counter else None,
+                            'is_estimate': self.counter.is_estimate if self.counter else None},
+        }
+
 
 def build_context(question: str, results: Sequence[SearchResult], *,
                   config: ContextConfig | None = None,
-                  counter: GenerationCounter | None = None) -> BuiltContext:
+                  counter: GenerationCounter | None = None,
+                  process_evidence: bool = True) -> BuiltContext:
     """Deduplicate and merge verified overlap, retaining first-hit priority.
 
     Unversioned legacy hits are deduplicated only by exact Chunk equality and
     never merged. Known spans merge only within one snapshot/document revision;
     disagreeing overlap raises instead of choosing one version of the text.
-    With config, require a model counter and pack whole blocks in priority order;
-    skip a block that does not fit and continue trying later candidates. No text
-    is truncated. Without config, retain all prepared evidence (baseline mode).
+    With config, try whole candidate chunks in priority order, merging their
+    overlap before each budget check. A rejected addition never discards already
+    selected evidence. No text is truncated. Without config, retain all prepared
+    evidence (baseline mode).
+    process_evidence=False preserves the raw candidate list for controlled
+    comparisons using this same renderer, with optional budget enforcement.
     """
     if not isinstance(question, str) or not question.strip():
         raise ValueError("Question must not be blank.")
@@ -217,10 +251,16 @@ def build_context(question: str, results: Sequence[SearchResult], *,
     if (config is not None and counter.context_limit is not None
             and config.context_window > counter.context_limit):
         raise ValueError('context_window exceeds the generation model capacity.')
-    candidates, decisions = _prepare_evidence(results)
-    candidates = _merge_overlaps(candidates, decisions)
+    if type(process_evidence) is not bool:
+        raise ValueError('process_evidence must be boolean.')
+    candidates, decisions = _prepare_evidence(results, process_evidence=process_evidence)
+    if process_evidence:
+        _merge_overlaps(candidates, [])  # Check all declared overlap for corruption.
     if config is not None:
-        candidates = _pack_evidence(question, candidates, config, counter, decisions)
+        candidates = _pack_evidence(question, candidates, config, counter, decisions,
+                                    merge=process_evidence)
+    if process_evidence:
+        candidates = _merge_overlaps(candidates, decisions)
     blocks = tuple(block for _, block in candidates)
     decisions.extend((rank, 'selected') for rank, _ in candidates)
     messages = _render_messages(question, blocks)
@@ -231,13 +271,15 @@ def build_context(question: str, results: Sequence[SearchResult], *,
                         tuple(decisions), config, tokens, counter)
 
 
-def _pack_evidence(question, candidates, config, counter, decisions):
+def _pack_evidence(question, candidates, config, counter, decisions, *, merge):
     if counter(_render_messages(question, [])) > config.input_budget:
         raise ContextBudgetError('Question and system prompt exceed the input budget before adding evidence.')
     selected = []
     for rank, block in candidates:
-        trial = [b for _, b in selected] + [block]
-        if counter(_render_messages(question, trial)) <= config.input_budget:
+        trial = selected + [(rank, block)]
+        if merge:
+            trial = _merge_overlaps(trial, [])
+        if counter(_render_messages(question, [b for _, b in trial])) <= config.input_budget:
             selected.append((rank, block))
         else:
             decisions.append((rank, 'budget'))
@@ -250,7 +292,7 @@ def _document_key(hit: SearchResult) -> tuple | None:
     return (hit.index_version, hit.record.document_id, hit.record.document_revision)
 
 
-def _prepare_evidence(results: Sequence[SearchResult]):
+def _prepare_evidence(results: Sequence[SearchResult], *, process_evidence: bool = True):
     candidates, decisions, seen = [], [], set()
     for rank, hit in enumerate(results):
         if not isinstance(hit, SearchResult) or not math.isfinite(hit.score) or not -1 <= hit.score <= 1:
@@ -258,11 +300,11 @@ def _prepare_evidence(results: Sequence[SearchResult]):
         chunk = hit.chunk
         block = EvidenceBlock(chunk.content, chunk.title, chunk.source,
                               chunk.start_char, chunk.end_char, (hit,))
-        if not chunk.content.strip():
+        if process_evidence and not chunk.content.strip():
             decisions.append((rank, 'empty'))
             continue
         key = (hit.index_version, hit.record.chunk_id) if hit.record else (None, chunk)
-        if key in seen:
+        if process_evidence and key in seen:
             decisions.append((rank, 'duplicate'))
             continue
         seen.add(key)

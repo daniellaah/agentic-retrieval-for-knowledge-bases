@@ -441,3 +441,64 @@ def test_query_can_generate_from_the_saved_snapshot(persistent_client, capsys):
     assert main(['query', 'Question?', '--offline']) == 0
     assert 'Develop one idea' in capsys.readouterr().out
     assert json.loads(persistent_client.chat.call_args.kwargs['messages'][1]['content'])['question'] == 'Question?'
+
+
+@pytest.fixture(autouse=True)
+def generation_counter_adapter(monkeypatch):
+    from obsidian_rag.context import GenerationCounter
+    def load(**kwargs):
+        return GenerationCounter(kwargs['model'], 'test-counter',
+                                 lambda messages: 12 + sum(len(m['content']) for m in messages))
+    factory = Mock(side_effect=load)
+    monkeypatch.setattr("obsidian_rag.cli.load_generation_counter", factory)
+    return factory
+
+
+def test_show_context_reports_final_payload_budget_and_memory_provenance(client, capsys, generation_counter_adapter):
+    assert main(['Q?', '--show-context', '--offline', '--context-window', '2048',
+                 '--max-output-tokens', '128', '--context-safety-margin', '64']) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report['status'] == 'ready'
+    assert report['config'] == {'context_window': 2048, 'max_output_tokens': 128, 'safety_margin': 64}
+    assert report['token_usage']['prompt_tokens'] <= 1856
+    assert report['evidence_blocks'][0]['origins'][0]['index_version'].startswith('memory:')
+    assert report['citation_map'] == {'permanent.md': [0], 'literature.md': [1]}
+    assert generation_counter_adapter.call_args.kwargs['local_files_only'] is True
+    client.chat.assert_not_called()
+
+
+def test_persistent_show_context_uses_saved_revision_and_json_remains_retrieval_only(
+    workspace, persistent_client, capsys, generation_counter_adapter,
+):
+    assert main(['index', '--offline']) == 0
+    version = json.loads(capsys.readouterr().out)['manifest']['index_version']
+    assert main(['query', 'Q?', '--offline', '--json']) == 0
+    capsys.readouterr()
+    generation_counter_adapter.assert_not_called()
+    (workspace / 'example_notes' / 'habits.md').write_text('# Changed\nNew content.')
+    assert main(['query', 'Q?', '--source', 'habits.md', '--offline', '--show-context']) == 0
+    context = json.loads(capsys.readouterr().out)
+    assert context['evidence_blocks'][0]['content'] == 'A cue starts a habit.'
+    assert context['evidence_blocks'][0]['origins'][0]['index_version'] == version
+    persistent_client.chat.assert_not_called()
+
+
+@pytest.mark.parametrize('arguments', [
+    ['Q?', '--context-window', '0'], ['Q?', '--max-output-tokens', '0'],
+    ['Q?', '--context-safety-margin', '-1'], ['Q?', '--context-window', '100'],
+    ['query', 'Q?', '--context-window', '0'], ['query', 'Q?', '--json', '--show-context'],
+])
+def test_context_argument_errors_happen_before_model_calls(arguments, client_factory):
+    with pytest.raises(SystemExit) as error:
+        main(arguments)
+    assert error.value.code == 2
+    client_factory.assert_not_called()
+
+
+def test_cli_reports_fixed_prompt_overflow_without_generating(client, capsys):
+    assert main(['Q?', '--context-window', '300', '--max-output-tokens', '100',
+                 '--context-safety-margin', '0']) == 1
+    output = capsys.readouterr()
+    assert 'before adding evidence' in output.err
+    assert output.out == ''
+    client.chat.assert_not_called()

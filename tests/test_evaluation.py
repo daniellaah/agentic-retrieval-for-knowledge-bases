@@ -49,3 +49,33 @@ def test_comparison_separates_neighbor_recall_from_evidence_coverage():
     assert result['settings']['vector_bytes'] == vectors.nbytes
     with pytest.raises(ValueError, match='unique'):
         compare_retrieval(records, vectors, [[1, 0], [1, 0]], cases * 2, spec=spec, vault_id='v')
+
+
+def test_context_comparison_isolates_processing_from_budget_and_measures_span_union():
+    from obsidian_rag.context import ContextConfig, GenerationCounter, build_context
+    from obsidian_rag.evaluation import compare_contexts
+    from obsidian_rag.retrieval import SearchResult
+    note = Note('Title', 'x' * 300, 'a.md')
+    hits = []
+    for index, (start, end) in enumerate([(0, 200), (150, 300)]):
+        chunk = Chunk(note.content[start:end], note.title, note.source, index, start, end)
+        record = ChunkRecord.from_note(chunk, note=note, vault_id='v')
+        hits.append(SearchResult(chunk, .9 - index / 10, record, 'snapshot'))
+    counter = GenerationCounter('test', 'test-count', lambda messages: 10 + sum(len(m['content']) for m in messages))
+    limit = counter(build_context('Q?', hits).messages)
+    config = ContextConfig(limit + 20, 20, 0)
+    case = {'required_source_groups': [['a.md']],
+            'evidence_anchors': [{'source': 'a.md', 'body_start_char': 0, 'body_end_char': 300}]}
+    modes = compare_contexts('Q?', hits, case, config=config, counter=counter)
+    raw, budgeted, built = [modes[name]['metrics'] for name in ('raw', 'raw_budgeted', 'built')]
+    assert raw['body_characters'] == 350
+    assert raw['duplicate_span_fraction'] == pytest.approx(50 / 350)
+    assert raw['section_coverage'] == 1 and not raw['fits_budget']
+    assert budgeted['section_coverage'] == pytest.approx(2 / 3)
+    assert built['section_coverage'] == built['section_coverage_retention'] == 1
+    assert built['duplicate_span_fraction'] == 0
+    assert built['fits_budget'] and built['prompt_tokens'] == limit
+    assert built['body_characters'] == 300 and built['block_count'] == 1
+    assert modes['built']['context']['citation_map'] == {'a.md': [0]}
+    with pytest.raises(ValueError, match='snapshot-identified'):
+        compare_contexts('Q?', [SearchResult(hits[0].chunk, .5)], case, config=config, counter=counter)

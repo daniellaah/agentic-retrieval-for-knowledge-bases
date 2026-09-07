@@ -270,3 +270,26 @@ def test_generation_counter_rejects_changed_template_and_corrupt_tokenizer(tmp_p
     monkeypatch.setattr('huggingface_hub.hf_hub_download', lambda *a, **kw: str(path))
     with pytest.raises(ValueError, match='tokenizer digest'):
         module.load_generation_counter(client=client)
+
+
+def test_budget_never_discards_an_already_fitting_hit_when_merged_union_is_too_large():
+    first = source_hit(0, 600, text='x' * 900)
+    second = source_hit(500, 900, text='x' * 900, index=1)
+    limit = message_counter(build_context('Q?', [first]).messages)
+    built = build_context('Q?', [first, second], config=budget_for(limit), counter=fake_counter())
+    assert built.status == 'ready'
+    assert len(built.evidence_blocks) == 1
+    assert built.evidence_blocks[0].origins == (first,)
+    assert built.evidence_blocks[0].end_char == 600
+    assert set(built.decisions) == {(0, 'selected'), (1, 'budget')}
+
+
+def test_budget_merges_each_trial_to_admit_evidence_that_raw_concatenation_would_exclude():
+    first, second = source_hit(0, 10), source_hit(6, 16, index=1)
+    limit = message_counter(build_context('Q?', [first, second]).messages)
+    built = build_context('Q?', [first, second], config=budget_for(limit), counter=fake_counter())
+    assert built.evidence_blocks[0].content == 'abcdefghijklmnop'
+    assert len(built.evidence_blocks[0].origins) == 2
+    assert built.prompt_tokens == limit
+    raw = build_context('Q?', [first, second], config=budget_for(limit), counter=fake_counter(), process_evidence=False)
+    assert raw.evidence_blocks[0].end_char == 10

@@ -46,6 +46,18 @@ def test_new_process_query_and_incremental_cli_lifecycle(tmp_path, backend):
         query = run('query', 'Why cache vectors?', '--offline', '--json', '--source', 'a.md')
         assert query['index_version'] == first['manifest']['index_version']
         assert query['results'][0]['chunk']['content'] == 'Store completed vectors for reuse.'
+        context = run('query', 'Why cache vectors?', '--offline', '--show-context', '--source', 'a.md')
+        assert context['status'] == 'ready'
+        assert context['evidence_blocks'][0]['origins'][0]['index_version'] == first['manifest']['index_version']
+        assert context['token_usage']['is_estimate'] is False
+        assert context['token_usage']['prompt_tokens'] <= context['token_usage']['input_budget']
+        generated = subprocess.run([sys.executable, '-B', '-m', 'obsidian_rag.cli',
+                                    'query', 'Why cache vectors?', '--offline', '--source', 'a.md',
+                                    '--db', str(db), '--vault-id', vault, '--max-output-tokens', '128'],
+                                   capture_output=True, text=True, timeout=180)
+        assert generated.returncode == 0, generated.stderr
+        assert generated.stdout.strip()
+
         (notes / 'a.md').write_text('# Cache\nOnly changed inputs need new vectors.')
         (notes / 'b.md').unlink()
         changed = run(*index_args)

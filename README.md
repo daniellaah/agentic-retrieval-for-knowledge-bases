@@ -22,14 +22,16 @@ The package stays flat: one module per stage, with both retrieval backends in
 | `storage.py` | SQLite embedding cache, immutable snapshots, build states, writer locks, and atomic publication |
 | `indexing.py` | Complete/incremental builds, Qdrant writes, HNSW readiness, verification, and failed-candidate cleanup |
 | `retrieval.py` | NumPy exact search, Qdrant exact/ANN search, query embedding, and snapshot evidence lookup |
-| `generation.py` | Grounded answer generation from retrieved chunks |
+| `context.py` | Evidence provenance, deduplication, overlap merging, generation token counting, budgets, and message rendering |
+| `generation.py` | Grounded answer generation from the final budgeted messages |
 | `evaluation.py` | Fixed-case backend comparisons, evidence metrics, and reproducible run artifacts |
 | `cli.py` | Command arguments, resource setup, workflow calls, and output |
 
 Each functional module has a corresponding `tests/test_<module>.py` file.
 Real-service tests live in `tests/integration/`: `test_qwen_tokenizer.py`,
 `test_qwen_chunking.py`, `test_qwen_embeddings.py`, `test_qdrant_retrieval.py`,
-`test_qdrant_indexing.py`, and `test_indexing_lifecycle.py`.
+`test_qdrant_indexing.py`, and `test_indexing_lifecycle.py`. The context-specific
+real-model counting checks remain in `tests/test_context.py` alongside its unit tests.
 
 Python imports changed with this refactor: `notes` became `loaders`,
 `index_schema` became `schema`, and `embedding_inputs` merged into `embeddings`.
@@ -99,7 +101,7 @@ reads Markdown files directly in that directory without visiting subdirectories.
 | Option | Default | Purpose |
 | --- | --- | --- |
 | `--notes-dir` | `example_notes` | Directory containing Markdown notes |
-| `--top-k` | `2` | Maximum number of chunks used for the answer |
+| `--top-k` | `2` | Maximum number of retrieved candidates before context processing |
 | `--embedding-model` | `qwen3-embedding:0.6b` | Qwen embedding model |
 | `--generation-model` | `qwen3.5:4b` | Model used to generate the answer |
 | `--host` | `http://127.0.0.1:11434` | Ollama server URL |
@@ -108,13 +110,18 @@ reads Markdown files directly in that directory without visiting subdirectories.
 | `--chunk-size` | `512` | Maximum body tokens per chunk |
 | `--chunk-overlap` | `64` | Target overlap in body tokens |
 | `--tokenizer-cache` | Hub default | Optional tokenizer cache directory |
-| `--offline` | off | Prevent tokenizer Hub requests; Ollama is still used |
+| `--offline` | off | Prevent embedding/generation tokenizer Hub requests; Ollama is still used |
+| `--context-window` | `8192` | Generation window, also passed as `num_ctx` |
+| `--max-output-tokens` | `1024` | Output reserve, also passed as `num_predict` |
+| `--context-safety-margin` | `128` | Extra space reserved outside the measured input |
+| `--show-context` | off | Print final messages, evidence identities and budget diagnostics without generating |
 
 Recursive mode currently supports the validated `qwen3-embedding:0.6b` tokenizer
 pairing. For another embedding model, use `--chunking none`. In recursive mode,
 `--chunk-size` must be positive and `0 <= --chunk-overlap < --chunk-size`.
 Use `--offline` after the tokenizer is cached; missing cache files are reported.
-Whole-note mode never loads a tokenizer and ignores the chunk budget options.
+Whole-note mode skips the embedding tokenizer and ignores chunk budget options.
+Answer generation and `--show-context` still load the generation tokenizer.
 Embedding requests keep `truncate=False`, so Ollama rejects full inputs exceeding
 its active context limit rather than silently truncating titles or text.
 
@@ -127,8 +134,9 @@ Show all options with `uv run --locked obsidian-rag --help`. The same interface
 is available through `uv run --locked python -m obsidian_rag.cli`.
 
 CLI tests exercise loading, tokenization, chunking, embedding conversion,
-retrieval, and generation together. Only the external tokenizer download and
-Ollama client are mocked; the regular tests need no network or running model.
+retrieval, context building, and generation together. External tokenizer loading,
+generation counting and Ollama are replaced at their boundaries in CLI unit tests;
+context tests independently validate the real counter. Regular tests need no network.
 
 ## Read notes
 
@@ -396,42 +404,96 @@ The example above calls Ollama. A similarity score ranks relevance; it is not a
 probability or proof that a note contains an answer. Answer generation must still
 check whether the retrieved text supports a response.
 
-## Generate an answer
+## Build context and generate an answer
 
-`obsidian_rag.generation.generate_answer` takes the original question and the
-`SearchResult` list returned by `retrieve`. It sends the question and retrieved chunk titles,
-content, and source filenames to Ollama, then returns the answer as a string.
-Retrieval order is preserved; selected chunks are not expanded back to full notes. The default generation model is `qwen3.5:4b`.
+`context.py` owns the full context pipeline. `build_context` preserves source
+identity, drops blank and duplicate hits, merges overlapping spans within the
+same snapshot/document revision, and tries whole candidate chunks in retrieval
+priority order. Each trial merges overlap before counting the complete messages.
+If an addition does not fit, already selected evidence is retained and later
+candidates are still tried. It never expands to a live note or truncates text.
+This greedy policy is deterministic; it does not claim globally optimal evidence
+selection or automatically infer which facts a question requires.
 
-After running the retrieval example above, generate an answer with:
+Persistent `SearchResult` objects retain their `ChunkRecord` and `index_version`.
+The legacy CLI binds its in-memory hits to the exact loaded corpus. Direct
+`retrieve` callers without records retain explicitly unknown provenance: exact
+identical chunks can be deduplicated, but unversioned overlaps are not merged.
+Conflicting overlap within one declared revision raises an error.
 
 ```python
+from ollama import Client
+from obsidian_rag.context import ContextConfig, build_context, load_generation_counter
 from obsidian_rag.generation import generate_answer
 
-results = retrieve(chunks, chunk_vectors, query_vector, top_k=2)
-answer = generate_answer(question, results, client=client)
-print(answer)
+with Client(host="http://127.0.0.1:11434", timeout=180, trust_env=False) as client:
+    counter = load_generation_counter(client=client)  # tokenizer cached after first use
+    context = build_context(question, results, config=ContextConfig(), counter=counter)
+    answer = generate_answer(context, client=client)
+    diagnostics = context.to_dict()
 ```
 
-Pass the original question rather than the embedding query with its task
-instruction. Supply `model="your-local-model"` to select another generation
-model. The supplied Ollama client controls the host and timeout. Requests use
-non-streaming output, disable thinking, and set temperature to zero. Only answer
-text is returned, with surrounding whitespace removed.
+`BuiltContext` contains immutable message strings, evidence blocks, original hit
+identities/scores, a source-filename citation map, processing decisions and token
+accounting. `messages` returns a fresh API payload. Citation-map values in
+`to_dict()` are zero-based indices into `evidence_blocks`; decision ranks address
+the original candidate list. A `merged` event describes consolidation, while the
+representative's later `selected` or `budget` event describes the block's outcome.
+The source-filename citation convention and JSON prompt format are preserved.
+Citation existence does not establish that a claim is supported by its source.
 
-The prompt asks the model to use only the retrieved notes, cite claims with
-filenames such as `[fleeting_notes.md]`, and explicitly acknowledge missing
-information. Note text is treated as source material. These instructions do not
-guarantee factual accuracy; the function does not independently verify generated
-claims or citations.
+The enforced relationship is:
 
-An empty result list returns an insufficient-information message without
-contacting Ollama. Blank questions and empty model responses raise `ValueError`.
-Ollama and connection errors propagate to the caller.
+```text
+complete rendered input + max_output_tokens + safety_margin <= context_window
+```
 
-Generation tests mock the external Ollama client and run without a model. They
-verify the request and response contract. Check answer quality separately with
-the local model, including questions whose answers are absent from the notes.
+The built-in generation counter uses `Qwen/Qwen3.5-4B` tokenizer revision
+`851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a`, verifies its file hash and the supported
+Ollama model artifact, and reproduces the text-only system/user template with
+`think=False`. This profile was checked against Ollama 0.33.2. It includes the
+system prompt, JSON, titles, source names, special tokens and assistant prefix;
+it does not reuse the embedding tokenizer. Only `tokenizer.json` is downloaded.
+`load_generation_counter(local_files_only=True)` uses the local Hub cache.
+
+The supported default `qwen3.5:4b` artifact has digest
+`2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd`.
+Unknown model artifacts or custom templates require an explicit
+`GenerationCounter(model, identity, count_messages, ...)` adapter through Python.
+Set `is_estimate=True` if an adapter estimates rather than counts tokens; that
+limitation is retained in diagnostics. Estimates cannot guarantee a hard token
+bound. Revalidate adapters when model or serving templates change.
+
+Generation sends the built messages unchanged and applies matching `num_ctx`
+and `num_predict`. When Ollama supplies its actual prompt count, generation
+rejects a budget overflow or a mismatch with an exact counter instead of returning
+an answer from potentially truncated input. The legacy
+`generate_answer(question, results, client=...)` API builds the same budgeted
+context automatically; it also accepts `config` and `counter`.
+
+An empty evidence set returns an insufficient-information message without
+calling the generation model. If the fixed question/system prompt cannot fit,
+or all evidence is excluded by the budget, generation raises
+`ContextBudgetError`. `--show-context` exposes `budget_exhausted` as a diagnostic
+status. The model is asked to use only the notes and cite source filenames;
+answer factuality, completeness and citation support still require evaluation.
+
+Both CLI question modes accept the context options listed above:
+
+```sh
+uv run --locked obsidian-rag query "What does chunking preserve?" --offline --show-context
+uv run --locked obsidian-rag query "What does chunking preserve?" --offline \
+  --context-window 8192 --max-output-tokens 1024 --context-safety-margin 128
+```
+
+`query --json` remains retrieval-only and does not load a generation tokenizer.
+It cannot be combined with `--show-context`. Changing context settings does not
+require rebuilding the index or recomputing document embeddings.
+
+```sh
+OBSIDIAN_RAG_RUN_MODEL_TESTS=1 .venv/bin/python -B -m pytest \
+  -p no:cacheprovider -q tests/test_context.py
+```
 
 ## Local models
 
@@ -645,3 +707,18 @@ be made from the bundled small corpus. Keep evaluation outputs outside note
 folders. Real end-to-end tests use `OBSIDIAN_RAG_RUN_MODEL_TESTS=1` and optionally
 `OBSIDIAN_RAG_QDRANT_URL`; they check separate-process queries and incremental
 edits/deletes against real services while cleaning their test collections.
+
+
+Add `--context` to the evaluation command to compare three policies on each
+identical NumPy candidate list: historical unbounded `raw`, `raw_budgeted`, and
+processed `built`. The latter two use the same configurable generation budget.
+`context_results.jsonl` retains final messages and provenance; `metrics.json`
+includes input tokens, block counts, duplicate source-span fractions, section
+coverage/retention and build time. These are context metrics, not answer scores.
+
+```sh
+uv run --locked python -m obsidian_rag.evaluation \
+  --db .obsidian-rag/index.sqlite --cases path/to/cases.jsonl \
+  --output path/to/new-context-evaluation --offline --top-k 2 --context \
+  --context-window 8192 --max-output-tokens 1024
+```

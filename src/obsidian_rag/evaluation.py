@@ -17,7 +17,6 @@ import numpy as np
 from obsidian_rag.embeddings import validate_vectors
 from obsidian_rag.retrieval import search_numpy
 
-
 def recall_at_k(reference: list[str], candidate: list[str], k: int) -> float | None:
     """Set recall against exact neighbors; no reference neighbors means undefined."""
     if type(k) is not int or k <= 0:
@@ -26,7 +25,6 @@ def recall_at_k(reference: list[str], candidate: list[str], k: int) -> float | N
         raise ValueError('Neighbor lists must not contain duplicate IDs.')
     expected = set(reference[:k])
     return len(expected & set(candidate[:k])) / len(expected) if expected else None
-
 
 def evidence_statistics(chunks, case: dict) -> dict:
     """Measure source groups and union coverage of labeled Note.content spans.
@@ -57,7 +55,6 @@ def evidence_statistics(chunks, case: dict) -> dict:
         'section_coverage': float(np.mean(fractions)) if fractions else None,
         'all_sections_complete': all(f == 1 for f in fractions) if fractions else None,
     }
-
 
 def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spec,
                       vault_id: str, backends: dict | None = None, top_k: int = 2) -> dict:
@@ -133,6 +130,52 @@ def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spe
             'summary': summary, 'results': results}
 
 
+def compare_contexts(question, results, case, *, config, counter) -> dict:
+    """Compare the same frozen hits under raw and processed context policies.
+
+    raw is the historical unbounded concatenation; raw_budgeted and built share
+    the exact input budget and renderer. Metrics measure source spans/sections,
+    not necessary-fact recall, claim support or generated-answer accuracy.
+    """
+    from obsidian_rag.context import build_context
+
+    if any(hit.record is None for hit in results):
+        raise ValueError('Context evaluation requires snapshot-identified hits.')
+    identities = {(h.index_version, h.record.vault_id) for h in results}
+    if len(identities) > 1:
+        raise ValueError('Context evaluation requires one snapshot and vault.')
+    modes = {}
+    for mode, processing, budget in (('raw', False, None), ('raw_budgeted', False, config), ('built', True, config)):
+        started = perf_counter()
+        context = build_context(question, results, config=budget, counter=counter, process_evidence=processing)
+        elapsed = (perf_counter() - started) * 1000
+        blocks = context.evidence_blocks
+        groups = {}
+        for block in blocks:
+            hit = block.origins[0]
+            key = (hit.index_version, hit.record.document_id, hit.record.document_revision)
+            groups.setdefault(key, []).append((block.start_char, block.end_char))
+        unique_chars = 0
+        for intervals in groups.values():
+            cursor = 0
+            for start, end in sorted(intervals):
+                unique_chars += max(0, end - max(cursor, start))
+                cursor = max(cursor, end)
+        chars = sum(len(b.content) for b in blocks)
+        modes[mode] = {
+            'context': context.to_dict(),
+            'metrics': {'prompt_tokens': context.prompt_tokens, 'block_count': len(blocks),
+                        'body_characters': chars, 'unique_span_characters': unique_chars,
+                        'duplicate_span_fraction': (chars - unique_chars) / chars if chars else 0.0,
+                        'fits_budget': context.prompt_tokens <= config.input_budget,
+                        'build_ms': elapsed, **evidence_statistics(blocks, case)},
+        }
+    reference = modes['raw']['metrics']['section_coverage']
+    for entry in modes.values():
+        coverage = entry['metrics']['section_coverage']
+        entry['metrics']['section_coverage_retention'] = coverage / reference if reference else None
+    return modes
+
 def main(argv=None) -> int:
     """Evaluate an existing snapshot and save a new, non-overwriting artifact folder."""
     from importlib.metadata import version
@@ -156,9 +199,21 @@ def main(argv=None) -> int:
     parser.add_argument('--offline', action='store_true')
     parser.add_argument('--tokenizer-cache', type=Path)
     parser.add_argument('--qdrant-url')
+    parser.add_argument('--context', action='store_true', help='Also compare context policies on the same NumPy hits.')
+    parser.add_argument('--generation-model', default='qwen3.5:4b')
+    parser.add_argument('--context-window', type=int, default=8192)
+    parser.add_argument('--max-output-tokens', type=int, default=1024)
+    parser.add_argument('--context-safety-margin', type=int, default=128)
     args = parser.parse_args(argv)
     if args.output.exists():
         parser.error('--output must be a new directory; old evaluation artifacts are preserved')
+    context_config = None
+    if args.context:
+        from obsidian_rag.context import ContextConfig, load_generation_counter
+        try:
+            context_config = ContextConfig(args.context_window, args.max_output_tokens, args.context_safety_margin)
+        except ValueError as error:
+            parser.error(str(error))
     raw_cases = args.cases.read_bytes()
     cases = [json.loads(line) for line in raw_cases.decode('utf-8').splitlines() if line.strip()]
     with ExitStack() as resources, SQLiteStorage(args.db, read_only=True) as storage:
@@ -195,6 +250,27 @@ def main(argv=None) -> int:
             modes = {'qdrant_exact': (search, True), 'qdrant_ann': (search, False)}
         report = compare_retrieval(records, vectors, queries, cases, spec=spec, vault_id=args.vault_id,
                                    backends=modes, top_k=args.top_k)
+        context_rows = []
+        if args.context:
+            from obsidian_rag.retrieval import SearchResult
+            counter = load_generation_counter(client=ollama, model=args.generation_model,
+                                              cache_dir=args.tokenizer_cache, local_files_only=args.offline)
+            by_id = {record.chunk_id: record for record in records}
+            for case, row in zip(cases, report['results']):
+                hits = [SearchResult(by_id[h['chunk_id']].chunk, h['score'], by_id[h['chunk_id']], manifest.index_version)
+                        for h in row['modes']['numpy_exact']['hits']]
+                context_rows.append({'id': case['id'], 'question': case['question'],
+                                     'modes': compare_contexts(case['question'], hits, case, config=context_config, counter=counter)})
+            report['context'] = {'config': asdict(context_config), 'counter': counter.identity,
+                                 'generation_model': counter.model, 'is_estimate': counter.is_estimate,
+                                 'summary': {}}
+            for mode in ('raw', 'raw_budgeted', 'built'):
+                entries = [row['modes'][mode]['metrics'] for row in context_rows]
+                summary = {}
+                for key in entries[0]:
+                    values = [entry[key] for entry in entries if entry[key] is not None]
+                    summary[key] = float(np.mean(values)) if values else None
+                report['context']['summary'][mode] = summary
         repo = Path(__file__).resolve().parents[2]
         git = subprocess.run(['git', '-C', str(repo), 'rev-parse', 'HEAD'], capture_output=True, text=True)
         run = {'created_at': datetime.now(timezone.utc).isoformat(), 'manifest': asdict(manifest),
@@ -208,6 +284,9 @@ def main(argv=None) -> int:
                'limits': 'Search timings include backend I/O, exclude embedding and snapshot load; small fixed corpus, no answer generation.'}
         args.output.mkdir(parents=True, exist_ok=False)
         (args.output / 'cases.jsonl').write_bytes(raw_cases)
+        if context_rows:
+            (args.output / 'context_results.jsonl').write_text(
+                ''.join(json.dumps(row, ensure_ascii=False) + '\n' for row in context_rows))
         (args.output / 'results.jsonl').write_text(''.join(json.dumps(row, ensure_ascii=False) + '\n' for row in report.pop('results')))
         (args.output / 'metrics.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
         (args.output / 'run_metadata.json').write_text(json.dumps(run, ensure_ascii=False, indent=2) + '\n')

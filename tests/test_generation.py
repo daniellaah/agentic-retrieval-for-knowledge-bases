@@ -177,3 +177,71 @@ def test_generate_answer_sends_only_the_retrieved_chunk(client: Mock) -> None:
     assert payload["notes"] == [{
         "title": "A note", "content": "Selected evidence.\n\n", "source": "note.md",
     }]
+
+
+@pytest.fixture(autouse=True)
+def generation_counter_adapter(monkeypatch):
+    from obsidian_rag.context import GenerationCounter
+    def load(**kwargs):
+        return GenerationCounter(kwargs['model'], 'test-counter',
+                                 lambda messages: 12 + sum(len(m['content']) for m in messages))
+    monkeypatch.setattr("obsidian_rag.generation.load_generation_counter", load)
+
+
+def budgeted_context(*, config=None, estimate=False):
+    from obsidian_rag.context import ContextConfig, GenerationCounter, build_context
+    chunk = whole_note_chunks([Note('Title', 'A fact.', 'a.md')])[0]
+    counter = GenerationCounter('test-model', 'test-renderer',
+                                lambda messages: 12 + sum(len(m['content']) for m in messages),
+                                is_estimate=estimate)
+    return build_context('Q?', [SearchResult(chunk, .8)], config=config or ContextConfig(), counter=counter)
+
+
+def test_generate_uses_prebuilt_messages_and_runtime_budget_without_rebuilding(client):
+    from obsidian_rag.context import ContextConfig
+    built = budgeted_context(config=ContextConfig(2048, 128, 64))
+    client.chat.return_value.prompt_eval_count = built.prompt_tokens
+    assert generate_answer(built, client=client)
+    assert client.chat.call_args.kwargs['messages'] == built.messages
+    assert client.chat.call_args.kwargs['options'] == {'temperature': 0, 'num_ctx': 2048, 'num_predict': 128}
+    assert client.chat.call_args.kwargs['model'] == 'test-model'
+
+
+def test_generate_rejects_prebuilt_context_overrides_and_unbudgeted_evidence(client):
+    from obsidian_rag.context import ContextConfig, build_context
+    built = budgeted_context()
+    for kwargs in ({'model': 'different'}, {'config': ContextConfig()}):
+        with pytest.raises(ValueError):
+            generate_answer(built, client=client, **kwargs)
+    with pytest.raises(ValueError, match='override'):
+        generate_answer(built, [], client=client)
+    unbudgeted = build_context('Q?', list(built.evidence_blocks[0].origins))
+    with pytest.raises(ValueError, match='budgeted'):
+        generate_answer(unbudgeted, client=client)
+    client.chat.assert_not_called()
+
+
+def test_generate_distinguishes_budget_exhaustion_from_missing_sources(client):
+    from obsidian_rag.context import ContextBudgetError, ContextConfig, build_context
+    built = budgeted_context()
+    empty_tokens = built.counter(build_context('Q?', []).messages)
+    exhausted = build_context('Q?', list(built.evidence_blocks[0].origins),
+                              config=ContextConfig(empty_tokens + 16, 16, 0), counter=built.counter)
+    with pytest.raises(ContextBudgetError, match='No evidence fits'):
+        generate_answer(exhausted, client=client)
+    assert 'not contain enough information' in generate_answer(build_context('Q?', []), client=client)
+    client.chat.assert_not_called()
+
+
+def test_generate_detects_actual_count_drift_or_budget_overflow(client):
+    from obsidian_rag.context import ContextBudgetError
+    built = budgeted_context()
+    client.chat.return_value.prompt_eval_count = built.prompt_tokens + 1
+    with pytest.raises(ValueError, match='differs'):
+        generate_answer(built, client=client)
+    client.chat.return_value.prompt_eval_count = built.config.input_budget + 1
+    with pytest.raises(ContextBudgetError, match='exceeds'):
+        generate_answer(built, client=client)
+    estimated = budgeted_context(estimate=True)
+    client.chat.return_value.prompt_eval_count = estimated.prompt_tokens + 1
+    assert generate_answer(estimated, client=client)

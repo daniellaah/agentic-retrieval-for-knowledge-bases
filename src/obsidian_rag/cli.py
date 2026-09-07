@@ -16,11 +16,38 @@ from ollama import Client, ResponseError
 
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
 from obsidian_rag.embeddings import prepare_document, prepare_query, embed_texts, resolve_embedding_spec
+from obsidian_rag.context import ContextConfig, build_context, load_generation_counter
 from obsidian_rag.generation import generate_answer
 from obsidian_rag.loaders import load_notes
-from obsidian_rag.retrieval import retrieve, connect_qdrant
+from obsidian_rag.retrieval import SearchResult, retrieve, connect_qdrant
+from obsidian_rag.schema import ChunkRecord, fingerprint_config
 from obsidian_rag.tokenization import count_tokens, load_tokenizer
 
+
+def _add_context_arguments(parser):
+    parser.add_argument('--context-window', type=int, default=8192,
+                        help='Generation window in tokens; also sent as Ollama num_ctx.')
+    parser.add_argument('--max-output-tokens', type=int, default=1024,
+                        help='Reserved output tokens; also sent as Ollama num_predict.')
+    parser.add_argument('--context-safety-margin', type=int, default=128)
+    parser.add_argument('--show-context', action='store_true',
+                        help='Print final messages, provenance and budget diagnostics without generation.')
+
+def _context_config(args):
+    return ContextConfig(args.context_window, args.max_output_tokens, args.context_safety_margin)
+
+def _validate_context_arguments(parser, args):
+    try:
+        _context_config(args)
+    except ValueError as error:
+        parser.error(str(error))
+    if getattr(args, 'json', False) and args.show_context:
+        parser.error('--json and --show-context are separate output modes')
+
+def _build_cli_context(args, results, client):
+    counter = load_generation_counter(client=client, model=args.generation_model,
+                                      cache_dir=args.tokenizer_cache, local_files_only=args.offline)
+    return build_context(args.question, results, config=_context_config(args), counter=counter)
 
 def _legacy_main(argv: Sequence[str] | None = None) -> int:
     """Print an answer and return zero, or report a runtime error and return one.
@@ -69,7 +96,9 @@ def _legacy_main(argv: Sequence[str] | None = None) -> int:
                         help="Hugging Face tokenizer cache directory.")
     parser.add_argument("--offline", action="store_true",
                         help="Load the tokenizer from cache without Hub requests.")
+    _add_context_arguments(parser)
     args = parser.parse_args(argv)
+    _validate_context_arguments(parser, args)
 
     if not args.question.strip():
         parser.error("question must not be blank")
@@ -113,16 +142,23 @@ def _legacy_main(argv: Sequence[str] | None = None) -> int:
                 [query], client=client, model=args.embedding_model
             )[0]
             results = retrieve(chunks, chunk_vectors, query_vector, top_k=args.top_k)
-            answer = generate_answer(
-                args.question, results, client=client, model=args.generation_model
-            )
+            # Bind in-memory hits to this exact loaded corpus without writing an index.
+            by_source = {note.source: note for note in notes}
+            version = 'memory:' + fingerprint_config({'notes': [asdict(note) for note in notes]})
+            results = [SearchResult(hit.chunk, hit.score,
+                       ChunkRecord.from_note(hit.chunk, note=by_source[hit.chunk.source], vault_id='memory'), version)
+                       for hit in results]
+            context = _build_cli_context(args, results, client)
+            if args.show_context:
+                print(json.dumps(context.to_dict(), ensure_ascii=False))
+                return 0
+            answer = generate_answer(context, client=client)
     except (OSError, ValueError, ResponseError, HTTPError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1
 
     print(answer)
     return 0
-
 
 def _persistent_parser():
     from obsidian_rag.embeddings import DEFAULT_QUERY_INSTRUCTION
@@ -167,8 +203,8 @@ def _persistent_parser():
             command.add_argument('--exact', action='store_true')
             command.add_argument('--json', action='store_true', help='Print retrieval results without generation.')
             command.add_argument('--generation-model', default='qwen3.5:4b')
+            _add_context_arguments(command)
     return parser
-
 
 def _persistent_main(argv: Sequence[str]) -> int:
     from obsidian_rag.indexing import build_index
@@ -194,6 +230,8 @@ def _persistent_main(argv: Sequence[str]) -> int:
             parser.error('--max-batch-tokens must be positive')
         if args.chunking == 'recursive' and (args.chunk_size <= 0 or not 0 <= args.chunk_overlap < args.chunk_size):
             parser.error('chunk size must be positive and overlap must be in [0, chunk size)')
+    if args.command == 'query':
+        _validate_context_arguments(parser, args)
     if args.command == 'query' and (not args.question.strip() or args.top_k <= 0):
         parser.error('question must not be blank and --top-k must be positive')
     try:
@@ -248,13 +286,16 @@ def _persistent_main(argv: Sequence[str]) -> int:
                     print(json.dumps({'index_version': manifest.index_version, 'question': args.question,
                                       'results': [asdict(r) for r in results]}, ensure_ascii=False))
                 else:
-                    print(generate_answer(args.question, results, client=client, model=args.generation_model))
+                    context = _build_cli_context(args, results, client)
+                    if args.show_context:
+                        print(json.dumps(context.to_dict(), ensure_ascii=False))
+                    else:
+                        print(generate_answer(context, client=client))
         return 0
     except (OSError, ValueError, sqlite3.Error, ResponseError, HTTPError,
             ResponseHandlingException, UnexpectedResponse) as error:
         print(f'Error: {error}', file=sys.stderr)
         return 1
-
 
 def main(argv: Sequence[str] | None = None) -> int:
     arguments = list(sys.argv[1:] if argv is None else argv)
