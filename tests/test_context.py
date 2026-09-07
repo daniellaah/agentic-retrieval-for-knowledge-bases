@@ -64,6 +64,50 @@ def test_legacy_context_keeps_unknown_revision_explicit():
     assert origin.index_version is None
 
 
+def test_citation_ids_address_final_blocks_and_preserve_merged_origins():
+    hits = [source_hit(0, 8), source_hit(4, 12), source_hit(14, 16)]
+    built = build_context('Q?', hits, citation_mode='structured')
+    notes = json.loads(built.messages[1]['content'])['notes']
+    assert [n['source_id'] for n in notes] == ['S1', 'S2']
+    assert [s.content for s in built.citation_sources] == [n['content'] for n in notes]
+    assert len(built.citation_sources[0].origins) == 2
+    assert {o.chunk_id for o in built.citation_sources[0].origins} == {h.record.chunk_id for h in hits[:2]}
+    assert built.citation_sources[0].source == built.citation_sources[1].source
+    built.verify_citation_mapping()
+    assert built.context_id == build_context('Q?', hits, citation_mode='structured').context_id
+    changed = build_context('Q?', [source_hit(0, 8, version='v2')], citation_mode='structured')
+    assert changed.context_id != build_context('Q?', hits[:1], citation_mode='structured').context_id
+
+
+def test_citation_budget_counts_protocol_and_renumbers_only_selected_evidence():
+    hits = [source_hit(0, 16), source_hit(0, 3, source='b.md')]
+    small = build_context('Q?', hits[1:], citation_mode='structured')
+    count = fake_counter()
+    built = build_context('Q?', hits, citation_mode='structured', counter=count,
+                          config=budget_for(count(small.messages)))
+    assert built.messages == small.messages
+    assert [(s.source_id, s.source) for s in built.citation_sources] == [('S1', 'b.md')]
+    assert built.prompt_tokens == count(built.messages)
+    assert (0, 'budget') in built.decisions
+    assert built.to_dict()['citation_sources'][0]['origins'][0]['chunk_id'] == hits[1].record.chunk_id
+
+
+def test_citation_mapping_rejects_tampered_messages_and_keeps_legacy_mode():
+    from dataclasses import replace
+    built = build_context('Q?', [source_hit(0, 8)], citation_mode='structured')
+    payload = json.loads(built.messages[1]['content'])
+    payload['notes'][0]['source_id'] = 'S99'
+    bad = replace(built, _messages=(built._messages[0], ('user', json.dumps(payload))))
+    with pytest.raises(ValueError, match='mapping differs'):
+        bad.verify_citation_mapping()
+    legacy = build_context('Q?', [source_hit(0, 8)])
+    assert legacy.citation_sources == ()
+    with pytest.raises(ValueError, match='structured'):
+        legacy.verify_citation_mapping()
+    with pytest.raises(ValueError, match='citation_mode'):
+        build_context('Q?', [], citation_mode='unknown')
+
+
 def source_hit(start, end, *, text='abcdefghijklmnop', source='a.md', index=0,
                version='v1', vault='vault', score=.8):
     from obsidian_rag.loaders import Note
