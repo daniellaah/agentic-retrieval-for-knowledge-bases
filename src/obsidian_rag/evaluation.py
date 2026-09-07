@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from functools import partial
 import hashlib
 import json
-import math
 from pathlib import Path
 import platform
 import subprocess
@@ -17,48 +16,6 @@ import numpy as np
 
 from obsidian_rag.embeddings import validate_vectors
 from obsidian_rag.retrieval import search_numpy
-
-
-def qrel_statistics(ranked_docids, relevant_docids, *, k: int) -> dict:
-    """Binary document qrels: full relevant-set recall and logarithmic nDCG.
-
-    A short ranking is scored as returned; k never truncates the recall
-    denominator. No judged relevant documents means an undefined metric.
-    This differs from recall_at_k's exact-neighbor agreement metric.
-    """
-    if type(k) is not int or k <= 0:
-        raise ValueError('k must be positive.')
-    ranking, relevant = list(ranked_docids), list(relevant_docids)
-    for values in (ranking, relevant):
-        if any(not isinstance(v, str) or not v.strip() for v in values):
-            raise ValueError('Document IDs must be nonblank strings.')
-        if len(set(values)) != len(values):
-            raise ValueError('Document IDs contain duplicates.')
-    if not relevant:
-        return {'recall': None, 'ndcg': None}
-    expected = set(relevant)
-    found = [i for i, docid in enumerate(ranking[:k]) if docid in expected]
-    dcg = sum(1 / math.log2(i + 2) for i in found)
-    ideal = sum(1 / math.log2(i + 2) for i in range(min(k, len(expected))))
-    return {'recall': len(found) / len(expected), 'ndcg': dcg / ideal}
-
-
-def rank_documents(hits, source_to_docid: dict[str, str]) -> list[dict]:
-    """Max score over retrieved chunks only; ties use ascending opaque docid.
-
-    Candidate depth is the caller's responsibility. Ten chunks need not yield
-    ten documents; this does not fetch extra candidates or infer relevance.
-    """
-    scores = {}
-    for hit in hits:
-        docid = source_to_docid.get(hit.chunk.source)
-        if not isinstance(docid, str) or not docid.strip():
-            raise ValueError('Retrieved source is missing from the document mapping.')
-        if not math.isfinite(hit.score):
-            raise ValueError('Retrieved score must be finite.')
-        scores[docid] = max(scores.get(docid, -math.inf), hit.score)
-    return [{'docid': docid, 'score': float(score)}
-            for docid, score in sorted(scores.items(), key=lambda item: (-item[1], item[0]))]
 
 def recall_at_k(reference: list[str], candidate: list[str], k: int) -> float | None:
     """Set recall against exact neighbors; no reference neighbors means undefined."""

@@ -15,12 +15,6 @@ dependencies = [
 
 [project.scripts]
 obsidian-rag = "obsidian_rag.cli:main"
-obsidian-rag-benchmark = "obsidian_rag.benchmark:main"
-
-[project.optional-dependencies]
-benchmark = [
-    "datasets>=5.0.1",
-]
 
 [dependency-groups]
 dev = [

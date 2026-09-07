@@ -10,28 +10,6 @@ from obsidian_rag.retrieval import search_numpy
 from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
 
 
-def test_qrel_recall_uses_all_relevant_documents_not_top_k_reference_neighbors():
-    from obsidian_rag.evaluation import qrel_statistics
-    result = qrel_statistics(['x', 'b'], ['a', 'b', 'c'], k=2)
-    assert result['recall'] == pytest.approx(1 / 3)
-    assert result['ndcg'] == pytest.approx(0.38685280723454163)
-    assert qrel_statistics([], ['a'], k=10) == {'recall': 0.0, 'ndcg': 0.0}
-    assert qrel_statistics(['a'], [], k=10) == {'recall': None, 'ndcg': None}
-    with pytest.raises(ValueError, match='duplicate'):
-        qrel_statistics(['a', 'a'], ['a'], k=2)
-
-
-def test_document_ranking_uses_best_chunk_score_and_deterministic_ties():
-    from obsidian_rag.evaluation import rank_documents
-    from obsidian_rag.retrieval import SearchResult
-    hits = [SearchResult(Chunk('x', 'T', source, i, 0, 1), score)
-            for i, (source, score) in enumerate([('a.md', .3), ('b.md', .8), ('a.md', .8)])]
-    assert rank_documents(hits, {'a.md': '001', 'b.md': '002'}) == [
-        {'docid': '001', 'score': .8}, {'docid': '002', 'score': .8}]
-    with pytest.raises(ValueError, match='source'):
-        rank_documents(hits, {'a.md': '001'})
-
-
 def test_neighbor_recall_counts_unique_exact_neighbors_and_handles_no_reference():
     assert recall_at_k(['a', 'b'], ['b', 'c'], 2) == .5
     assert recall_at_k(['a'], ['a'], 10) == 1
