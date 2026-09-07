@@ -40,3 +40,46 @@ def test_document_ids_and_text_are_not_normalized():
     assert doc.text == '  e\u0301\r\n# Title\n'
     with pytest.raises(ValueError):
         parse_document({'docid': 1, 'text': 'Text', 'url': 'https://example.org'})
+
+
+def test_local_corpus_preserves_text_and_maps_opaque_ids_without_path_traversal(tmp_path):
+    import json
+    from obsidian_rag.browsecomp import read_corpus, document_note, source_docid
+    path = tmp_path / 'corpus.jsonl'
+    path.write_text(json.dumps({'docid': '../001/雪', 'text': ' \r\n# H\ne\u0301\n ',
+                                'url': 'https://example.org'}) + '\n')
+    doc, = read_corpus(path)
+    note = document_note(doc)
+    assert note.content == ' \r\n# H\ne\u0301\n '
+    assert '..' not in note.source
+    assert source_docid(note.source) == '../001/雪'
+    with path.open('a') as stream:
+        stream.write(path.read_text())
+    with pytest.raises(ValueError, match='duplicate'):
+        list(read_corpus(path))
+
+
+def test_official_xor_fixture_and_pinned_download_can_be_read_offline(tmp_path):
+    from obsidian_rag.browsecomp import download_browsecomp, read_cases, read_corpus
+    encrypted = 'SE0Qn+E='
+    def dataset_loader(name, *, split, revision, streaming):
+        assert revision == 'a' * 40 and streaming is True
+        if name.endswith('-corpus'):
+            assert split == 'train'
+            return [{'docid': 'hello', 'text': 'Body\r\n', 'url': 'https://example.org'}]
+        assert split == 'test'
+        doc = {'docid': encrypted, 'text': encrypted, 'url': encrypted}
+        return [{'query_id': '007', 'query': encrypted, 'answer': encrypted,
+                 'evidence_docs': [doc], 'gold_docs': [doc], 'negative_docs': []}]
+    out = tmp_path / 'download'
+    download_browsecomp(out, query_revision='a' * 40, corpus_revision='a' * 40,
+                       dataset_loader=dataset_loader)
+    questions, labels = read_cases(out / 'cases.jsonl')
+    assert asdict(questions[0]) == {'query_id': '007', 'question': 'hello'}
+    assert labels[0].evidence_docids == ('hello',)
+    assert next(read_corpus(out / 'corpus.jsonl')).text == 'Body\r\n'
+    with pytest.raises(FileExistsError):
+        download_browsecomp(out, query_revision='a' * 40, corpus_revision='a' * 40,
+                           dataset_loader=dataset_loader)
+    with pytest.raises(ValueError, match='revision'):
+        download_browsecomp(tmp_path / 'mutable', query_revision='main', corpus_revision='a' * 40)
