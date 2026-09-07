@@ -3,7 +3,7 @@ import pytest
 from numpy.typing import NDArray
 
 from obsidian_rag.chunking import Chunk, chunk_notes, whole_note_chunks
-from obsidian_rag.notes import Note
+from obsidian_rag.loaders import Note
 from obsidian_rag.retrieval import retrieve
 
 
@@ -169,9 +169,9 @@ def published_index(tmp_path):
     from unittest.mock import Mock
     from ollama import Client, EmbedResponse
     from tokenizers import Tokenizer, models, pre_tokenizers
-    from obsidian_rag.index_schema import EmbeddingSpec
+    from obsidian_rag.schema import EmbeddingSpec
     from obsidian_rag.indexing import build_index
-    from obsidian_rag.notes import Note
+    from obsidian_rag.loaders import Note
     from obsidian_rag.storage import SQLiteStorage
     tokenizer = Tokenizer(models.WordLevel({'[UNK]': 0}, unk_token='[UNK]'))
     tokenizer.pre_tokenizer = pre_tokenizers.WhitespaceSplit()

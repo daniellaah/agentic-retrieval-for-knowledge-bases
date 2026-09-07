@@ -3,8 +3,8 @@ import pytest
 
 from obsidian_rag.chunking import Chunk, whole_note_chunks
 from obsidian_rag.evaluation import compare_retrieval, evidence_statistics, recall_at_k
-from obsidian_rag.index_schema import ChunkRecord, EmbeddingSpec
-from obsidian_rag.notes import Note
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
+from obsidian_rag.loaders import Note
 from obsidian_rag.vector_store import NumpyVectorStore
 
 

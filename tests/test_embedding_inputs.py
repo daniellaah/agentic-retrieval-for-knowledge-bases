@@ -11,8 +11,8 @@ from obsidian_rag.embedding_inputs import (
     prepare_query,
     validate_input_tokens,
 )
-from obsidian_rag.index_schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
-from obsidian_rag.notes import Note
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
+from obsidian_rag.loaders import Note
 
 
 @pytest.fixture
@@ -106,7 +106,7 @@ def test_query_rejects_invalid_instructions(instruction) -> None:
         prepare_query("Question?", instruction=instruction)
 
 
-def test_prepared_inputs_work_with_index_schema_without_mixing_source_and_cache_ids() -> None:
+def test_prepared_inputs_work_with_schema_without_mixing_source_and_cache_ids() -> None:
     spec = EmbeddingSpec(model="qwen3-embedding:0.6b", model_revision="test-digest",
                          dimensions=1024, document_template=DOCUMENT_TEMPLATE)
     records = []

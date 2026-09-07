@@ -20,7 +20,7 @@ from obsidian_rag.chunking import chunk_notes, whole_note_chunks
 from obsidian_rag.embedding_inputs import prepare_document, prepare_query
 from obsidian_rag.embeddings import embed_texts
 from obsidian_rag.generation import generate_answer
-from obsidian_rag.notes import load_notes
+from obsidian_rag.loaders import load_notes
 from obsidian_rag.retrieval import retrieve
 from obsidian_rag.tokenization import count_tokens, load_tokenizer
 
@@ -129,7 +129,7 @@ def _legacy_main(argv: Sequence[str] | None = None) -> int:
 
 def _resolve_spec(client: Client, model: str, *, context_length: int):
     from obsidian_rag.embedding_inputs import DOCUMENT_TEMPLATE
-    from obsidian_rag.index_schema import EmbeddingSpec
+    from obsidian_rag.schema import EmbeddingSpec
     if model != 'qwen3-embedding:0.6b':
         raise ValueError('Persistent indexing currently requires the validated qwen3-embedding:0.6b tokenizer pairing.')
     matches = [entry for entry in client.list().models if entry.model == model]

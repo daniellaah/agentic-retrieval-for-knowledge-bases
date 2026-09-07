@@ -6,7 +6,7 @@ from ollama import ChatResponse, Client, Message, ResponseError
 
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
 from obsidian_rag.generation import generate_answer
-from obsidian_rag.notes import Note
+from obsidian_rag.loaders import Note
 from obsidian_rag.retrieval import SearchResult
 
 

@@ -12,7 +12,7 @@ from obsidian_rag.chunking import Chunk
 if TYPE_CHECKING:
     from ollama import Client
     from tokenizers import Tokenizer
-    from obsidian_rag.index_schema import EmbeddingSpec
+    from obsidian_rag.schema import EmbeddingSpec
     from obsidian_rag.storage import SQLiteStorage
     from obsidian_rag.vector_store import VectorStore
 

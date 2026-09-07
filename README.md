@@ -95,7 +95,7 @@ Ollama client are mocked; the regular tests need no network or running model.
 
 ## Read notes
 
-`obsidian_rag.notes.load_notes` accepts a directory as a `pathlib.Path` and returns
+`obsidian_rag.loaders.load_notes` accepts a directory as a `pathlib.Path` and returns
 notes with `title`, `content`, and `source` fields. It reads UTF-8 `.md` files
 directly inside that directory in filename order.
 
@@ -181,7 +181,7 @@ from functools import partial
 from pathlib import Path
 
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
-from obsidian_rag.notes import load_notes
+from obsidian_rag.loaders import load_notes
 from obsidian_rag.tokenization import count_tokens, load_tokenizer
 
 notes = load_notes(Path("example_notes"))
@@ -242,7 +242,7 @@ from obsidian_rag.chunking import whole_note_chunks
 from obsidian_rag.embedding_inputs import (
     prepare_document, prepare_query, validate_input_tokens,
 )
-from obsidian_rag.notes import Note
+from obsidian_rag.loaders import Note
 from obsidian_rag.tokenization import load_tokenizer
 
 note = Note(title="Permanent Notes", content="Develop one idea.", source="idea.md")
@@ -324,7 +324,7 @@ from obsidian_rag.chunking import chunk_notes
 from obsidian_rag.embedding_inputs import prepare_document, prepare_query
 from obsidian_rag.tokenization import count_tokens, load_tokenizer
 from obsidian_rag.embeddings import embed_texts
-from obsidian_rag.notes import load_notes
+from obsidian_rag.loaders import load_notes
 from obsidian_rag.retrieval import retrieve
 
 client = Client(host="http://127.0.0.1:11434", timeout=60, trust_env=False)

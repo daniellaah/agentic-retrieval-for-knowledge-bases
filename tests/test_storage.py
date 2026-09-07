@@ -6,8 +6,8 @@ import pytest
 
 from obsidian_rag.chunking import whole_note_chunks
 from obsidian_rag.embedding_inputs import prepare_document
-from obsidian_rag.index_schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
-from obsidian_rag.notes import Note
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
+from obsidian_rag.loaders import Note
 from obsidian_rag.storage import SQLiteStorage
 
 

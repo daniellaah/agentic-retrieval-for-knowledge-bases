@@ -2,20 +2,12 @@
 
 from collections.abc import Sequence
 import math
-import re
-from uuid import NAMESPACE_URL, uuid5
 
 from qdrant_client import QdrantClient, models
 
 from obsidian_rag.embeddings import validate_vectors
-from obsidian_rag.index_schema import ChunkRecord, EmbeddingSpec
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, point_id
 from obsidian_rag.vector_store import VectorHit, validate_records, validate_search
-
-
-def point_id(chunk_id: str) -> str:
-    if not isinstance(chunk_id, str) or re.fullmatch('[0-9a-f]{64}', chunk_id) is None:
-        raise ValueError('Expected a SHA-256 chunk ID.')
-    return str(uuid5(NAMESPACE_URL, 'obsidian-rag/chunk/' + chunk_id))
 
 
 class QdrantVectorStore:

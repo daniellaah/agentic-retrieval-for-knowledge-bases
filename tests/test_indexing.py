@@ -5,9 +5,9 @@ import pytest
 from ollama import Client, EmbedResponse
 from tokenizers import Tokenizer, models, pre_tokenizers, processors
 
-from obsidian_rag.index_schema import EmbeddingSpec
+from obsidian_rag.schema import EmbeddingSpec
 from obsidian_rag.indexing import build_index
-from obsidian_rag.notes import Note
+from obsidian_rag.loaders import Note
 from obsidian_rag.storage import SQLiteStorage
 
 

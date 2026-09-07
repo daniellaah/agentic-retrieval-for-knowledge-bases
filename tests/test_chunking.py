@@ -5,7 +5,7 @@ import pytest
 from tokenizers import Tokenizer, models
 
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
-from obsidian_rag.notes import Note
+from obsidian_rag.loaders import Note
 from obsidian_rag.tokenization import count_tokens
 
 

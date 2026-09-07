@@ -1,20 +1,14 @@
 """Small vector-store contract and the exact NumPy reference implementation."""
 
 from collections.abc import Sequence
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from typing import Protocol
 
 import numpy as np
 
 from obsidian_rag.embeddings import validate_vectors
-from obsidian_rag.index_schema import ChunkRecord, EmbeddingSpec
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, VectorHit, validate_records
 from obsidian_rag.retrieval import retrieve
-
-
-@dataclass(frozen=True)
-class VectorHit:
-    chunk_id: str
-    score: float
 
 
 class VectorStore(Protocol):
@@ -33,13 +27,6 @@ class VectorStore(Protocol):
                exact: bool = False) -> list[VectorHit]: ...
     def delete(self, chunk_ids: Sequence[str]) -> None: ...
     def count(self) -> int: ...
-
-
-def validate_records(records: Sequence[ChunkRecord], *, vault_id: str) -> None:
-    if any(not isinstance(record, ChunkRecord) or record.vault_id != vault_id for record in records):
-        raise ValueError("All vector records must belong to this vault.")
-    if len({record.chunk_id for record in records}) != len(records):
-        raise ValueError("Duplicate chunk IDs in one vector batch.")
 
 
 def validate_search(top_k: int, source: str | None, exact: bool) -> None:

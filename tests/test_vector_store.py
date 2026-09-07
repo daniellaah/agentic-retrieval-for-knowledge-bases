@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 from obsidian_rag.chunking import whole_note_chunks
-from obsidian_rag.index_schema import ChunkRecord, EmbeddingSpec
-from obsidian_rag.notes import Note
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
+from obsidian_rag.loaders import Note
 from obsidian_rag.vector_store import NumpyVectorStore
 
 

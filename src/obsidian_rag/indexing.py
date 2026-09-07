@@ -14,8 +14,8 @@ from tokenizers import Tokenizer
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
 from obsidian_rag.embedding_inputs import DEFAULT_QUERY_INSTRUCTION, prepare_document, prepare_query, validate_input_tokens
 from obsidian_rag.embeddings import iter_embedding_batches
-from obsidian_rag.index_schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
-from obsidian_rag.notes import Note, load_notes
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
+from obsidian_rag.loaders import Note, load_notes
 from obsidian_rag.storage import SQLiteStorage
 from obsidian_rag.tokenization import count_tokens
 from obsidian_rag.vector_store import NumpyVectorStore, VectorStore

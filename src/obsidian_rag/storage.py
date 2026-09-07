@@ -13,7 +13,7 @@ import numpy as np
 from obsidian_rag.chunking import Chunk
 from obsidian_rag.embedding_inputs import prepare_document
 from obsidian_rag.embeddings import validate_vectors
-from obsidian_rag.index_schema import ChunkRecord, EmbeddingSpec, IndexManifest
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest
 
 
 STORAGE_VERSION = 1

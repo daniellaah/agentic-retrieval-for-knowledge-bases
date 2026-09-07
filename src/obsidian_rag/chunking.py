@@ -5,7 +5,7 @@ from collections import deque
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
-from obsidian_rag.notes import Note
+from obsidian_rag.loaders import Note
 
 
 _SEPARATORS = tuple(re.compile(pattern) for pattern in (

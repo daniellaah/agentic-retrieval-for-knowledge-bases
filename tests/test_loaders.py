@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from obsidian_rag.notes import load_notes
+from obsidian_rag.loaders import load_notes
 
 
 def test_load_notes_reads_title_content_and_source(tmp_path: Path) -> None:

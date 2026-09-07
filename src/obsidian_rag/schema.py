@@ -5,14 +5,16 @@ indexes. Sources are canonical vault-relative POSIX paths. A rename changes a
 document's identity; identical embedding inputs may still reuse cached vectors.
 """
 
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 import hashlib
 import json
 import re
 from typing import Literal
+from uuid import NAMESPACE_URL, uuid5
 
 from obsidian_rag.chunking import Chunk
-from obsidian_rag.notes import Note
+from obsidian_rag.loaders import Note
 
 
 SCHEMA_VERSION = 1
@@ -241,3 +243,22 @@ def _require_integer(value: int, name: str, *, minimum: int) -> None:
 def _require_digest(value: str, name: str) -> None:
     if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
         raise ValueError(f"{name} must be a lowercase SHA-256 hex digest.")
+
+
+@dataclass(frozen=True)
+class VectorHit:
+    chunk_id: str
+    score: float
+
+
+def validate_records(records: Sequence[ChunkRecord], *, vault_id: str) -> None:
+    if any(not isinstance(record, ChunkRecord) or record.vault_id != vault_id for record in records):
+        raise ValueError("All vector records must belong to this vault.")
+    if len({record.chunk_id for record in records}) != len(records):
+        raise ValueError("Duplicate chunk IDs in one vector batch.")
+
+
+def point_id(chunk_id: str) -> str:
+    if not isinstance(chunk_id, str) or re.fullmatch('[0-9a-f]{64}', chunk_id) is None:
+        raise ValueError('Expected a SHA-256 chunk ID.')
+    return str(uuid5(NAMESPACE_URL, 'obsidian-rag/chunk/' + chunk_id))
