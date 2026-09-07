@@ -7,9 +7,11 @@ Structural validity must never be presented as semantic evidence support.
 
 from dataclasses import asdict, dataclass
 from collections.abc import Sequence
+import html
 import json
 import math
 import re
+import unicodedata
 from typing import Literal
 
 
@@ -248,3 +250,47 @@ def validate_citations(answer: CitedAnswer, sources: Sequence[CitationSource]) -
     if any(_INLINE_REFERENCE.search(text) for text in answer.missing_information):
         issues.append(CitationIssue('inline_reference_in_missing_information', -1))
     return CitationValidation(tuple(issues))
+
+
+def used_citation_sources(answer: CitedAnswer, sources: Sequence[CitationSource]) -> tuple[CitationSource, ...]:
+    """Order by first use, preserving each claim's joint-reference order."""
+    validation = validate_citations(answer, sources)
+    if not validation.references_valid:
+        raise ValueError('Cannot render invalid citations: ' + ', '.join(i.code for i in validation.issues))
+    registry = _registry(sources)
+    ids = dict.fromkeys(source_id for claim in answer.claims for source_id in claim.source_ids)
+    return tuple(registry[source_id] for source_id in ids)
+
+
+def _display_text(text: str) -> str:
+    """Render data as one inert Markdown line; raw text remains in JSON artifacts."""
+    visible = ''.join(f'\\u{ord(c):04x}' if unicodedata.category(c) in ('Cc', 'Cf') and c not in '\n\r\t'
+                      else c for c in text)
+    visible = html.escape(' '.join(visible.split()), quote=False)
+    return re.sub(r'([\\`*_\[\]()#!|:])', r'\\\1', visible)
+
+
+def render_cited_answer(answer: CitedAnswer, sources: Sequence[CitationSource]) -> str:
+    """Render validated IDs and snapshot excerpts. Never invent filesystem URLs.
+
+    Display numbers are first-use order, distinct from request-local source IDs.
+    Full source identities and verbatim evidence are available in structured data.
+    """
+    used = used_citation_sources(answer, sources)
+    numbers = {s.source_id: i for i, s in enumerate(used, 1)}
+    paragraphs = [f'{_display_text(c.text)} ' + ''.join(f'[{numbers[s]}]' for s in c.source_ids)
+                  for c in answer.claims]
+    if answer.missing_information:
+        paragraphs.append('Missing information in the provided notes: ' +
+                          ' '.join(_display_text(t) for t in answer.missing_information))
+    if used:
+        lines = ['Sources (Note.content snapshot characters, end exclusive):']
+        for s in used:
+            origin = s.origins[0]
+            identity = (f'revision {_display_text(origin.document_revision)}, '
+                        f'index {_display_text(origin.index_version or "unknown")}') if origin.document_revision else 'unversioned'
+            lines.append(f'[{numbers[s.source_id]}] {_display_text(s.source)} — {_display_text(s.title)}; '
+                         f'body chars [{s.start_char}, {s.end_char}); {identity}')
+            lines.append('> ' + _display_text(s.content))
+        paragraphs.append('\n'.join(lines))
+    return '\n\n'.join(paragraphs)

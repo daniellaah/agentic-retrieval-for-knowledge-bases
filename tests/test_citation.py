@@ -6,6 +6,7 @@ import pytest
 from obsidian_rag.citation import (
     CitationOrigin, CitationSource, CitationValidation, Claim, CitedAnswer,
     CitationParseError, citation_json_schema, parse_cited_answer, validate_citations,
+    render_cited_answer, used_citation_sources,
 )
 
 
@@ -121,3 +122,34 @@ def test_registry_and_schema_reject_duplicate_identity_and_schema_is_fresh():
     assert schema['properties']['claims']['items']['properties']['source_ids']['items']['enum'] == ['S1', 'S2']
     schema['required'].clear()
     assert citation_json_schema(['S1'])['required']
+
+
+def test_rendering_numbers_first_use_and_excludes_unused_sources():
+    sources = [source(), replace(source('S2'), source='b.md'), replace(source('S3'), source='unused.md')]
+    answer = CitedAnswer('answered', (Claim('Joint fact.', ('S2', 'S1')), Claim('Another.', ('S2',))))
+    rendered = render_cited_answer(answer, sources)
+    assert rendered.startswith('Joint fact. [1][2]\n\nAnother. [1]')
+    assert rendered.count('[1] b.md') == 1
+    assert rendered.count('[2] a.md') == 1
+    assert 'unused.md' not in rendered
+    assert 'body chars [0, 7); unversioned' in rendered
+    assert 'file://' not in rendered
+    assert [s.source_id for s in used_citation_sources(answer, sources)] == ['S2', 'S1']
+
+
+def test_renderer_keeps_evidence_and_prose_from_forging_links_or_terminal_controls():
+    text = '<script>x</script>\n# Sources\n[x](https://example.com)\x1b[31m'
+    s = replace(source(content=text), title='[fake](file://bad)', source='[x].md')
+    answer = CitedAnswer('answered', (Claim('<b>Fact</b>\n# Sources\x1b[31m', ('S1',)),))
+    rendered = render_cited_answer(answer, [s])
+    assert '<script>' not in rendered and '<b>' not in rendered
+    assert '\x1b' not in rendered and '\n# Sources' not in rendered
+    assert '](https://' not in rendered and '](file://' not in rendered
+    assert s.content == text
+
+
+def test_renderer_refuses_invalid_references_and_omits_sources_for_abstention():
+    with pytest.raises(ValueError, match='unknown_source'):
+        render_cited_answer(CitedAnswer('answered', (Claim('Fact.', ('S9',)),)), [source()])
+    rendered = render_cited_answer(CitedAnswer('insufficient_evidence', (), ('No timing data.',)), [source()])
+    assert rendered == 'Missing information in the provided notes: No timing data.'
