@@ -6,6 +6,8 @@ Structural validity must never be presented as semantic evidence support.
 """
 
 from dataclasses import asdict, dataclass
+from collections.abc import Sequence
+import json
 import math
 import re
 from typing import Literal
@@ -144,3 +146,105 @@ class CitationValidation:
     def to_dict(self) -> dict:
         return {'structure_valid': True, 'references_valid': self.references_valid,
                 'support_status': 'not_checked', 'issues': [asdict(i) for i in self.issues]}
+
+
+class CitationParseError(ValueError):
+    """Retain the unmodified model response for an evaluator, not user display."""
+
+    def __init__(self, message: str, raw_response: str):
+        super().__init__(message)
+        self.raw_response = raw_response
+
+
+def citation_json_schema(source_ids: Sequence[str]) -> dict:
+    """Fresh response schema; application validation remains authoritative."""
+    ids = list(source_ids)
+    for source_id in ids:
+        _source_id(source_id)
+    if len(set(ids)) != len(ids):
+        raise ValueError('Duplicate source IDs in schema.')
+    return {
+        'type': 'object', 'additionalProperties': False,
+        'required': ['status', 'claims', 'missing_information'],
+        'properties': {
+            'status': {'type': 'string', 'enum': ['answered', 'partial', 'insufficient_evidence']},
+            'claims': {'type': 'array', 'items': {
+                'type': 'object', 'additionalProperties': False,
+                'required': ['text', 'source_ids'],
+                'properties': {
+                    'text': {'type': 'string', 'minLength': 1},
+                    'source_ids': {'type': 'array', 'minItems': 1, 'uniqueItems': True,
+                                   'items': {'type': 'string', 'enum': ids} if ids else {'type': 'string'}},
+                },
+            }},
+            'missing_information': {'type': 'array', 'items': {'type': 'string', 'minLength': 1}},
+        },
+    }
+
+
+def _unique_object(pairs):
+    obj = {}
+    for key, value in pairs:
+        if key in obj:
+            raise ValueError(f'Duplicate JSON key: {key}.')
+        obj[key] = value
+    return obj
+
+
+def _keys(obj, expected):
+    if not isinstance(obj, dict) or set(obj) != set(expected):
+        raise ValueError(f'Expected exactly these object fields: {", ".join(expected)}.')
+
+
+def _reject_constant(value):
+    raise ValueError(f'Nonfinite JSON number: {value}.')
+
+
+def parse_cited_answer(raw_response: str) -> CitedAnswer:
+    """Parse one strict JSON object. Never repair, strip fences or coerce types."""
+    try:
+        _text(raw_response, 'Model response')
+        obj = json.loads(raw_response, object_pairs_hook=_unique_object,
+                         parse_constant=_reject_constant)
+        _keys(obj, ('status', 'claims', 'missing_information'))
+        if not isinstance(obj['claims'], list) or not isinstance(obj['missing_information'], list):
+            raise ValueError('claims and missing_information must be arrays.')
+        claims = []
+        for entry in obj['claims']:
+            _keys(entry, ('text', 'source_ids'))
+            if not isinstance(entry['source_ids'], list):
+                raise ValueError('source_ids must be an array.')
+            claims.append(Claim(entry['text'], tuple(entry['source_ids'])))
+        return CitedAnswer(obj['status'], tuple(claims), tuple(obj['missing_information']))
+    except (ValueError, TypeError, RecursionError) as error:
+        raise CitationParseError(f'Invalid cited answer structure: {error}', raw_response) from error
+
+
+def _registry(sources: Sequence[CitationSource]) -> dict[str, CitationSource]:
+    if any(not isinstance(s, CitationSource) for s in sources):
+        raise ValueError('Expected CitationSource objects.')
+    registry = {s.source_id: s for s in sources}
+    if len(registry) != len(sources):
+        raise ValueError('Duplicate source IDs in registry.')
+    return registry
+
+
+# Model prose cannot impersonate the application's citation markers or links.
+_INLINE_REFERENCE = re.compile(r'\[(?:S?[0-9]+|[^\]\n]*\.md)\]|\]\(|\b(?:https?|file|obsidian)://', re.I)
+
+
+def validate_citations(answer: CitedAnswer, sources: Sequence[CitationSource]) -> CitationValidation:
+    """Check references against sent evidence; no semantic support inference."""
+    registry = _registry(sources)
+    issues = []
+    for i, claim in enumerate(answer.claims):
+        if not claim.source_ids:
+            issues.append(CitationIssue('missing_reference', i))
+        for source_id in claim.source_ids:
+            if source_id not in registry:
+                issues.append(CitationIssue('unknown_source', i, source_id))
+        if _INLINE_REFERENCE.search(claim.text):
+            issues.append(CitationIssue('inline_reference', i))
+    if any(_INLINE_REFERENCE.search(text) for text in answer.missing_information):
+        issues.append(CitationIssue('inline_reference_in_missing_information', -1))
+    return CitationValidation(tuple(issues))
