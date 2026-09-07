@@ -8,9 +8,7 @@ import math
 from pathlib import Path
 
 from obsidian_rag.citation import CitationOrigin, CitationSource
-from obsidian_rag.retrieval.models import SearchResult, SearchScore, ChunkTarget, SpanTarget
-from obsidian_rag.knowledge_base.sources import SourceRef, SourceExcerpt
-from obsidian_rag.knowledge_base.identity import digest
+from obsidian_rag.retrieval.models import SearchResult, ChunkTarget
 
 
 _SYSTEM_PROMPT = """Answer the user's question using only the provided notes.
@@ -316,7 +314,7 @@ def build_context(question: str, results: Sequence[SearchResult], *,
                   citation_mode: str = 'legacy') -> BuiltContext:
     """Deduplicate and merge verified overlap, retaining first-hit priority.
 
-    Unversioned legacy hits are deduplicated only by exact Chunk equality and
+    Unversioned legacy hits are deduplicated only by exact target and excerpt equality and
     never merged. Known spans merge only within one snapshot/document revision;
     disagreeing overlap raises instead of choosing one version of the text.
     With config, try whole candidate chunks in priority order, merging their
@@ -377,27 +375,12 @@ def _document_key(hit: SearchResult) -> tuple | None:
     return (source.snapshot_id, source.vault_id, source.document_id, source.document_revision)
 
 
-def _common_result(hit, rank):
-    # Transitional adapter while the CLI and evaluation migrate to vector_search.
-    if isinstance(hit, SearchResult):
-        return hit
-    from obsidian_rag.retrieval import SearchResult as LegacyResult
-    if not isinstance(hit, LegacyResult):
-        raise ValueError('Expected a SearchResult.')
-    score = SearchScore(hit.score, 'cosine')
-    if hit.record is not None:
-        return SearchResult.from_record(hit.record, score, snapshot_id=hit.index_version, rank=rank, method='vector')
-    chunk = hit.chunk
-    source = SourceRef('legacy', digest('document-id', {'vault_id':'legacy','source':chunk.source}),
-                       chunk.source, chunk.title, None, None)
-    excerpt = SourceExcerpt(source, chunk.start_char, chunk.end_char, chunk.content)
-    return SearchResult(source, SpanTarget(chunk.start_char, chunk.end_char), 'vector', rank, (excerpt,), score)
-
-
 def _prepare_evidence(results: Sequence[SearchResult], *, process_evidence: bool = True):
     candidates, decisions, seen = [], [], set()
     for rank, item in enumerate(results):
-        hit = _common_result(item, rank + 1)
+        hit = item
+        if not isinstance(hit, SearchResult):
+            raise ValueError('Expected a SearchResult.')
         if not hit.excerpts:
             decisions.append((rank, 'needs_inspection'))
         for excerpt in hit.excerpts:

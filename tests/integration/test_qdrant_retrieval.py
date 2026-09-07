@@ -12,7 +12,7 @@ from qdrant_client import QdrantClient
 from obsidian_rag.knowledge_base.chunking import whole_note_chunks
 from obsidian_rag.knowledge_base.vector_index.indexing import QdrantIndex
 from obsidian_rag.knowledge_base.loaders import Note
-from obsidian_rag.retrieval import check_qdrant_collection, search_qdrant
+from obsidian_rag.knowledge_base.vector_index.qdrant import check_qdrant_collection, search_qdrant
 from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord, EmbeddingSpec
 
 

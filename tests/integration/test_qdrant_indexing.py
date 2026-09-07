@@ -14,7 +14,7 @@ from tokenizers import Tokenizer, models, pre_tokenizers
 
 from obsidian_rag.knowledge_base.vector_index.indexing import build_index, QdrantIndex
 from obsidian_rag.knowledge_base.loaders import Note
-from obsidian_rag.retrieval import search_index
+from obsidian_rag.retrieval.vector import vector_search, VectorSearchConfig
 from obsidian_rag.knowledge_base.vector_index.manifest import EmbeddingSpec
 from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
 
@@ -63,11 +63,11 @@ def test_qdrant_publication_hnsw_and_failure_recovery(tmp_path, monkeypatch):
             ollama.embed.side_effect = lambda **kw: EmbedResponse(embeddings=[vectors[0].tolist()])
             # Qdrant queries fetch only hit records; they must never load all cached vectors.
             monkeypatch.setattr(storage, 'load_snapshot', lambda *a: pytest.fail('loaded every vector during query'))
-            results = search_index(storage, 'find', vault_id=vault, spec=spec, client=ollama, tokenizer=tokenizer,
-                                   qdrant_client=client, index_version=first.manifest.index_version, top_k=1)
-            assert results[0].chunk.source == '000.md'
+            results = vector_search(storage, 'find', vault_id=vault, spec=spec, client=ollama, tokenizer=tokenizer,
+                                   qdrant_client=client, index_version=first.manifest.index_version, config=VectorSearchConfig(top_k=1))
+            assert results.items[0].source.path == '000.md'
             with pytest.raises(ValueError, match='incompatible'):
-                search_index(storage, 'find', vault_id=vault, spec=replace(spec, model_revision='changed'),
+                vector_search(storage, 'find', vault_id=vault, spec=replace(spec, model_revision='changed'),
                              client=ollama, tokenizer=tokenizer, qdrant_client=client)
         finally:
             for manifest in storage.list_builds(vault):
