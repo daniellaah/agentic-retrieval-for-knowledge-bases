@@ -897,3 +897,18 @@ ordinals to preserve tie order; original cosine scores remain in the raw run.
 `answered`, `partial` and `insufficient_evidence` all map to `completed` when
 execution succeeds; answer correctness is scored separately. To use the
 official evaluator, point it at the exported `runs/` subdirectory.
+
+Benchmark verification uses synthetic data, including opaque document IDs and
+unaltered source spans. The regular test suite covers NumPy and in-process
+Qdrant with provider HTTP fixtures. The opt-in CLI integration test uses the
+already installed `qwen3-embedding:0.6b` and `qwen3.5:4b`, offline tokenizers,
+separate-process index reuse, answer generation, independent regrading,
+report/export and deliberately truncated output:
+
+```sh
+OBSIDIAN_RAG_RUN_MODEL_TESTS=1 .venv/bin/python -B -m pytest \
+  -p no:cacheprovider -q tests/integration/test_browsecomp_pipeline.py
+```
+
+Its small `qwen3.5:4b` judge checks the integration only. Passing these tests is
+not a BrowseComp-Plus score or a validation of the official 32B judge's accuracy.
