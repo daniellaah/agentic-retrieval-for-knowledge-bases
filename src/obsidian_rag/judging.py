@@ -109,6 +109,8 @@ def judge_answer(question: str, prediction: str, reference: str, *, client, conf
                                         'top_k': config.top_k, 'num_ctx': config.context_window,
                                         'num_predict': config.max_output_tokens})
         result['raw_response'] = response.message.content
+        result['thinking'] = response.message.thinking
+        result['done_reason'] = response.done_reason
         result['token_usage'] = {'prompt_tokens': response.prompt_eval_count, 'output_tokens': response.eval_count}
         if response.done_reason == 'length':
             result['error'] = {'code': 'truncated_output', 'message': 'Judge output was truncated.'}
