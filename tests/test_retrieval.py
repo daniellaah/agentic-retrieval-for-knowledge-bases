@@ -1,10 +1,15 @@
 import numpy as np
 import pytest
 from numpy.typing import NDArray
-
 from obsidian_rag.chunking import Chunk, chunk_notes, whole_note_chunks
 from obsidian_rag.loaders import Note
-from obsidian_rag.retrieval import retrieve
+from obsidian_rag.retrieval import retrieve, search_qdrant, search_numpy
+from contextlib import closing
+from dataclasses import replace
+import warnings
+from qdrant_client import QdrantClient
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
+from obsidian_rag.indexing import QdrantIndex
 
 
 @pytest.fixture
@@ -222,13 +227,100 @@ def test_indexed_search_rejects_missing_and_unpublished_versions(published_index
     kwargs['client'].embed.assert_not_called()
 
 
-def test_indexed_search_rejects_unknown_backend_hits(published_index):
-    from unittest.mock import Mock
+def test_indexed_search_rejects_unknown_backend_hits(published_index, monkeypatch):
     from obsidian_rag.retrieval import search_index
-    from obsidian_rag.vector_store import VectorHit
+    from obsidian_rag.schema import VectorHit
     store, kwargs = published_index
-    backend = Mock(vault_id='vault')
-    backend.spec = kwargs['spec']
-    backend.search.return_value = [VectorHit('orphan', 0.5)]
+    monkeypatch.setattr('obsidian_rag.retrieval.search_numpy', lambda *a, **kw: [VectorHit('orphan', 0.5)])
     with pytest.raises(ValueError, match='snapshot'):
-        search_index(store, 'Question?', **kwargs, vector_store=backend)
+        search_index(store, 'Question?', **kwargs)
+
+
+@pytest.fixture
+def vector_data():
+    spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2,
+                         document_template='title-body-v1', normalization='none')
+    notes = [Note(title='Title', content='body', source=f'{n}.md') for n in range(3)]
+    records = [ChunkRecord.from_note(whole_note_chunks([n])[0], note=n, vault_id='vault') for n in notes]
+    return spec, records
+
+
+def create_qdrant_index(client, spec):
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', message='Payload indexes have no effect in the local Qdrant.*')
+        return QdrantIndex(client, 'test', spec, vault_id='vault', create=True)
+
+
+@pytest.mark.filterwarnings('ignore:Local mode performs exact.*:UserWarning')
+def test_qdrant_local_contract_roundtrip_filter_and_delete(tmp_path, vector_data):
+    spec, records = vector_data
+    with closing(QdrantClient(path=str(tmp_path / 'qdrant'))) as client:
+        store = create_qdrant_index(client, spec)
+        store.upsert(records, [[0, 1], [3, 4], [1, 0]])
+        assert store.count() == 3
+        hits = search_qdrant(client, 'test', [1, 0], spec=spec, vault_id='vault', top_k=3, exact=True)
+        assert [h.chunk_id for h in hits] == [records[2].chunk_id, records[1].chunk_id, records[0].chunk_id]
+        np.testing.assert_allclose([h.score for h in hits], [1, .6, 0], atol=1e-6)
+        assert search_qdrant(client, 'test', [1, 0], spec=spec, vault_id='vault', source='0.md')[0].chunk_id == records[0].chunk_id
+    with closing(QdrantClient(path=str(tmp_path / 'qdrant'))) as client:
+        store = QdrantIndex(client, 'test', spec, vault_id='vault')
+        assert store.count() == 3
+        store.upsert([records[2]], [[-1, 0]])
+        assert store.count() == 3
+        store.delete([records[0].chunk_id, records[0].chunk_id])
+        assert store.count() == 2
+        assert search_qdrant(client, 'test', [1, 0], spec=spec, vault_id='vault', source='0.md') == []
+
+
+def test_numpy_ranking_filters_before_limit_and_preserves_sources(vector_data):
+    spec, records = vector_data
+    vectors = [[0, 1], [3, 4], [1, 0]]
+    hits = search_numpy(records, vectors, [1, 0], spec=spec, vault_id='vault', top_k=3)
+    assert [h.chunk_id for h in hits] == [records[2].chunk_id, records[1].chunk_id, records[0].chunk_id]
+    np.testing.assert_allclose([h.score for h in hits], [1, .6, 0])
+    filtered = search_numpy(records, vectors, [1, 0], spec=spec, vault_id='vault', top_k=1, source='0.md')
+    assert filtered[0].chunk_id == records[0].chunk_id
+    assert search_numpy(records, vectors, [1, 0], spec=spec, vault_id='vault', source='missing.md') == []
+
+
+def test_numpy_stable_ties_and_search_does_not_mutate_inputs(vector_data):
+    spec, records = vector_data
+    vectors = np.array([[1., 0], [1, 0], [0, 1]])
+    query = np.array([2., 0])
+    original_vectors, original_query = vectors.copy(), query.copy()
+    hits = search_numpy(records, vectors, query, spec=spec, vault_id='vault')
+    assert [h.chunk_id for h in hits] == [r.chunk_id for r in records[:2]]
+    np.testing.assert_array_equal(vectors, original_vectors)
+    np.testing.assert_array_equal(query, original_query)
+    assert search_numpy([], np.empty((0, 2)), query, spec=spec, vault_id='vault') == []
+
+
+def test_numpy_rejects_invalid_vectors_duplicate_ids_and_foreign_vault(vector_data):
+    spec, records = vector_data
+    for batch, vectors in ((records[1:], [[0, 1], [0, 0]]),
+                           ([records[1], records[1]], [[0, 1], [0, 1]]),
+                           ([replace(records[1], vault_id='other')], [[0, 1]])):
+        with pytest.raises(ValueError):
+            search_numpy(batch, vectors, [1, 0], spec=spec, vault_id='vault')
+
+
+@pytest.mark.parametrize('options', [{'top_k': 0}, {'top_k': True}, {'source': ''}, {'exact': 1}])
+def test_empty_numpy_snapshot_still_validates_search_options(vector_data, options):
+    spec, _ = vector_data
+    with pytest.raises(ValueError):
+        search_numpy([], np.empty((0, 2)), [1, 0], spec=spec, vault_id='vault', **options)
+
+
+def test_numpy_query_dimension_and_norm_are_checked(vector_data):
+    spec, _ = vector_data
+    for query in ([1, 0, 0], [0, 0], [float('nan'), 0]):
+        with pytest.raises(ValueError):
+            search_numpy([], np.empty((0, 2)), query, spec=spec, vault_id='vault')
+
+
+def test_numpy_distinct_records_can_reference_the_same_chunk_object(vector_data):
+    spec, records = vector_data
+    first = records[0]
+    second = replace(first, document_revision='a' * 64)
+    hits = search_numpy([first, second], [[1, 0], [0, 1]], [1, 0], spec=spec, vault_id='vault')
+    assert [h.chunk_id for h in hits] == [first.chunk_id, second.chunk_id]

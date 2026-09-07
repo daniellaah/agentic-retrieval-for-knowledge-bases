@@ -23,9 +23,7 @@ from obsidian_rag.schema import (
 if TYPE_CHECKING:
     from ollama import Client
     from tokenizers import Tokenizer
-    from obsidian_rag.schema import EmbeddingSpec
     from obsidian_rag.storage import SQLiteStorage
-    from obsidian_rag.vector_store import VectorStore
 
 
 @dataclass(frozen=True)
@@ -163,7 +161,7 @@ def search_index(
     storage: "SQLiteStorage", question: str, *, vault_id: str, spec: "EmbeddingSpec",
     tokenizer: "Tokenizer", client: "Client",
     top_k: int = 2, source: str | None = None, exact: bool = False,
-    index_version: str | None = None, vector_store: "VectorStore | None" = None, qdrant_client=None,
+    index_version: str | None = None, qdrant_client=None,
 ) -> list[SearchResult]:
     """Search one captured READY snapshot, embedding only the query.
 
@@ -193,23 +191,18 @@ def search_index(
     if manifest.chunk_count == 0:
         return []
     records, matrix = None, None
-    if vector_store is None:
-        if metadata['kind'] == 'qdrant':
-            if qdrant_client is None:
-                raise ValueError('This index requires a Qdrant client.')
-            check_qdrant_collection(qdrant_client, metadata['collection'], spec=spec, vault_id=vault_id)
-        elif metadata['kind'] == 'numpy':
-            _, records, matrix = storage.load_snapshot(manifest.index_version)
-        else:
-            raise ValueError('Unsupported index backend.')
-    elif vector_store.spec != spec or vector_store.vault_id != vault_id:
-        raise ValueError('Vector store does not match the query embedding spec and vault.')
+    if metadata['kind'] == 'qdrant':
+        if qdrant_client is None:
+            raise ValueError('This index requires a Qdrant client.')
+        check_qdrant_collection(qdrant_client, metadata['collection'], spec=spec, vault_id=vault_id)
+    elif metadata['kind'] == 'numpy':
+        _, records, matrix = storage.load_snapshot(manifest.index_version)
+    else:
+        raise ValueError('Unsupported index backend.')
     query_vector = embed_texts([query], client=client, model=spec.model,
                               dimensions=spec.dimensions, dtype=spec.dtype,
                               normalization=spec.normalization, context_length=inputs['max_tokens'])[0]
-    if vector_store is not None:
-        hits = vector_store.search(query_vector, top_k=top_k, source=source, exact=exact)
-    elif metadata['kind'] == 'qdrant':
+    if metadata['kind'] == 'qdrant':
         hits = search_qdrant(qdrant_client, metadata['collection'], query_vector,
                              spec=spec, vault_id=vault_id, top_k=top_k, source=source, exact=exact)
     else:

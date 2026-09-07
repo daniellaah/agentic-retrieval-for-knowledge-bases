@@ -5,19 +5,17 @@ from dataclasses import replace
 import os
 from unittest.mock import Mock
 from uuid import uuid4
-
 import numpy as np
 import pytest
 from ollama import Client, EmbedResponse
 from qdrant_client import QdrantClient
 from tokenizers import Tokenizer, models, pre_tokenizers
-
 from obsidian_rag.schema import EmbeddingSpec
-from obsidian_rag.indexing import build_index
+from obsidian_rag.indexing import build_index, QdrantIndex
 from obsidian_rag.loaders import Note
 from obsidian_rag.retrieval import search_index
 from obsidian_rag.storage import SQLiteStorage
-from obsidian_rag.vector_store_qdrant import QdrantVectorStore
+
 
 pytestmark = pytest.mark.skipif(not os.environ.get('OBSIDIAN_RAG_QDRANT_URL'),
                                reason='Set OBSIDIAN_RAG_QDRANT_URL to a test Qdrant Server.')
@@ -46,17 +44,17 @@ def test_qdrant_publication_hnsw_and_failure_recovery(tmp_path, monkeypatch):
             metadata = storage.build_metadata(first.manifest.index_version)['backend']
             assert metadata['index_stats']['indexed_vectors'] >= 256
             assert build_index(storage, notes, **options).reused_index
-            original_wait = QdrantVectorStore.wait_ready
+            original_wait = QdrantIndex.wait_ready
             def fail(*args, **kwargs):
                 raise ValueError('simulated index failure')
-            monkeypatch.setattr(QdrantVectorStore, 'wait_ready', fail)
+            monkeypatch.setattr(QdrantIndex, 'wait_ready', fail)
             with pytest.raises(ValueError, match='simulated'):
                 build_index(storage, notes, **options, force=True)
             failed = storage.list_builds(vault)[-1]
             failed_collection = storage.build_metadata(failed.index_version)['backend']['collection']
             assert failed.status == 'failed' and client.collection_exists(failed_collection)
             assert storage.active_manifest(vault) == first.manifest
-            monkeypatch.setattr(QdrantVectorStore, 'wait_ready', original_wait)
+            monkeypatch.setattr(QdrantIndex, 'wait_ready', original_wait)
             second = build_index(storage, notes, **options, force=True)
             assert second.embedded_inputs == 0
             assert not client.collection_exists(failed_collection)

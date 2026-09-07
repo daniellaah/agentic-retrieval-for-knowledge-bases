@@ -452,21 +452,22 @@ pointer. Failed candidates cannot replace active data. The storage schema is
 versioned independently of record fingerprints; unknown versions are rejected.
 SQLite files belong in a local runtime directory, never the retrieval corpus.
 
-## Vector-store contract
+## Vector search
 
-`VectorStore` exposes `upsert`, `search`, `delete`, and `count` for one vault and
-embedding specification. `VectorHit` carries a stable chunk ID and a cosine score
-(larger is better). Source filtering precedes top-k selection. The first backend,
-`NumpyVectorStore`, reuses exact cosine retrieval and preserves insertion order
-on ties; it copies inputs and validates a whole batch before updating entries.
-It is an in-memory search projection, restored from durable SQLite snapshots.
+`retrieval.search_numpy` and `retrieval.search_qdrant` return `schema.VectorHit`:
+a stable chunk ID and a cosine score (larger is better). Both filter by source
+before top-k selection. NumPy searches the validated SQLite snapshot directly,
+with exact cosine ranking and input-order ties. It does not maintain a second
+mutable copy of the snapshot. Qdrant supports exact and ANN queries; callers open
+and validate its collection with `retrieval.check_qdrant_collection` before use.
+`retrieval.search_index` handles this validation for application queries.
 
 ## Build an index snapshot
 
 `indexing.build_index` accepts a complete list of loaded notes, a resolved
 `EmbeddingSpec`, vault ID, matching tokenizer, active context limit, and Ollama
 client. It validates inputs, chunks notes, caches successful embedding batches,
-restores a candidate search projection, verifies the snapshot, then publishes.
+validates the candidate snapshot, prepares Qdrant when selected, then publishes.
 The report includes the published manifest and counts of unique embedded/cached
 inputs. Duplicate text occurrences share vectors but retain separate chunk IDs.
 A later batch failure leaves previous published snapshots available and earlier
@@ -527,15 +528,16 @@ Historical snapshots are retained; deletion of the active snapshot is rejected.
 
 ## Qdrant backend
 
-`QdrantVectorStore` implements the same search contract using external vectors,
-with one collection per candidate. Collection metadata binds the embedding spec
+`indexing.QdrantIndex` creates, writes, verifies, and removes collections using
+external vectors, with one collection per candidate. Queries live in
+`retrieval.search_qdrant`. Collection metadata binds the embedding spec
 and vault; opening incompatible collections fails without changing their data.
 Payload indexes for vault, embedding spec and source are created before ingestion.
 Chunk SHA-256 IDs map deterministically to UUID point IDs; full identities stay in
 payload and are verified on retrieval. Qdrant stores cosine vectors as float32,
 so allow small score-rounding differences from the NumPy float64 reference.
 `create=True` never recreates an existing collection. Writes/deletes wait for
-completion. Text remains in SQLite, and this adapter never runs an embedding model.
+completion. Text remains in SQLite, and this collection handler never runs an embedding model.
 
 Regular backend tests use Qdrant Local for API behavior only. Real server tests
 are enabled with `OBSIDIAN_RAG_QDRANT_URL=http://127.0.0.1:6333`; they create and

@@ -135,11 +135,11 @@ def main(argv=None) -> int:
     """Evaluate an existing snapshot and save a new, non-overwriting artifact folder."""
     from importlib.metadata import version
     from ollama import Client
-    from obsidian_rag.retrieval import connect_qdrant
+    from obsidian_rag.retrieval import connect_qdrant, search_qdrant
     from obsidian_rag.embeddings import resolve_embedding_spec
     from obsidian_rag.embeddings import prepare_query, validate_input_tokens
     from obsidian_rag.embeddings import embed_texts
-    from obsidian_rag.indexing import _qdrant_projection
+    from obsidian_rag.indexing import QdrantIndex
     from obsidian_rag.tokenization import tokenizer_fingerprint
     from obsidian_rag.storage import SQLiteStorage
     from obsidian_rag.tokenization import load_tokenizer
@@ -184,12 +184,13 @@ def main(argv=None) -> int:
         modes, server_info = {}, None
         if metadata['backend']['kind'] == 'qdrant':
             client = resources.enter_context(closing(connect_qdrant(args.qdrant_url or metadata['backend']['url'], 30)))
-            store = _qdrant_projection(client, metadata['backend'], manifest, create=False)
+            store = QdrantIndex(client, metadata['backend']['collection'], spec, vault_id=args.vault_id)
             store.verify_snapshot(records, vectors)
             info = store.check_configuration()
             server_info = {'version': client.info().version, 'indexed_vectors': info.indexed_vectors_count,
                            'hnsw_config': info.config.hnsw_config.model_dump(mode='json')}
-            modes = {'qdrant_exact': (store.search, True), 'qdrant_ann': (store.search, False)}
+            search = partial(search_qdrant, client, store.collection, spec=spec, vault_id=args.vault_id)
+            modes = {'qdrant_exact': (search, True), 'qdrant_ann': (search, False)}
         report = compare_retrieval(records, vectors, queries, cases, spec=spec, vault_id=args.vault_id,
                                    backends=modes, top_k=args.top_k)
         repo = Path(__file__).resolve().parents[2]

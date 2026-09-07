@@ -1,14 +1,17 @@
 from dataclasses import replace
 from unittest.mock import Mock
-
 import pytest
 from ollama import Client, EmbedResponse
 from tokenizers import Tokenizer, models, pre_tokenizers, processors
-
-from obsidian_rag.schema import EmbeddingSpec
-from obsidian_rag.indexing import build_index
+from obsidian_rag.schema import EmbeddingSpec, ChunkRecord
+from obsidian_rag.indexing import build_index, QdrantIndex
 from obsidian_rag.loaders import Note
 from obsidian_rag.storage import SQLiteStorage
+from contextlib import closing
+import warnings
+import numpy as np
+from qdrant_client import QdrantClient
+from obsidian_rag.chunking import whole_note_chunks
 
 
 @pytest.fixture
@@ -123,17 +126,86 @@ def test_vault_scope_cannot_silently_switch_directories(setup):
     assert storage.active_manifest('vault') == original.manifest
 
 
-
-def test_projection_failure_never_publishes_the_candidate(setup):
-    from obsidian_rag.vector_store import NumpyVectorStore
+def test_incomplete_snapshot_never_publishes_the_candidate(setup, monkeypatch):
     storage, options = setup
     notes = [Note(title='A', content='first', source='a.md')]
     original = build_index(storage, notes, **options)
-    class BrokenProjection(NumpyVectorStore):
-        def upsert(self, records, vectors):
-            raise ValueError('projection unavailable')
-    broken = BrokenProjection(options['spec'], vault_id='vault')
-    with pytest.raises(ValueError, match='projection unavailable'):
-        build_index(storage, notes, **options, vector_store=broken, index_version='failed-projection')
+    load_snapshot = storage.load_snapshot
+    def incomplete(version):
+        manifest, records, vectors = load_snapshot(version)
+        return manifest, records[:-1], vectors[:-1]
+    monkeypatch.setattr(storage, 'load_snapshot', incomplete)
+    with pytest.raises(ValueError, match='snapshot count'):
+        build_index(storage, notes, **options, index_version='incomplete')
     assert storage.active_manifest('vault') == original.manifest
-    assert storage.get_manifest('failed-projection').status == 'failed'
+    assert storage.get_manifest('incomplete').status == 'failed'
+
+
+@pytest.fixture
+def qdrant_data():
+    spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2,
+                         document_template='title-body-v1', normalization='none')
+    notes = [Note(title='Title', content='body', source=f'{n}.md') for n in range(3)]
+    records = [ChunkRecord.from_note(whole_note_chunks([n])[0], note=n, vault_id='vault') for n in notes]
+    return spec, records
+
+
+def create_qdrant_index(client, spec):
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', message='Payload indexes have no effect in the local Qdrant.*')
+        return QdrantIndex(client, 'test', spec, vault_id='vault', create=True)
+
+
+def test_incompatible_collection_is_rejected_without_overwriting(qdrant_data):
+    spec, records = qdrant_data
+    with closing(QdrantClient(':memory:')) as client:
+        store = create_qdrant_index(client, spec)
+        store.upsert(records[:1], [[1, 0]])
+        for changed in (replace(spec, dimensions=3), replace(spec, model_revision='different')):
+            with pytest.raises(ValueError, match='configuration'):
+                QdrantIndex(client, 'test', changed, vault_id='vault')
+        with pytest.raises(ValueError):
+            create_qdrant_index(client, spec)
+        assert store.count() == 1
+
+
+def test_invalid_vectors_and_foreign_vault_fail_before_upsert(qdrant_data):
+    spec, records = qdrant_data
+    with closing(QdrantClient(':memory:')) as client:
+        store = create_qdrant_index(client, spec)
+        for items, vectors in ((records[:1], [[0, 0]]),
+                               ([replace(records[0], vault_id='other')], [[1, 0]])):
+            with pytest.raises(ValueError):
+                store.upsert(items, vectors)
+        assert store.count() == 0
+
+
+def test_snapshot_verification_detects_payload_and_vector_corruption(qdrant_data):
+    from obsidian_rag.schema import point_id
+    spec, records = qdrant_data
+    with closing(QdrantClient(':memory:')) as client:
+        store = create_qdrant_index(client, spec)
+        vectors = [[1, 0], [.6, .8], [0, 1]]
+        store.upsert(records, vectors)
+        store.verify_snapshot(records, vectors)
+        client.set_payload('test', payload={'source': 'wrong.md'}, points=[point_id(records[0].chunk_id)])
+        with pytest.raises(ValueError, match='payload'):
+            store.verify_snapshot(records, vectors)
+
+
+def test_hnsw_readiness_timeout_does_not_claim_a_flat_index_is_built(qdrant_data):
+    spec, records = qdrant_data
+    with closing(QdrantClient(':memory:')) as client:
+        store = create_qdrant_index(client, spec)
+        store.upsert(records[:1], [[1, 0]])
+        assert store.wait_ready(expected_count=1)['points'] == 1
+        with pytest.raises(ValueError, match='Timed out'):
+            store.wait_ready(expected_count=1, timeout=.01, require_hnsw=True)
+
+
+def test_invalid_full_scan_threshold_fails_before_contacting_server(qdrant_data):
+    spec, _ = qdrant_data
+    for threshold in (0, 9, -1, True):
+        with pytest.raises(ValueError, match='full_scan_threshold'):
+            QdrantIndex(None, 'test', spec, vault_id='vault', create=True,
+                             full_scan_threshold=threshold)

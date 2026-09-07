@@ -1,16 +1,18 @@
 """Opt-in real Qdrant Server contract; collections are unique and cleaned up."""
+
 from contextlib import closing
 import os
 from uuid import uuid4
-
 import numpy as np
 import pytest
 from qdrant_client import QdrantClient
-
 from obsidian_rag.chunking import whole_note_chunks
 from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
 from obsidian_rag.loaders import Note
-from obsidian_rag.vector_store_qdrant import QdrantVectorStore
+from functools import partial
+from obsidian_rag.indexing import QdrantIndex
+from obsidian_rag.retrieval import check_qdrant_collection, search_qdrant
+
 
 pytestmark = pytest.mark.skipif(not os.environ.get('OBSIDIAN_RAG_QDRANT_URL'),
                                reason='Set OBSIDIAN_RAG_QDRANT_URL to a test Qdrant Server.')
@@ -27,15 +29,17 @@ def test_server_persistence_filters_scores_and_deletes():
     url = os.environ['OBSIDIAN_RAG_QDRANT_URL']
     with closing(QdrantClient(url=url, timeout=15, trust_env=False)) as client:
         try:
-            store = QdrantVectorStore(client, name, spec, vault_id='test', create=True)
+            store = QdrantIndex(client, name, spec, vault_id='test', create=True)
             store.upsert(records, [[1, 0], [.6, .8], [0, 1]])
             assert set(store.check_configuration().payload_schema) >= {'source', 'vault_id', 'embedding_spec'}
             with closing(QdrantClient(url=url, timeout=15, trust_env=False)) as second:
-                reopened = QdrantVectorStore(second, name, spec, vault_id='test')
-                hits = reopened.search([1, 0], top_k=3, exact=True)
+                reopened = QdrantIndex(second, name, spec, vault_id='test')
+                check_qdrant_collection(second, name, spec=spec, vault_id='test')
+                search = partial(search_qdrant, second, name, spec=spec, vault_id='test')
+                hits = search([1, 0], top_k=3, exact=True)
                 assert [h.chunk_id for h in hits] == [r.chunk_id for r in records]
                 np.testing.assert_allclose([h.score for h in hits], [1, .6, 0], atol=1e-6)
-                assert reopened.search([1, 0], top_k=1, source='2.md')[0].chunk_id == records[2].chunk_id
+                assert search([1, 0], top_k=1, source='2.md')[0].chunk_id == records[2].chunk_id
                 reopened.delete([records[0].chunk_id])
                 assert reopened.count() == 2
         finally:
