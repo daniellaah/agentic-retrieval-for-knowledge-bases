@@ -17,7 +17,7 @@ from ollama import Client, ResponseError
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
 from obsidian_rag.embeddings import prepare_document, prepare_query, embed_texts, resolve_embedding_spec
 from obsidian_rag.context import ContextConfig, build_context, load_generation_counter
-from obsidian_rag.generation import generate_answer
+from obsidian_rag.generation import generate_answer, generate_cited_answer
 from obsidian_rag.loaders import load_notes
 from obsidian_rag.retrieval import SearchResult, retrieve, connect_qdrant
 from obsidian_rag.schema import ChunkRecord, fingerprint_config
@@ -32,6 +32,10 @@ def _add_context_arguments(parser):
     parser.add_argument('--context-safety-margin', type=int, default=128)
     parser.add_argument('--show-context', action='store_true',
                         help='Print final messages, provenance and budget diagnostics without generation.')
+    parser.add_argument('--citation-mode', choices=('structured', 'legacy'), default='structured',
+                        help='Structured, validated citations (default), or historical filename prompting.')
+    parser.add_argument('--answer-json', action='store_true',
+                        help='Print structured answer, cited sources, raw response and validation.')
 
 def _context_config(args):
     return ContextConfig(args.context_window, args.max_output_tokens, args.context_safety_margin)
@@ -41,13 +45,23 @@ def _validate_context_arguments(parser, args):
         _context_config(args)
     except ValueError as error:
         parser.error(str(error))
-    if getattr(args, 'json', False) and args.show_context:
-        parser.error('--json and --show-context are separate output modes')
+    if sum((getattr(args, 'json', False), args.show_context, args.answer_json)) > 1:
+        parser.error('--json, --show-context and --answer-json are separate output modes')
+    if args.answer_json and args.citation_mode != 'structured':
+        parser.error('--answer-json requires --citation-mode structured')
 
 def _build_cli_context(args, results, client):
     counter = load_generation_counter(client=client, model=args.generation_model,
                                       cache_dir=args.tokenizer_cache, local_files_only=args.offline)
-    return build_context(args.question, results, config=_context_config(args), counter=counter)
+    return build_context(args.question, results, config=_context_config(args), counter=counter,
+                          citation_mode=args.citation_mode)
+
+
+def _answer_output(args, context, client):
+    if args.citation_mode == 'legacy':
+        return generate_answer(context, client=client)
+    result = generate_cited_answer(context, client=client)
+    return json.dumps(result.to_dict(), ensure_ascii=False) if args.answer_json else result.text
 
 def _legacy_main(argv: Sequence[str] | None = None) -> int:
     """Print an answer and return zero, or report a runtime error and return one.
@@ -152,7 +166,7 @@ def _legacy_main(argv: Sequence[str] | None = None) -> int:
             if args.show_context:
                 print(json.dumps(context.to_dict(), ensure_ascii=False))
                 return 0
-            answer = generate_answer(context, client=client)
+            answer = _answer_output(args, context, client)
     except (OSError, ValueError, ResponseError, HTTPError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1
@@ -290,7 +304,7 @@ def _persistent_main(argv: Sequence[str]) -> int:
                     if args.show_context:
                         print(json.dumps(context.to_dict(), ensure_ascii=False))
                     else:
-                        print(generate_answer(context, client=client))
+                        print(_answer_output(args, context, client))
         return 0
     except (OSError, ValueError, sqlite3.Error, ResponseError, HTTPError,
             ResponseHandlingException, UnexpectedResponse) as error:

@@ -37,7 +37,8 @@ def client() -> MagicMock:
     ]
     client.chat.return_value = ChatResponse(
         message=Message(
-            role="assistant", content="Develop one idea per note. [permanent.md]"
+            role="assistant", content=json.dumps({'status': 'answered', 'claims': [
+                {'text': 'Develop one idea per note.', 'source_ids': ['S1']}], 'missing_information': []})
         )
     )
     return client
@@ -57,7 +58,9 @@ def test_main_answers_using_the_most_relevant_notes(
 
     output = capsys.readouterr()
     assert status == 0
-    assert output.out == "Develop one idea per note. [permanent.md]\n"
+    assert output.out.startswith("Develop one idea per note. [1]\n")
+    assert '[1] permanent.md' in output.out
+    assert 'file://' not in output.out
     assert output.err == ""
     client_factory.assert_called_once_with(
         host="http://127.0.0.1:11434", timeout=180.0, trust_env=False
@@ -90,11 +93,13 @@ def test_main_answers_using_the_most_relevant_notes(
                 "title": "Permanent Notes",
                 "content": "Develop one idea per note.",
                 "source": "permanent.md",
+                "source_id": "S1",
             },
             {
                 "title": "Literature Notes",
                 "content": "Preserve the author's meaning.",
                 "source": "literature.md",
+                "source_id": "S2",
             },
         ],
     }
@@ -274,7 +279,7 @@ def test_main_reports_an_empty_model_answer(
     assert status == 1
     output = capsys.readouterr()
     assert output.out == ""
-    assert "empty answer" in output.err
+    assert "invalid_structure" in output.err
 
 
 @pytest.fixture(autouse=True)
@@ -311,7 +316,7 @@ def test_main_embeds_chunks_and_generates_from_the_selected_passage(
         "Long\n\naaaa\n\n", "Long\n\nbbbb\n\n", "Long\n\ncccc",
     ]
     payload = json.loads(client.chat.call_args.kwargs["messages"][1]["content"])
-    assert payload["notes"] == [{"title": "Long", "content": "bbbb\n\n", "source": "long.md"}]
+    assert payload["notes"] == [{"title": "Long", "content": "bbbb\n\n", "source": "long.md", "source_id": "S1"}]
     assert capsys.readouterr().err == ""
 
 
@@ -487,6 +492,8 @@ def test_persistent_show_context_uses_saved_revision_and_json_remains_retrieval_
     ['Q?', '--context-window', '0'], ['Q?', '--max-output-tokens', '0'],
     ['Q?', '--context-safety-margin', '-1'], ['Q?', '--context-window', '100'],
     ['query', 'Q?', '--context-window', '0'], ['query', 'Q?', '--json', '--show-context'],
+    ['Q?', '--answer-json', '--show-context'], ['query', 'Q?', '--json', '--answer-json'],
+    ['Q?', '--answer-json', '--citation-mode', 'legacy'],
 ])
 def test_context_argument_errors_happen_before_model_calls(arguments, client_factory):
     with pytest.raises(SystemExit) as error:
@@ -502,3 +509,41 @@ def test_cli_reports_fixed_prompt_overflow_without_generating(client, capsys):
     assert 'before adding evidence' in output.err
     assert output.out == ''
     client.chat.assert_not_called()
+
+
+def test_memory_answer_json_contains_only_cited_sources_and_validation(client, capsys):
+    assert main(['Q?', '--answer-json']) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert output['answer']['claims'][0]['source_ids'] == ['S1']
+    assert len(output['sources']) == 1
+    assert output['sources'][0]['source'] == 'permanent.md'
+    assert output['sources'][0]['origins'][0]['index_version'].startswith('memory:')
+    assert output['validation']['support_status'] == 'not_checked'
+    assert output['raw_response'] == client.chat.return_value.message.content
+
+
+def test_persistent_answer_json_keeps_saved_source_after_live_file_changes(workspace, persistent_client, capsys):
+    assert main(['index', '--offline']) == 0
+    version = json.loads(capsys.readouterr().out)['manifest']['index_version']
+    (workspace / 'example_notes' / 'habits.md').write_text('# Changed\nDifferent facts.')
+    assert main(['query', 'Q?', '--offline', '--source', 'habits.md', '--answer-json']) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result['sources'][0]['content'] == 'A cue starts a habit.'
+    assert result['sources'][0]['origins'][0]['index_version'] == version
+
+
+def test_cli_legacy_protocol_remains_explicitly_available(client, capsys):
+    client.chat.return_value.message.content = 'A legacy answer. [permanent.md]'
+    assert main(['Q?', '--citation-mode', 'legacy']) == 0
+    assert capsys.readouterr().out == 'A legacy answer. [permanent.md]\n'
+    assert 'format' not in client.chat.call_args.kwargs
+
+
+def test_cli_invalid_citation_fails_without_printing_the_unverified_answer(client, capsys):
+    client.chat.return_value.message.content = json.dumps({'status': 'answered', 'claims': [
+        {'text': 'Unverified content', 'source_ids': ['S99']}], 'missing_information': []})
+    assert main(['Q?', '--answer-json']) == 1
+    output = capsys.readouterr()
+    assert output.out == ''
+    assert 'invalid_references' in output.err
+    assert 'Unverified content' not in output.err

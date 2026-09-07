@@ -115,6 +115,8 @@ reads Markdown files directly in that directory without visiting subdirectories.
 | `--max-output-tokens` | `1024` | Output reserve, also passed as `num_predict` |
 | `--context-safety-margin` | `128` | Extra space reserved outside the measured input |
 | `--show-context` | off | Print final messages, evidence identities and budget diagnostics without generating |
+| `--citation-mode` | `structured` | Validate structured citations, or select `legacy` filename prompting |
+| `--answer-json` | off | Print answer, used sources, raw response and citation diagnostics |
 
 Recursive mode currently supports the validated `qwen3-embedding:0.6b` tokenizer
 pairing. For another embedding model, use `--chunking none`. In recursive mode,
@@ -424,12 +426,15 @@ Conflicting overlap within one declared revision raises an error.
 ```python
 from ollama import Client
 from obsidian_rag.context import ContextConfig, build_context, load_generation_counter
-from obsidian_rag.generation import generate_answer
+from obsidian_rag.generation import generate_cited_answer
 
 with Client(host="http://127.0.0.1:11434", timeout=180, trust_env=False) as client:
     counter = load_generation_counter(client=client)  # tokenizer cached after first use
-    context = build_context(question, results, config=ContextConfig(), counter=counter)
-    answer = generate_answer(context, client=client)
+    context = build_context(question, results, config=ContextConfig(), counter=counter,
+                            citation_mode='structured')
+    result = generate_cited_answer(context, client=client)
+    answer = result.text
+    structured_answer = result.to_dict()
     diagnostics = context.to_dict()
 ```
 
@@ -439,8 +444,28 @@ accounting. `messages` returns a fresh API payload. Citation-map values in
 `to_dict()` are zero-based indices into `evidence_blocks`; decision ranks address
 the original candidate list. A `merged` event describes consolidation, while the
 representative's later `selected` or `budget` event describes the block's outcome.
-The source-filename citation convention and JSON prompt format are preserved.
-Citation existence does not establish that a claim is supported by its source.
+Structured contexts additionally expose `citation_sources`, numbered `S1`, `S2`,
+etc. in final evidence order, and a `context_id` fingerprint binding the messages
+and source identities. IDs are local to one context. Every budget trial includes
+the citation protocol and IDs. Only evidence actually sent to the model may be
+cited; merged blocks retain all contributing chunk identities.
+
+`citation.py` contains immutable answer/source contracts and pure parsing,
+validation and rendering functions. Generation uses Ollama JSON Schema output:
+`status`, `claims` (`text` and `source_ids`), and `missing_information`. Unknown IDs,
+missing references, conflicting answer states, duplicate fields and model-written
+citation links fail explicitly. Truncated or malformed output is retained on
+`CitedGenerationError.raw_response`; it is never silently repaired or retried.
+The renderer numbers sources by first use, includes only cited sources and shows
+snapshot excerpts. It does not manufacture filesystem URLs. Display prose and
+metadata are escaped; raw text remains available in JSON.
+
+`references_valid` checks source membership and protocol rules, while
+`support_status` remains `not_checked`: this implementation does not judge whether
+the evidence entails each claim. Character ranges are Python character positions
+in loaded `Note.content`, with exclusive ends. The loader removes the title line
+and trims whitespace, so these are not raw-file offsets or Markdown line numbers.
+Opening a changed live file does not change the evidence from a saved snapshot.
 
 The enforced relationship is:
 
@@ -469,25 +494,31 @@ and `num_predict`. When Ollama supplies its actual prompt count, generation
 rejects a budget overflow or a mismatch with an exact counter instead of returning
 an answer from potentially truncated input. The legacy
 `generate_answer(question, results, client=...)` API builds the same budgeted
-context automatically; it also accepts `config` and `counter`.
+context automatically; it also accepts `config` and `counter`. For backward
+compatibility, this string-input API and `build_context` default to the legacy
+protocol. Use `generate_cited_answer` for structured output, or pass a structured
+context to `generate_answer` to obtain its rendered string.
 
 An empty evidence set returns an insufficient-information message without
 calling the generation model. If the fixed question/system prompt cannot fit,
 or all evidence is excluded by the budget, generation raises
 `ContextBudgetError`. `--show-context` exposes `budget_exhausted` as a diagnostic
-status. The model is asked to use only the notes and cite source filenames;
-answer factuality, completeness and citation support still require evaluation.
+status. Both CLI question modes now default to structured citations. Select
+`--citation-mode legacy` only when comparing the historical filename prompt.
+Answer factuality, completeness and citation support still require evaluation.
 
 Both CLI question modes accept the context options listed above:
 
 ```sh
 uv run --locked obsidian-rag query "What does chunking preserve?" --offline --show-context
+uv run --locked obsidian-rag query "What does chunking preserve?" --offline --answer-json
 uv run --locked obsidian-rag query "What does chunking preserve?" --offline \
   --context-window 8192 --max-output-tokens 1024 --context-safety-margin 128
 ```
 
 `query --json` remains retrieval-only and does not load a generation tokenizer.
-It cannot be combined with `--show-context`. Changing context settings does not
+`--json`, `--show-context` and `--answer-json` are mutually exclusive;
+`--answer-json` requires structured citations. Changing context settings does not
 require rebuilding the index or recomputing document embeddings.
 
 ```sh

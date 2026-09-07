@@ -1,6 +1,10 @@
 """Opt-in schema generation and exact serving-token checks, without indexing."""
 
 import os
+import json
+from pathlib import Path
+import subprocess
+import sys
 
 from ollama import Client
 import pytest
@@ -41,3 +45,27 @@ def test_real_output_truncation_is_reported():
         with pytest.raises(CitedGenerationError) as error:
             generate_cited_answer(context, client=client)
     assert error.value.code == 'truncated_output'
+
+
+def test_citation_cli_memory_and_persistent_subprocess(tmp_path):
+    notes = tmp_path / 'notes'
+    notes.mkdir()
+    (notes / 'project.md').write_text('# Project\nThe project code is ORCHID-42.\n')
+    db = tmp_path / 'index.sqlite'
+    repo = Path(__file__).resolve().parents[2]
+
+    def run(*args):
+        process = subprocess.run([sys.executable, '-B', '-m', 'obsidian_rag.cli', *args],
+                                 cwd=repo, capture_output=True, text=True, timeout=180)
+        assert process.returncode == 0, process.stderr
+        return json.loads(process.stdout)
+
+    memory = run('What is the project code?', '--notes-dir', str(notes), '--offline', '--answer-json')
+    assert memory['sources'][0]['origins'][0]['index_version'].startswith('memory:')
+    indexed = run('index', '--db', str(db), '--notes-dir', str(notes), '--offline')
+    (notes / 'project.md').write_text('# Project\nThe live file has changed.\n')
+    saved = run('query', 'What is the project code?', '--db', str(db), '--offline', '--answer-json')
+    assert 'ORCHID-42' in saved['text']
+    assert saved['sources'][0]['origins'][0]['index_version'] == indexed['manifest']['index_version']
+    retrieved = run('query', 'What is the project code?', '--db', str(db), '--offline', '--json')
+    assert 'results' in retrieved and 'answer' not in retrieved
