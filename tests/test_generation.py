@@ -5,7 +5,7 @@ from ollama import ChatResponse, Client, Message, ResponseError
 import pytest
 
 from obsidian_rag.chunking import chunk_notes, whole_note_chunks
-from obsidian_rag.generation import generate_answer
+from obsidian_rag.generation import generate_answer, generate_cited_answer, CitedGenerationError
 from obsidian_rag.loaders import Note
 from obsidian_rag.retrieval import SearchResult
 
@@ -245,3 +245,67 @@ def test_generate_detects_actual_count_drift_or_budget_overflow(client):
     estimated = budgeted_context(estimate=True)
     client.chat.return_value.prompt_eval_count = estimated.prompt_tokens + 1
     assert generate_answer(estimated, client=client)
+
+
+def cited_context():
+    from obsidian_rag.context import build_context
+    built = budgeted_context()
+    return build_context('Q?', list(built.evidence_blocks[0].origins), config=built.config,
+                          counter=built.counter, citation_mode='structured')
+
+
+def cited_response(**changes):
+    return json.dumps({'status': 'answered', 'claims': [{'text': 'A fact.', 'source_ids': ['S1']}],
+                       'missing_information': [], **changes})
+
+
+def test_cited_generation_sends_frozen_protocol_schema_and_exposes_auditable_result(client):
+    built = cited_context()
+    raw = cited_response()
+    client.chat.return_value = ChatResponse(message=Message(role='assistant', content=raw),
+                                           prompt_eval_count=built.prompt_tokens, eval_count=30, done_reason='stop')
+    result = generate_cited_answer(built, client=client)
+    kwargs = client.chat.call_args.kwargs
+    assert kwargs['messages'] == built.messages
+    assert kwargs['format']['properties']['claims']['items']['properties']['source_ids']['items']['enum'] == ['S1']
+    assert result.raw_response == raw
+    assert result.to_dict()['context_id'] == built.context_id
+    assert result.to_dict()['validation']['support_status'] == 'not_checked'
+    assert result.to_dict()['token_usage']['actual_prompt_tokens'] == built.prompt_tokens
+    assert generate_answer(built, client=client) == result.text
+
+
+@pytest.mark.parametrize('raw,reason,code', [
+    ('{', 'stop', 'invalid_structure'), (None, 'stop', 'invalid_structure'),
+    (cited_response(), 'length', 'truncated_output'),
+    (cited_response(claims=[{'text': 'A', 'source_ids': ['S99']}]), 'stop', 'invalid_references'),
+    (cited_response(claims=[{'text': 'A', 'source_ids': []}]), 'stop', 'invalid_references'),
+])
+def test_cited_generation_reports_failures_with_raw_response_and_no_retry(client, raw, reason, code):
+    client.chat.return_value = ChatResponse(message=Message(role='assistant', content=raw), done_reason=reason)
+    with pytest.raises(CitedGenerationError) as error:
+        generate_cited_answer(cited_context(), client=client)
+    assert error.value.code == code
+    assert error.value.raw_response == raw
+    client.chat.assert_called_once()
+
+
+def test_cited_generation_handles_missing_evidence_and_rejects_legacy_or_overrides(client):
+    result = generate_cited_answer('Question?', [], client=client)
+    assert result.answer.status == 'insufficient_evidence'
+    assert result.raw_response is None and result.sources == ()
+    with pytest.raises(ValueError, match='structured'):
+        generate_cited_answer(budgeted_context(), client=client)
+    with pytest.raises(ValueError, match='override'):
+        generate_cited_answer(cited_context(), [], client=client)
+    client.chat.assert_not_called()
+
+
+def test_cited_generation_rejects_tampered_mapping_or_token_count(client):
+    from dataclasses import replace
+    built = cited_context()
+    with pytest.raises(ValueError, match='mapping differs'):
+        generate_cited_answer(replace(built, evidence_blocks=()), client=client)
+    with pytest.raises(ValueError, match='budget'):
+        generate_cited_answer(replace(built, prompt_tokens=built.prompt_tokens - 1), client=client)
+    client.chat.assert_not_called()
