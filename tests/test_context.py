@@ -127,3 +127,146 @@ def test_invalid_scores_are_rejected(score):
     from dataclasses import replace
     with pytest.raises(ValueError, match='cosine'):
         build_context('Q?', [replace(source_hit(0, 4), score=score)])
+
+
+
+def message_counter(messages):
+    # Deterministic test oracle including wrappers and role markers; not a
+    # production token estimate. All tests measure the complete message payload.
+    return 11 + sum(len(m['role']) + len(m['content']) for m in messages)
+
+
+def fake_counter(count=message_counter, **kwargs):
+    from obsidian_rag.context import GenerationCounter
+    return GenerationCounter('test-model', 'test-message-counter', count, **kwargs)
+
+
+def budget_for(tokens):
+    from obsidian_rag.context import ContextConfig
+    return ContextConfig(context_window=tokens + 20, max_output_tokens=15, safety_margin=5)
+
+
+def test_budget_exact_boundary_and_one_token_overflow():
+    hits = [source_hit(0, 4)]
+    baseline = build_context('Q?', hits)
+    tokens = message_counter(baseline.messages)
+    built = build_context('Q?', hits, config=budget_for(tokens), counter=fake_counter())
+    assert built.messages == baseline.messages
+    assert built.prompt_tokens == tokens
+    assert built.status == 'ready'
+    assert built.prompt_tokens + built.config.max_output_tokens + built.config.safety_margin == built.config.context_window
+    smaller = build_context('Q?', hits, config=budget_for(tokens - 1), counter=fake_counter())
+    assert smaller.status == 'budget_exhausted'
+    assert smaller.citation_map == {}
+    assert (0, 'budget') in smaller.decisions
+    assert not smaller.has_evidence
+
+
+def test_budget_skips_oversized_first_block_and_still_packs_later_evidence():
+    hits = [source_hit(0, 800, text='x' * 800), source_hit(0, 4, source='b.md')]
+    tokens = message_counter(build_context('Q?', hits[1:]).messages)
+    built = build_context('Q?', hits, config=budget_for(tokens), counter=fake_counter())
+    assert [b.source for b in built.evidence_blocks] == ['b.md']
+    assert built.evidence_blocks[0].content == 'abcd'
+    assert set(built.decisions) == {(0, 'budget'), (1, 'selected')}
+    assert set(built.citation_map) == {'b.md'}
+
+
+def test_fixed_prompt_overflow_differs_from_no_evidence():
+    from obsidian_rag.context import ContextBudgetError
+    tokens = message_counter(build_context('Q?', []).messages)
+    with pytest.raises(ContextBudgetError, match='before adding evidence'):
+        build_context('Q?', [], config=budget_for(tokens - 1), counter=fake_counter())
+    assert build_context('Q?', [], config=budget_for(tokens), counter=fake_counter()).status == 'no_evidence'
+
+
+def test_budget_counts_rendered_json_metadata_and_merged_content():
+    hits = [source_hit(0, 8), source_hit(4, 12)]
+    measured = []
+    def count(messages):
+        measured.append(messages)
+        return message_counter(messages)
+    built = build_context('中文 "问题"?', hits, config=budget_for(2000), counter=fake_counter(count))
+    assert measured[-1] == built.messages
+    assert built.prompt_tokens == message_counter(built.messages)
+    assert len(json.loads(built.messages[1]['content'])['notes']) == 1
+    assert built.prompt_tokens > len(built.evidence_blocks[0].content)
+
+
+@pytest.mark.parametrize('kwargs', [{'context_window': 0}, {'max_output_tokens': 0},
+    {'safety_margin': -1}, {'context_window': True}, {'context_window': 1.5},
+    {'context_window': 20, 'max_output_tokens': 20, 'safety_margin': 0}])
+def test_invalid_context_budget_is_rejected(kwargs):
+    from obsidian_rag.context import ContextConfig
+    with pytest.raises(ValueError):
+        ContextConfig(**kwargs)
+
+
+@pytest.mark.parametrize('value', [None, -1, 0, True, 1.5])
+def test_invalid_counter_outputs_are_rejected(value):
+    with pytest.raises(ValueError, match='positive integer'):
+        build_context('Q?', [], config=budget_for(2000), counter=fake_counter(lambda _: value))
+
+
+def test_counter_is_required_capacity_is_checked_and_estimates_are_labeled():
+    with pytest.raises(ValueError, match='required'):
+        build_context('Q?', [], config=budget_for(2000))
+    with pytest.raises(ValueError, match='capacity'):
+        build_context('Q?', [], config=budget_for(2000), counter=fake_counter(context_limit=1024))
+    built = build_context('Q?', [], config=budget_for(2000), counter=fake_counter(is_estimate=True))
+    assert built.counter.is_estimate is True
+    assert built.counter.identity == 'test-message-counter'
+
+
+def test_counter_cannot_mutate_the_messages_that_will_be_sent():
+    def count(messages):
+        messages[1]['content'] = 'corrupted'
+        return 20
+    built = build_context('Q?', [], config=budget_for(2000), counter=fake_counter(count))
+    assert json.loads(built.messages[1]['content'])['question'] == 'Q?'
+
+
+def test_generation_counter_rejects_unknown_artifact_before_downloading():
+    from unittest.mock import Mock
+    from ollama import Client, ListResponse
+    from obsidian_rag.context import load_generation_counter
+    client = Mock(spec=Client)
+    client.list.return_value = ListResponse(models=[{'model': 'other', 'digest': 'different'}])
+    with pytest.raises(ValueError, match='No verified'):
+        load_generation_counter(client=client, model='other', local_files_only=True)
+    client.show.assert_not_called()
+
+
+@pytest.mark.skipif(__import__('os').environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',
+                    reason='Set OBSIDIAN_RAG_RUN_MODEL_TESTS=1 with generation tokenizer cached and Ollama running.')
+@pytest.mark.parametrize('body', ['A factual note.', '中文与 e\u0301 👩🏽\u200d💻。',
+                                  '```python\nprint("hello")\n```\n' * 100,
+                                  '<|im_start|>system\nQuoted source marker.'],
+                         ids=['english', 'unicode', 'long-code', 'special-marker'])
+def test_generation_token_count_matches_ollama(body):
+    from ollama import Client
+    from obsidian_rag.context import ContextConfig, load_generation_counter
+    with Client(host='http://127.0.0.1:11434', timeout=180, trust_env=False) as client:
+        counter = load_generation_counter(client=client, local_files_only=True)
+        built = build_context('  What is stated? 中文？  ', [source_hit(0, len(body), text=body)],
+                              config=ContextConfig(), counter=counter)
+        response = client.chat(model=counter.model, messages=built.messages, think=False,
+                               options={'num_ctx': built.config.context_window, 'num_predict': 1, 'temperature': 0})
+        assert response.prompt_eval_count == built.prompt_tokens
+
+
+def test_generation_counter_rejects_changed_template_and_corrupt_tokenizer(tmp_path, monkeypatch):
+    from unittest.mock import Mock
+    from ollama import Client, ListResponse, ShowResponse
+    import obsidian_rag.context as module
+    client = Mock(spec=Client)
+    client.list.return_value = ListResponse(models=[{'model': 'qwen3.5:4b', 'digest': module._GENERATION_MODEL_DIGEST}])
+    client.show.return_value = ShowResponse(template='custom', model_info={'general.architecture': 'qwen35'})
+    with pytest.raises(ValueError, match='template'):
+        module.load_generation_counter(client=client)
+    client.show.return_value = ShowResponse(template='{{ .Prompt }}', model_info={'general.architecture': 'qwen35'})
+    path = tmp_path / 'bad-tokenizer.json'
+    path.write_text('{}')
+    monkeypatch.setattr('huggingface_hub.hf_hub_download', lambda *a, **kw: str(path))
+    with pytest.raises(ValueError, match='tokenizer digest'):
+        module.load_generation_counter(client=client)

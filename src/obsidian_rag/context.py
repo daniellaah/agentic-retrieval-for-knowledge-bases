@@ -1,9 +1,11 @@
 """Build model messages from retrieved evidence without calling a model."""
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+import hashlib
 import json
 import math
+from pathlib import Path
 
 from obsidian_rag.retrieval import SearchResult
 
@@ -18,6 +20,110 @@ Use only source filenames present in the provided notes.
 If the notes do not contain enough information, explicitly say what is missing
 and do not guess. Keep the answer concise.
 """
+
+
+# Text-only, system/user messages, think=False. This profile is deliberately
+# pinned; an unrecognized model needs an explicit GenerationCounter adapter.
+GENERATION_TOKENIZER_REPO = 'Qwen/Qwen3.5-4B'
+GENERATION_TOKENIZER_REVISION = '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a'
+_GENERATION_TOKENIZER_SHA256 = '5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42'
+_GENERATION_MODEL_DIGEST = '2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd'
+
+
+class ContextBudgetError(ValueError):
+    """The fixed prompt cannot fit, or no evidence fits the requested budget."""
+
+
+@dataclass(frozen=True)
+class ContextConfig:
+    context_window: int = 8192
+    max_output_tokens: int = 1024
+    safety_margin: int = 128
+
+    def __post_init__(self) -> None:
+        for name, minimum in (('context_window', 1), ('max_output_tokens', 1), ('safety_margin', 0)):
+            value = getattr(self, name)
+            if type(value) is not int or value < minimum:
+                raise ValueError(f'{name} must be an integer >= {minimum}.')
+        if self.input_budget <= 0:
+            raise ValueError('Output reserve and safety margin leave no input budget.')
+
+    @property
+    def input_budget(self) -> int:
+        return self.context_window - self.max_output_tokens - self.safety_margin
+
+
+@dataclass(frozen=True)
+class GenerationCounter:
+    """An explicitly identified model/message counter; estimates are labeled.
+
+    count_messages must include the serving chat template and assistant prefix.
+    The caller is responsible for an adapter's model/template fidelity. The
+    built-in adapter below is independently checked against local Ollama.
+    """
+
+    model: str
+    identity: str
+    count_messages: Callable[[Sequence[dict[str, str]]], int]
+    is_estimate: bool = False
+    context_limit: int | None = None
+
+    def __post_init__(self) -> None:
+        if not self.model.strip() or not self.identity.strip() or not callable(self.count_messages):
+            raise ValueError('Counter requires a model, identity and callable.')
+        if type(self.is_estimate) is not bool:
+            raise ValueError('is_estimate must be boolean.')
+        if self.context_limit is not None and (type(self.context_limit) is not int or self.context_limit <= 0):
+            raise ValueError('context_limit must be positive.')
+
+    def __call__(self, messages: Sequence[dict[str, str]]) -> int:
+        count = self.count_messages([dict(m) for m in messages])
+        if type(count) is not int or count <= 0:
+            raise ValueError('Message counter must return a positive integer.')
+        return count
+
+
+def load_generation_counter(*, client, model: str = 'qwen3.5:4b',
+                            cache_dir: Path | None = None, local_files_only: bool = False) -> GenerationCounter:
+    """Load only the pinned generation tokenizer, never model weights.
+
+    Validated with Ollama 0.33.2's Qwen3.5 renderer and the identified model
+    artifact. Refuse custom system prompts, histories, templates or unknown
+    digests rather than silently applying the embedding tokenizer or guessing.
+    """
+    from huggingface_hub import hf_hub_download
+    from tokenizers import Tokenizer
+
+    matches = [m for m in client.list().models if m.model == model]
+    if len(matches) != 1 or matches[0].digest != _GENERATION_MODEL_DIGEST:
+        raise ValueError('No verified generation token counter for this model artifact; '
+                         'use the supported qwen3.5:4b artifact or supply a GenerationCounter in Python.')
+    info = client.show(model)
+    if (info.template != '{{ .Prompt }}' or getattr(info, 'system', None) or getattr(info, 'messages', None) or
+            info.modelinfo.get('general.architecture') != 'qwen35'):
+        raise ValueError('Generation model template or defaults differ from the verified profile.')
+    path = hf_hub_download(GENERATION_TOKENIZER_REPO, 'tokenizer.json',
+                           revision=GENERATION_TOKENIZER_REVISION, cache_dir=cache_dir,
+                           local_files_only=local_files_only, token=False)
+    raw = Path(path).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != _GENERATION_TOKENIZER_SHA256:
+        raise ValueError('Generation tokenizer digest differs from the pinned artifact.')
+    tokenizer = Tokenizer.from_str(raw.decode('utf-8'))
+    tokenizer.normalizer = None  # Ollama preserves combining characters.
+
+    def count(messages):
+        if ([m.get('role') for m in messages] != ['system', 'user'] or
+                any(set(m) != {'role', 'content'} for m in messages)):
+            raise ValueError('Generation counter supports only text system/user messages.')
+        # Ollama v0.33.2 model/renderers/qwen35.go, no tools and think=False.
+        prompt = ''.join('<|im_start|>' + m['role'] + '\n' + m['content'].strip()
+                         + '<|im_end|>\n' for m in messages)
+        prompt += '<|im_start|>assistant\n<think>\n\n</think>\n\n'
+        return len(tokenizer.encode(prompt, add_special_tokens=False).ids)
+
+    return GenerationCounter(model, f'qwen35-text-no-think-v1:{_GENERATION_MODEL_DIGEST}:'
+                             f'{GENERATION_TOKENIZER_REVISION}', count,
+                             context_limit=info.modelinfo.get('qwen35.context_length'))
 
 
 @dataclass(frozen=True)
@@ -67,6 +173,15 @@ class BuiltContext:
     # Ordered (zero-based input rank, action) events; a merged hit can also be
     # part of a later budget decision. Rank always addresses the original input.
     decisions: tuple[tuple[int, str], ...] = ()
+    config: ContextConfig | None = None
+    prompt_tokens: int | None = None
+    counter: GenerationCounter | None = None
+
+    @property
+    def status(self) -> str:
+        if self.has_evidence:
+            return 'ready'
+        return 'budget_exhausted' if any(action == 'budget' for _, action in self.decisions) else 'no_evidence'
 
     @property
     def messages(self) -> list[dict[str, str]]:
@@ -83,21 +198,50 @@ class BuiltContext:
                 for source in sources}
 
 
-def build_context(question: str, results: Sequence[SearchResult]) -> BuiltContext:
+def build_context(question: str, results: Sequence[SearchResult], *,
+                  config: ContextConfig | None = None,
+                  counter: GenerationCounter | None = None) -> BuiltContext:
     """Deduplicate and merge verified overlap, retaining first-hit priority.
 
     Unversioned legacy hits are deduplicated only by exact Chunk equality and
     never merged. Known spans merge only within one snapshot/document revision;
     disagreeing overlap raises instead of choosing one version of the text.
+    With config, require a model counter and pack whole blocks in priority order;
+    skip a block that does not fit and continue trying later candidates. No text
+    is truncated. Without config, retain all prepared evidence (baseline mode).
     """
     if not isinstance(question, str) or not question.strip():
         raise ValueError("Question must not be blank.")
+    if config is not None and counter is None:
+        raise ValueError('A generation message counter is required for a context budget.')
+    if (config is not None and counter.context_limit is not None
+            and config.context_window > counter.context_limit):
+        raise ValueError('context_window exceeds the generation model capacity.')
     candidates, decisions = _prepare_evidence(results)
     candidates = _merge_overlaps(candidates, decisions)
+    if config is not None:
+        candidates = _pack_evidence(question, candidates, config, counter, decisions)
     blocks = tuple(block for _, block in candidates)
     decisions.extend((rank, 'selected') for rank, _ in candidates)
     messages = _render_messages(question, blocks)
-    return BuiltContext(tuple((m['role'], m['content']) for m in messages), blocks, tuple(decisions))
+    tokens = counter(messages) if counter is not None else None
+    if config is not None and tokens > config.input_budget:
+        raise ContextBudgetError('Final rendered messages exceed the input budget.')
+    return BuiltContext(tuple((m['role'], m['content']) for m in messages), blocks,
+                        tuple(decisions), config, tokens, counter)
+
+
+def _pack_evidence(question, candidates, config, counter, decisions):
+    if counter(_render_messages(question, [])) > config.input_budget:
+        raise ContextBudgetError('Question and system prompt exceed the input budget before adding evidence.')
+    selected = []
+    for rank, block in candidates:
+        trial = [b for _, b in selected] + [block]
+        if counter(_render_messages(question, trial)) <= config.input_budget:
+            selected.append((rank, block))
+        else:
+            decisions.append((rank, 'budget'))
+    return selected
 
 
 def _document_key(hit: SearchResult) -> tuple | None:
