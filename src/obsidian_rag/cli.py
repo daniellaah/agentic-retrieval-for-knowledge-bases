@@ -32,8 +32,8 @@ def _add_context_arguments(parser):
     parser.add_argument('--context-safety-margin', type=int, default=128)
     parser.add_argument('--show-context', action='store_true',
                         help='Print final messages, provenance and budget diagnostics without generation.')
-    parser.add_argument('--citation-mode', choices=('structured', 'legacy'), default='structured',
-                        help='Structured, validated citations (default), or historical filename prompting.')
+    parser.add_argument('--citation-mode', choices=('structured', 'quoted', 'legacy'), default='structured',
+                        help='Validated citations (default), exact quoted citations, or legacy filename prompting.')
     parser.add_argument('--answer-json', action='store_true',
                         help='Print structured answer, cited sources, raw response and validation.')
 
@@ -47,8 +47,8 @@ def _validate_context_arguments(parser, args):
         parser.error(str(error))
     if sum((getattr(args, 'json', False), args.show_context, args.answer_json)) > 1:
         parser.error('--json, --show-context and --answer-json are separate output modes')
-    if args.answer_json and args.citation_mode != 'structured':
-        parser.error('--answer-json requires --citation-mode structured')
+    if args.answer_json and args.citation_mode == 'legacy':
+        parser.error('--answer-json requires structured or quoted citations')
 
 def _build_cli_context(args, results, client):
     counter = load_generation_counter(client=client, model=args.generation_model,

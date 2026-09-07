@@ -177,7 +177,7 @@ def compare_contexts(question, results, case, *, config, counter) -> dict:
     return modes
 
 
-def citation_statistics(raw_response, sources, *, review: dict | None = None) -> dict:
+def citation_statistics(raw_response, sources, *, review: dict | None = None, require_quotes=False) -> dict:
     """Reference membership and coverage, separately from supplied human/judge labels.
 
     Every model claim is treated as requiring evidence. This does not detect
@@ -196,7 +196,7 @@ def citation_statistics(raw_response, sources, *, review: dict | None = None) ->
     except CitationParseError:
         metrics['issues'] = [{'code': 'invalid_structure'}]
         return metrics
-    validation = validate_citations(answer, sources)
+    validation = validate_citations(answer, sources, require_quotes=require_quotes)
     known = {s.source_id for s in sources}
     references = [s for c in answer.claims for s in c.source_ids]
     valid = sum(s in known for s in references)
@@ -235,7 +235,8 @@ def evaluate_citation_context(context, *, client) -> dict:
     from obsidian_rag.generation import CitedGenerationError, generate_cited_answer
     context.verify_citation_mapping()
     sources = context.citation_sources
-    row = {'context': context.to_dict(), 'response_schema': citation_json_schema([s.source_id for s in sources]),
+    require_quotes = context.citation_mode == 'quoted'
+    row = {'context': context.to_dict(), 'response_schema': citation_json_schema([s.source_id for s in sources], include_quotes=require_quotes),
            'success': False, 'result': None, 'raw_response': None, 'error': None}
     started = perf_counter()
     try:
@@ -251,7 +252,7 @@ def evaluate_citation_context(context, *, client) -> dict:
         row['error']['token_usage'] = getattr(error, 'token_usage', None)
         metric_input = row['raw_response']
     row['generation_ms'] = (perf_counter() - started) * 1000
-    row['metrics'] = citation_statistics(metric_input, sources)
+    row['metrics'] = citation_statistics(metric_input, sources, require_quotes=require_quotes)
     return row
 
 

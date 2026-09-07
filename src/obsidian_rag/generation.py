@@ -40,10 +40,11 @@ class CitedGeneration:
     prompt_tokens: int | None
     actual_prompt_tokens: int | None
     output_tokens: int | None
+    require_quotes: bool = False
 
     @property
     def validation(self) -> CitationValidation:
-        return validate_citations(self.answer, self.sources)
+        return validate_citations(self.answer, self.sources, require_quotes=self.require_quotes)
 
     @property
     def text(self) -> str:
@@ -80,7 +81,7 @@ def generate_answer(
     Source citations are requested but claim support is not automatically judged.
     Token count drift is reported when Ollama provides prompt_eval_count.
     """
-    if isinstance(question, BuiltContext) and question.citation_mode == 'structured':
+    if isinstance(question, BuiltContext) and question.citation_mode in ('structured', 'quoted'):
         return generate_cited_answer(question, results, client=client, model=model,
                                      config=config, counter=counter).text
     context = _prepare_context(question, results, client=client, model=model, config=config,
@@ -112,8 +113,9 @@ def generate_cited_answer(
     if not context.has_evidence:
         answer = CitedAnswer('insufficient_evidence', (), (_NO_EVIDENCE,))
         return CitedGeneration(answer, (), context.context_id, None, context.prompt_tokens, None, None)
+    require_quotes = context.citation_mode == 'quoted'
     response = _chat(context, client=client, model=model,
-                     schema=citation_json_schema([s.source_id for s in sources]))
+                     schema=citation_json_schema([s.source_id for s in sources], include_quotes=require_quotes))
     raw = response.message.content
     usage = {'prompt_tokens': context.prompt_tokens, 'actual_prompt_tokens': response.prompt_eval_count,
              'output_tokens': response.eval_count}
@@ -123,11 +125,11 @@ def generate_cited_answer(
         answer = parse_cited_answer(raw)
     except CitationParseError as error:
         raise CitedGenerationError('invalid_structure', raw, token_usage=usage) from error
-    validation = validate_citations(answer, sources)
+    validation = validate_citations(answer, sources, require_quotes=require_quotes)
     if not validation.references_valid:
         raise CitedGenerationError('invalid_references', raw, validation=validation, token_usage=usage)
     return CitedGeneration(answer, sources, context.context_id, raw, context.prompt_tokens,
-                           response.prompt_eval_count, response.eval_count)
+                           response.prompt_eval_count, response.eval_count, require_quotes)
 
 
 def _prepare_context(question, results, *, client, model, config, counter, citation_mode):

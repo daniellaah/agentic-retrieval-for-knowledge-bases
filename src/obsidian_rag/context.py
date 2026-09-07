@@ -40,6 +40,15 @@ statuses, missing_information is a nonempty array describing what the provided
 notes do not establish. Do not guess or assert that the entire vault lacks it.
 """
 
+_QUOTE_PROMPT = """Additionally, each claim must include quotes, an array of objects
+with source_id and text. For every source_id cited by the claim, copy at least
+one exact, contiguous supporting excerpt from that note's content. Preserve all
+characters and whitespace. Choose an excerpt that occurs only once in that
+source block, expanding it when needed. Do not supply offsets or paraphrase quotes.
+Quotes may retain the source's Markdown or URLs; the plain-text rule applies to
+the claim text, not to verbatim quote text.
+"""
+
 
 # Text-only, system/user messages, think=False. This profile is deliberately
 # pinned; an unrecognized model needs an explicit GenerationCounter adapter.
@@ -200,7 +209,7 @@ class BuiltContext:
     @property
     def citation_sources(self) -> tuple[CitationSource, ...]:
         """Number only final, sent evidence; keep all merged origins off-prompt."""
-        if self.citation_mode != 'structured':
+        if self.citation_mode == 'legacy':
             return ()
         sources = []
         for i, block in enumerate(self.evidence_blocks, 1):
@@ -224,11 +233,11 @@ class BuiltContext:
 
     def verify_citation_mapping(self) -> None:
         """Reject manually replaced messages/evidence before using a source registry."""
-        if self.citation_mode != 'structured':
+        if self.citation_mode not in ('structured', 'quoted'):
             raise ValueError('Cited generation requires a structured citation context.')
         try:
             question = json.loads(self.messages[1]['content'])['question']
-            expected = _render_messages(question, self.evidence_blocks, citation_mode='structured')
+            expected = _render_messages(question, self.evidence_blocks, citation_mode=self.citation_mode)
         except (IndexError, KeyError, TypeError, ValueError) as error:
             raise ValueError('Citation messages are malformed.') from error
         if not isinstance(question, str) or not question.strip() or self.messages != expected:
@@ -306,8 +315,8 @@ def build_context(question: str, results: Sequence[SearchResult], *,
     """
     if not isinstance(question, str) or not question.strip():
         raise ValueError("Question must not be blank.")
-    if citation_mode not in ('legacy', 'structured'):
-        raise ValueError('citation_mode must be legacy or structured.')
+    if citation_mode not in ('legacy', 'structured', 'quoted'):
+        raise ValueError('citation_mode must be legacy, structured or quoted.')
     if config is not None and counter is None:
         raise ValueError('A generation message counter is required for a context budget.')
     if (config is not None and counter.context_limit is not None
@@ -407,10 +416,13 @@ def _merge_overlaps(candidates, decisions):
 
 def _render_messages(question: str, blocks: Sequence[EvidenceBlock], *, citation_mode='legacy') -> list[dict[str, str]]:
     notes = [{'title': b.title, 'content': b.content, 'source': b.source} for b in blocks]
-    if citation_mode == 'structured':
+    if citation_mode in ('structured', 'quoted'):
         for i, note in enumerate(notes, 1):
             note['source_id'] = f'S{i}'
+    prompt = _SYSTEM_PROMPT if citation_mode == 'legacy' else _CITATION_PROMPT
+    if citation_mode == 'quoted':
+        prompt += _QUOTE_PROMPT
     return [
-        {"role": "system", "content": _CITATION_PROMPT if citation_mode == 'structured' else _SYSTEM_PROMPT},
+        {"role": "system", "content": prompt},
         {"role": "user", "content": json.dumps({"question": question, "notes": notes}, ensure_ascii=False)},
     ]

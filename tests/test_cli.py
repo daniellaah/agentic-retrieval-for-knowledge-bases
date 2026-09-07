@@ -547,3 +547,13 @@ def test_cli_invalid_citation_fails_without_printing_the_unverified_answer(clien
     assert output.out == ''
     assert 'invalid_references' in output.err
     assert 'Unverified content' not in output.err
+
+
+def test_cli_quoted_answer_json_exposes_program_computed_offsets(client, capsys):
+    client.chat.return_value.message.content = json.dumps({'status': 'answered', 'claims': [
+        {'text': 'Develop one idea per note.', 'source_ids': ['S1'],
+         'quotes': [{'source_id': 'S1', 'text': 'one idea'}]}], 'missing_information': []})
+    assert main(['Q?', '--answer-json', '--citation-mode', 'quoted']) == 0
+    result = json.loads(capsys.readouterr().out)
+    quote = result['validation']['resolved_quotes'][0]
+    assert (quote['start_char'], quote['end_char']) == (8, 16)

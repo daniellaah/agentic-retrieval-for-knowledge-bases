@@ -86,11 +86,22 @@ class CitationSource:
 
 
 @dataclass(frozen=True)
+class CitationQuote:
+    source_id: str
+    text: str
+
+    def __post_init__(self):
+        _source_id(self.source_id)
+        _text(self.text, 'Quote text')
+
+
+@dataclass(frozen=True)
 class Claim:
     """Model-proposed fact; empty references remain inspectable validation failures."""
 
     text: str
     source_ids: tuple[str, ...]
+    quotes: tuple[CitationQuote, ...] = ()
 
     def __post_init__(self):
         _text(self.text, 'Claim text')
@@ -100,6 +111,10 @@ class Claim:
             _source_id(source_id)
         if len(set(self.source_ids)) != len(self.source_ids):
             raise ValueError('Duplicate source IDs in one claim.')
+        if not isinstance(self.quotes, tuple) or any(not isinstance(q, CitationQuote) for q in self.quotes):
+            raise ValueError('quotes must be an immutable tuple of CitationQuote objects.')
+        if len(set(self.quotes)) != len(self.quotes):
+            raise ValueError('Duplicate quotes in one claim.')
 
 
 @dataclass(frozen=True)
@@ -124,7 +139,8 @@ class CitedAnswer:
 
     def to_dict(self) -> dict:
         return {'status': self.status,
-                'claims': [{'text': c.text, 'source_ids': list(c.source_ids)} for c in self.claims],
+                'claims': [{'text': c.text, 'source_ids': list(c.source_ids),
+                            **({'quotes': [asdict(q) for q in c.quotes]} if c.quotes else {})} for c in self.claims],
                 'missing_information': list(self.missing_information)}
 
 
@@ -136,10 +152,20 @@ class CitationIssue:
 
 
 @dataclass(frozen=True)
+class ResolvedQuote:
+    claim_index: int
+    source_id: str
+    text: str
+    start_char: int
+    end_char: int
+
+
+@dataclass(frozen=True)
 class CitationValidation:
     """Only constructed after parsing; semantic support is explicitly unchecked."""
 
     issues: tuple[CitationIssue, ...] = ()
+    quotes: tuple[ResolvedQuote, ...] = ()
 
     @property
     def references_valid(self) -> bool:
@@ -147,7 +173,8 @@ class CitationValidation:
 
     def to_dict(self) -> dict:
         return {'structure_valid': True, 'references_valid': self.references_valid,
-                'support_status': 'not_checked', 'issues': [asdict(i) for i in self.issues]}
+                'support_status': 'not_checked', 'issues': [asdict(i) for i in self.issues],
+                'resolved_quotes': [asdict(q) for q in self.quotes]}
 
 
 class CitationParseError(ValueError):
@@ -158,14 +185,14 @@ class CitationParseError(ValueError):
         self.raw_response = raw_response
 
 
-def citation_json_schema(source_ids: Sequence[str]) -> dict:
+def citation_json_schema(source_ids: Sequence[str], *, include_quotes: bool = False) -> dict:
     """Fresh response schema; application validation remains authoritative."""
     ids = list(source_ids)
     for source_id in ids:
         _source_id(source_id)
     if len(set(ids)) != len(ids):
         raise ValueError('Duplicate source IDs in schema.')
-    return {
+    schema = {
         'type': 'object', 'additionalProperties': False,
         'required': ['status', 'claims', 'missing_information'],
         'properties': {
@@ -182,6 +209,18 @@ def citation_json_schema(source_ids: Sequence[str]) -> dict:
             'missing_information': {'type': 'array', 'items': {'type': 'string', 'minLength': 1}},
         },
     }
+    if type(include_quotes) is not bool:
+        raise ValueError('include_quotes must be boolean.')
+    if include_quotes:
+        claim = schema['properties']['claims']['items']
+        claim['required'].append('quotes')
+        claim['properties']['quotes'] = {
+            'type': 'array', 'minItems': 1, 'uniqueItems': True,
+            'items': {'type': 'object', 'additionalProperties': False, 'required': ['source_id', 'text'],
+                      'properties': {'source_id': {'type': 'string', 'enum': ids} if ids else {'type': 'string'},
+                                     'text': {'type': 'string', 'minLength': 1}}},
+        }
+    return schema
 
 
 def _unique_object(pairs):
@@ -193,8 +232,9 @@ def _unique_object(pairs):
     return obj
 
 
-def _keys(obj, expected):
-    if not isinstance(obj, dict) or set(obj) != set(expected):
+def _keys(obj, expected, optional=()):
+    if (not isinstance(obj, dict) or not set(expected) <= set(obj)
+            or not set(obj) <= set(expected) | set(optional)):
         raise ValueError(f'Expected exactly these object fields: {", ".join(expected)}.')
 
 
@@ -213,10 +253,16 @@ def parse_cited_answer(raw_response: str) -> CitedAnswer:
             raise ValueError('claims and missing_information must be arrays.')
         claims = []
         for entry in obj['claims']:
-            _keys(entry, ('text', 'source_ids'))
+            _keys(entry, ('text', 'source_ids'), ('quotes',))
             if not isinstance(entry['source_ids'], list):
                 raise ValueError('source_ids must be an array.')
-            claims.append(Claim(entry['text'], tuple(entry['source_ids'])))
+            quotes = entry.get('quotes', [])
+            if not isinstance(quotes, list):
+                raise ValueError('quotes must be an array.')
+            for quote in quotes:
+                _keys(quote, ('source_id', 'text'))
+            claims.append(Claim(entry['text'], tuple(entry['source_ids']),
+                                tuple(CitationQuote(q['source_id'], q['text']) for q in quotes)))
         return CitedAnswer(obj['status'], tuple(claims), tuple(obj['missing_information']))
     except (ValueError, TypeError, RecursionError) as error:
         raise CitationParseError(f'Invalid cited answer structure: {error}', raw_response) from error
@@ -235,10 +281,13 @@ def _registry(sources: Sequence[CitationSource]) -> dict[str, CitationSource]:
 _INLINE_REFERENCE = re.compile(r'\[(?:S?[0-9]+|[^\]\n]*\.md)\]|\]\(|\b(?:https?|file|obsidian)://', re.I)
 
 
-def validate_citations(answer: CitedAnswer, sources: Sequence[CitationSource]) -> CitationValidation:
+def validate_citations(answer: CitedAnswer, sources: Sequence[CitationSource], *,
+                       require_quotes: bool = False) -> CitationValidation:
     """Check references against sent evidence; no semantic support inference."""
     registry = _registry(sources)
-    issues = []
+    if type(require_quotes) is not bool:
+        raise ValueError('require_quotes must be boolean.')
+    issues, resolved = [], []
     for i, claim in enumerate(answer.claims):
         if not claim.source_ids:
             issues.append(CitationIssue('missing_reference', i))
@@ -247,9 +296,28 @@ def validate_citations(answer: CitedAnswer, sources: Sequence[CitationSource]) -
                 issues.append(CitationIssue('unknown_source', i, source_id))
         if _INLINE_REFERENCE.search(claim.text):
             issues.append(CitationIssue('inline_reference', i))
+        if require_quotes:
+            for source_id in claim.source_ids:
+                if source_id not in {q.source_id for q in claim.quotes}:
+                    issues.append(CitationIssue('missing_quote', i, source_id))
+        for quote in claim.quotes:
+            if quote.source_id not in claim.source_ids:
+                issues.append(CitationIssue('quote_not_referenced', i, quote.source_id))
+                continue
+            source = registry.get(quote.source_id)
+            if source is None:
+                continue  # unknown_source already reported for this reference
+            offset = source.content.find(quote.text)
+            if offset < 0:
+                issues.append(CitationIssue('quote_not_found', i, quote.source_id))
+            elif source.content.find(quote.text, offset + 1) >= 0:
+                issues.append(CitationIssue('ambiguous_quote', i, quote.source_id))
+            else:
+                start = source.start_char + offset
+                resolved.append(ResolvedQuote(i, quote.source_id, quote.text, start, start + len(quote.text)))
     if any(_INLINE_REFERENCE.search(text) for text in answer.missing_information):
         issues.append(CitationIssue('inline_reference_in_missing_information', -1))
-    return CitationValidation(tuple(issues))
+    return CitationValidation(tuple(issues), tuple(resolved))
 
 
 def used_citation_sources(answer: CitedAnswer, sources: Sequence[CitationSource]) -> tuple[CitationSource, ...]:
@@ -277,9 +345,14 @@ def render_cited_answer(answer: CitedAnswer, sources: Sequence[CitationSource]) 
     Full source identities and verbatim evidence are available in structured data.
     """
     used = used_citation_sources(answer, sources)
+    quotes = validate_citations(answer, sources).quotes
     numbers = {s.source_id: i for i, s in enumerate(used, 1)}
-    paragraphs = [f'{_display_text(c.text)} ' + ''.join(f'[{numbers[s]}]' for s in c.source_ids)
-                  for c in answer.claims]
+    paragraphs = []
+    for i, claim in enumerate(answer.claims):
+        paragraph = f'{_display_text(claim.text)} ' + ''.join(f'[{numbers[s]}]' for s in claim.source_ids)
+        for quote in (q for q in quotes if q.claim_index == i):
+            paragraph += f'\n> [{numbers[quote.source_id]}] body chars [{quote.start_char}, {quote.end_char}): {_display_text(quote.text)}'
+        paragraphs.append(paragraph)
     if answer.missing_information:
         paragraphs.append('Missing information in the provided notes: ' +
                           ' '.join(_display_text(t) for t in answer.missing_information))
@@ -291,6 +364,7 @@ def render_cited_answer(answer: CitedAnswer, sources: Sequence[CitationSource]) 
                         f'index {_display_text(origin.index_version or "unknown")}') if origin.document_revision else 'unversioned'
             lines.append(f'[{numbers[s.source_id]}] {_display_text(s.source)} — {_display_text(s.title)}; '
                          f'body chars [{s.start_char}, {s.end_char}); {identity}')
-            lines.append('> ' + _display_text(s.content))
+            if not any(q.source_id == s.source_id for q in quotes):
+                lines.append('> ' + _display_text(s.content))
         paragraphs.append('\n'.join(lines))
     return '\n\n'.join(paragraphs)

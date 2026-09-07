@@ -115,7 +115,7 @@ reads Markdown files directly in that directory without visiting subdirectories.
 | `--max-output-tokens` | `1024` | Output reserve, also passed as `num_predict` |
 | `--context-safety-margin` | `128` | Extra space reserved outside the measured input |
 | `--show-context` | off | Print final messages, evidence identities and budget diagnostics without generating |
-| `--citation-mode` | `structured` | Validate structured citations, or select `legacy` filename prompting |
+| `--citation-mode` | `structured` | Validate citations; `quoted` adds exact excerpts, `legacy` uses filename prompting |
 | `--answer-json` | off | Print answer, used sources, raw response and citation diagnostics |
 
 Recursive mode currently supports the validated `qwen3-embedding:0.6b` tokenizer
@@ -518,8 +518,20 @@ uv run --locked obsidian-rag query "What does chunking preserve?" --offline \
 
 `query --json` remains retrieval-only and does not load a generation tokenizer.
 `--json`, `--show-context` and `--answer-json` are mutually exclusive;
-`--answer-json` requires structured citations. Changing context settings does not
+`--answer-json` requires structured or quoted citations. Changing context settings does not
 require rebuilding the index or recomputing document embeddings.
+
+For exact supporting excerpts, select `--citation-mode quoted`, or build a
+Python context with `citation_mode='quoted'`. Each claim then includes `quotes`,
+objects containing `source_id` and verbatim `text`, with at least one quote per
+cited source. Python computes the offsets; model-provided offsets are rejected.
+Quotes must occur exactly once inside their cited evidence block. Missing,
+paraphrased, normalized or ambiguous matches fail validation, including repeated
+overlapping text. They cannot span separate evidence blocks. JSON diagnostics
+include `resolved_quotes` with claim indices and Note.content character ranges;
+the display places these excerpts directly below the corresponding claim.
+Exact occurrence is a provenance check, not a semantic entailment check.
+The default `structured` protocol and schema do not request quotes.
 
 ```sh
 OBSIDIAN_RAG_RUN_MODEL_TESTS=1 .venv/bin/python -B -m pytest \

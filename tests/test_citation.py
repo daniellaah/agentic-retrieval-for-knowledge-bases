@@ -7,6 +7,7 @@ from obsidian_rag.citation import (
     CitationOrigin, CitationSource, CitationValidation, Claim, CitedAnswer,
     CitationParseError, citation_json_schema, parse_cited_answer, validate_citations,
     render_cited_answer, used_citation_sources,
+    CitationQuote,
 )
 
 
@@ -153,3 +154,60 @@ def test_renderer_refuses_invalid_references_and_omits_sources_for_abstention():
         render_cited_answer(CitedAnswer('answered', (Claim('Fact.', ('S9',)),)), [source()])
     rendered = render_cited_answer(CitedAnswer('insufficient_evidence', (), ('No timing data.',)), [source()])
     assert rendered == 'Missing information in the provided notes: No timing data.'
+
+
+def test_exact_quote_uses_snapshot_unicode_coordinates_and_preserves_original_text():
+    s = source(content='prefix e\u0301 🧠 condition suffix', start=100)
+    quote = CitationQuote('S1', 'e\u0301 🧠 condition')
+    answer = CitedAnswer('answered', (Claim('A condition.', ('S1',), (quote,)),))
+    restored = parse_cited_answer(json.dumps(answer.to_dict(), ensure_ascii=False))
+    assert restored == answer
+    checked = validate_citations(answer, [s], require_quotes=True)
+    assert checked.references_valid
+    resolved = checked.quotes[0]
+    assert resolved.start_char == 107
+    assert resolved.end_char == 107 + len(quote.text)
+    assert s.content[resolved.start_char - s.start_char:resolved.end_char - s.start_char] == quote.text
+    assert checked.to_dict()['support_status'] == 'not_checked'
+    rendered = render_cited_answer(answer, [s])
+    assert '> [1] body chars [107,' in rendered
+    assert 'prefix' not in rendered  # Display the chosen quote instead of the whole block.
+
+
+@pytest.mark.parametrize('body,quote,code', [
+    ('Only small datasets.', 'All datasets.', 'quote_not_found'),
+    ('e\u0301', 'é', 'quote_not_found'),
+    ('repeat repeat', 'repeat', 'ambiguous_quote'),
+    ('aaa', 'aa', 'ambiguous_quote'),
+])
+def test_quotes_reject_paraphrases_normalization_and_ambiguous_occurrences(body, quote, code):
+    answer = CitedAnswer('answered', (Claim('A fact.', ('S1',), (CitationQuote('S1', quote),)),))
+    result = validate_citations(answer, [source(content=body)], require_quotes=True)
+    assert result.issues[0].code == code
+    assert result.quotes == ()
+    with pytest.raises(ValueError, match=code):
+        render_cited_answer(answer, [source(content=body)])
+
+
+def test_quotes_cannot_cross_sources_or_become_valid_after_source_revision_changes():
+    answer = CitedAnswer('answered', (Claim('A fact.', ('S1',), (CitationQuote('S1', 'old rule'),)),))
+    assert validate_citations(answer, [source(content='old rule')]).references_valid
+    changed = source(content='new rule')
+    assert validate_citations(answer, [changed]).issues[0].code == 'quote_not_found'
+    crossing = CitedAnswer('answered', (Claim('A fact.', ('S1', 'S2'), (CitationQuote('S1', 'old rule'),)),))
+    result = validate_citations(crossing, [source(content='old '), source('S2', content='rule')], require_quotes=True)
+    assert {i.code for i in result.issues} == {'quote_not_found', 'missing_quote'}
+    unrelated = CitedAnswer('answered', (Claim('A fact.', ('S1',), (CitationQuote('S2', 'A fact.'),)),))
+    assert validate_citations(unrelated, [source(), source('S2')]).issues[0].code == 'quote_not_referenced'
+
+
+def test_quotes_are_optional_by_default_and_required_only_when_requested():
+    answer = parse_cited_answer(response())
+    assert validate_citations(answer, [source()]).references_valid
+    assert validate_citations(answer, [source()], require_quotes=True).issues[0].code == 'missing_quote'
+    assert 'quotes' not in citation_json_schema(['S1'])['properties']['claims']['items']['properties']
+    assert 'quotes' in citation_json_schema(['S1'], include_quotes=True)['properties']['claims']['items']['required']
+    raw = response(claims=[{'text': 'A', 'source_ids': ['S1'],
+                            'quotes': [{'source_id': 'S1', 'text': 'A', 'start_char': 0}]}])
+    with pytest.raises(CitationParseError):
+        parse_cited_answer(raw)

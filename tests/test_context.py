@@ -108,6 +108,19 @@ def test_citation_mapping_rejects_tampered_messages_and_keeps_legacy_mode():
         build_context('Q?', [], citation_mode='unknown')
 
 
+def test_quoted_protocol_is_counted_and_bound_to_its_mapping():
+    hits = [source_hit(0, 8)]
+    plain = build_context('Q?', hits, citation_mode='structured')
+    quoted = build_context('Q?', hits, citation_mode='quoted')
+    assert quoted.evidence_blocks == plain.evidence_blocks
+    assert quoted.context_id != plain.context_id
+    assert 'exact, contiguous' in quoted.messages[0]['content']
+    budgeted = build_context('Q?', hits, config=budget_for(fake_counter()(quoted.messages)),
+                             counter=fake_counter(), citation_mode='quoted')
+    assert budgeted.messages == quoted.messages
+    budgeted.verify_citation_mapping()
+
+
 def source_hit(start, end, *, text='abcdefghijklmnop', source='a.md', index=0,
                version='v1', vault='vault', score=.8):
     from obsidian_rag.loaders import Note

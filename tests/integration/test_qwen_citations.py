@@ -100,3 +100,17 @@ def test_citation_evaluation_cli_records_results_without_modifying_index(tmp_pat
     repeated = subprocess.run(command, cwd=repo, capture_output=True, text=True, timeout=30)
     assert repeated.returncode == 2
     assert (out / 'citation_results.jsonl').read_bytes() == preserved
+
+
+def test_real_quoted_generation_preserves_unicode_and_computes_offsets():
+    body = 'Prefix. The code is ORCHID-42. Unicode: e\u0301 🧠.'
+    with Client(host='http://127.0.0.1:11434', timeout=120, trust_env=False) as client:
+        counter = load_generation_counter(client=client, local_files_only=True)
+        hits = [SearchResult(whole_note_chunks([Note('Project', body, 'project.md')])[0], .9)]
+        context = build_context('What is the code?', hits, config=ContextConfig(), counter=counter, citation_mode='quoted')
+        result = generate_cited_answer(context, client=client)
+    assert result.validation.quotes
+    assert result.actual_prompt_tokens == context.prompt_tokens
+    for quote in result.validation.quotes:
+        assert body[quote.start_char:quote.end_char] == quote.text
+    assert 'ORCHID-42' in result.text

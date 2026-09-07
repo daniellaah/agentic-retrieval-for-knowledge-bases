@@ -309,3 +309,19 @@ def test_cited_generation_rejects_tampered_mapping_or_token_count(client):
     with pytest.raises(ValueError, match='budget'):
         generate_cited_answer(replace(built, prompt_tokens=built.prompt_tokens - 1), client=client)
     client.chat.assert_not_called()
+
+
+def test_quoted_generation_requires_and_resolves_exact_excerpts(client):
+    from obsidian_rag.context import build_context
+    built = cited_context()
+    quoted = build_context('Q?', list(built.evidence_blocks[0].origins), config=built.config,
+                            counter=built.counter, citation_mode='quoted')
+    client.chat.return_value.message.content = cited_response()
+    with pytest.raises(CitedGenerationError) as error:
+        generate_cited_answer(quoted, client=client)
+    assert error.value.validation.issues[0].code == 'missing_quote'
+    client.chat.return_value.message.content = cited_response(claims=[
+        {'text': 'A fact.', 'source_ids': ['S1'], 'quotes': [{'source_id': 'S1', 'text': 'A fact.'}]}])
+    result = generate_cited_answer(quoted, client=client)
+    assert result.validation.references_valid and result.validation.quotes[0].start_char == 0
+    assert 'quotes' in client.chat.call_args.kwargs['format']['properties']['claims']['items']['required']
