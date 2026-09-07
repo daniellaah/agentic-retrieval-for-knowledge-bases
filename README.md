@@ -791,3 +791,13 @@ and binds chunks to the original note revision with `bind_chunks`. Coordinates
 remain Python character offsets in the normalized `Note.content`. The snapshot
 is in memory; editing source files does not change its content. Duplicate source
 paths are rejected. Existing document and chunk identities remain unchanged.
+
+## Common search results
+
+`retrieval.models` defines immutable `SearchResult` and `SearchResponse` contracts.
+Targets distinguish notes, indexed chunks, and source character ranges. Results
+may have no score and no excerpt (discovery only). `SearchScore` declares a metric;
+only cosine scores use the [-1, 1] constraint. Excerpts must share the result's
+source and lie inside its target. Responses validate scope, rank order, duplicate
+targets and limits; unknown continuation is distinct from exhaustive enumeration.
+Raw scores from different methods or queries are not directly comparable.
