@@ -14,7 +14,7 @@ from time import perf_counter
 
 import numpy as np
 
-from obsidian_rag.embeddings import validate_vectors
+from obsidian_rag.knowledge_base.embeddings import validate_vectors
 from obsidian_rag.retrieval import search_numpy
 
 def recall_at_k(reference: list[str], candidate: list[str], k: int) -> float | None:
@@ -290,13 +290,13 @@ def main(argv=None) -> int:
     from importlib.metadata import version
     from ollama import Client
     from obsidian_rag.retrieval import connect_qdrant, search_qdrant
-    from obsidian_rag.embeddings import resolve_embedding_spec
-    from obsidian_rag.embeddings import prepare_query, validate_input_tokens
-    from obsidian_rag.embeddings import embed_texts
-    from obsidian_rag.indexing import QdrantIndex
-    from obsidian_rag.tokenization import tokenizer_fingerprint
-    from obsidian_rag.storage import SQLiteStorage
-    from obsidian_rag.tokenization import load_tokenizer
+    from obsidian_rag.knowledge_base.embeddings import resolve_embedding_spec
+    from obsidian_rag.knowledge_base.embeddings import prepare_query, validate_input_tokens
+    from obsidian_rag.knowledge_base.embeddings import embed_texts
+    from obsidian_rag.knowledge_base.vector_index.indexing import QdrantIndex
+    from obsidian_rag.knowledge_base.tokenization import tokenizer_fingerprint
+    from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
+    from obsidian_rag.knowledge_base.tokenization import load_tokenizer
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--db', type=Path, required=True)

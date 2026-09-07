@@ -14,14 +14,14 @@ import sys
 from httpx import HTTPError
 from ollama import Client, ResponseError
 
-from obsidian_rag.chunking import chunk_notes, whole_note_chunks
-from obsidian_rag.embeddings import prepare_document, prepare_query, embed_texts, resolve_embedding_spec
+from obsidian_rag.knowledge_base.chunking import chunk_notes, whole_note_chunks
+from obsidian_rag.knowledge_base.embeddings import prepare_document, prepare_query, embed_texts, resolve_embedding_spec
 from obsidian_rag.context import ContextConfig, build_context, load_generation_counter
 from obsidian_rag.generation import generate_answer, generate_cited_answer
-from obsidian_rag.loaders import load_notes
+from obsidian_rag.knowledge_base.loaders import load_notes
 from obsidian_rag.retrieval import SearchResult, retrieve, connect_qdrant
-from obsidian_rag.schema import ChunkRecord, fingerprint_config
-from obsidian_rag.tokenization import count_tokens, load_tokenizer
+from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord, fingerprint_config
+from obsidian_rag.knowledge_base.tokenization import count_tokens, load_tokenizer
 
 
 def _add_context_arguments(parser):
@@ -175,7 +175,7 @@ def _legacy_main(argv: Sequence[str] | None = None) -> int:
     return 0
 
 def _persistent_parser():
-    from obsidian_rag.embeddings import DEFAULT_QUERY_INSTRUCTION
+    from obsidian_rag.knowledge_base.embeddings import DEFAULT_QUERY_INSTRUCTION
     parser = argparse.ArgumentParser(prog='obsidian-rag')
     commands = parser.add_subparsers(dest='command', required=True)
     for name in ('index', 'query', 'status'):
@@ -221,10 +221,10 @@ def _persistent_parser():
     return parser
 
 def _persistent_main(argv: Sequence[str]) -> int:
-    from obsidian_rag.indexing import build_index
-    from obsidian_rag.loaders import scan_notes
+    from obsidian_rag.knowledge_base.vector_index.indexing import build_index
+    from obsidian_rag.knowledge_base.loaders import scan_notes
     from obsidian_rag.retrieval import search_index
-    from obsidian_rag.storage import SQLiteStorage
+    from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
     from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
     parser = _persistent_parser()

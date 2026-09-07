@@ -12,11 +12,11 @@ import pytest
 from qdrant_client import QdrantClient
 from tokenizers import Tokenizer, models, pre_tokenizers
 
-from obsidian_rag.indexing import build_index, QdrantIndex
-from obsidian_rag.loaders import Note
+from obsidian_rag.knowledge_base.vector_index.indexing import build_index, QdrantIndex
+from obsidian_rag.knowledge_base.loaders import Note
 from obsidian_rag.retrieval import search_index
-from obsidian_rag.schema import EmbeddingSpec
-from obsidian_rag.storage import SQLiteStorage
+from obsidian_rag.knowledge_base.vector_index.manifest import EmbeddingSpec
+from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
 
 
 pytestmark = pytest.mark.skipif(not os.environ.get('OBSIDIAN_RAG_QDRANT_URL'),

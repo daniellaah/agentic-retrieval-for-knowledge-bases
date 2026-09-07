@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from obsidian_rag.chunking import Chunk
+from obsidian_rag.knowledge_base.chunking import Chunk
 from obsidian_rag.context import build_context
 from obsidian_rag.retrieval import SearchResult
 
@@ -33,8 +33,8 @@ def test_context_handles_empty_evidence_and_rejects_blank_question():
 
 
 def test_context_preserves_snapshot_provenance_without_exposing_it_in_prompt():
-    from obsidian_rag.loaders import Note
-    from obsidian_rag.schema import ChunkRecord
+    from obsidian_rag.knowledge_base.loaders import Note
+    from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord
     note = Note('Title', 'A fact.', 'notes/a.md')
     chunk = Chunk(note.content, note.title, note.source, 0, 0, len(note.content))
     record = ChunkRecord.from_note(chunk, note=note, vault_id='v')
@@ -123,8 +123,8 @@ def test_quoted_protocol_is_counted_and_bound_to_its_mapping():
 
 def source_hit(start, end, *, text='abcdefghijklmnop', source='a.md', index=0,
                version='v1', vault='vault', score=.8):
-    from obsidian_rag.loaders import Note
-    from obsidian_rag.schema import ChunkRecord
+    from obsidian_rag.knowledge_base.loaders import Note
+    from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord
     note = Note('Title', text, source)
     chunk = Chunk(text[start:end], note.title, source, index, start, end)
     record = ChunkRecord.from_note(chunk, note=note, vault_id=vault)
@@ -184,7 +184,6 @@ def test_invalid_scores_are_rejected(score):
     from dataclasses import replace
     with pytest.raises(ValueError, match='cosine'):
         build_context('Q?', [replace(source_hit(0, 4), score=score)])
-
 
 
 def message_counter(messages):

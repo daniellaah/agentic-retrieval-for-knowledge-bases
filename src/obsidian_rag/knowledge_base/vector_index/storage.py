@@ -10,9 +10,9 @@ import sqlite3
 
 import numpy as np
 
-from obsidian_rag.chunking import Chunk
-from obsidian_rag.embeddings import prepare_document, validate_vectors
-from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest
+from obsidian_rag.knowledge_base.chunking import Chunk
+from obsidian_rag.knowledge_base.embeddings import prepare_document, validate_vectors
+from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord, EmbeddingSpec, IndexManifest
 
 
 STORAGE_VERSION = 1

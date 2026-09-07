@@ -9,10 +9,10 @@ import sys
 from ollama import Client
 import pytest
 
-from obsidian_rag.chunking import whole_note_chunks
+from obsidian_rag.knowledge_base.chunking import whole_note_chunks
 from obsidian_rag.context import ContextConfig, build_context, load_generation_counter
 from obsidian_rag.generation import CitedGenerationError, generate_cited_answer
-from obsidian_rag.loaders import Note
+from obsidian_rag.knowledge_base.loaders import Note
 from obsidian_rag.retrieval import SearchResult
 
 

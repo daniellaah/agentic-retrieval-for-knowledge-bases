@@ -4,9 +4,9 @@ from unittest.mock import Mock
 from ollama import ChatResponse, Client, Message, ResponseError
 import pytest
 
-from obsidian_rag.chunking import chunk_notes, whole_note_chunks
+from obsidian_rag.knowledge_base.chunking import chunk_notes, whole_note_chunks
 from obsidian_rag.generation import generate_answer, generate_cited_answer, CitedGenerationError
-from obsidian_rag.loaders import Note
+from obsidian_rag.knowledge_base.loaders import Note
 from obsidian_rag.retrieval import SearchResult
 
 

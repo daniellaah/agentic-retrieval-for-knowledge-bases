@@ -5,10 +5,10 @@ import os
 from ollama import Client
 import pytest
 
-from obsidian_rag.chunking import whole_note_chunks
-from obsidian_rag.embeddings import prepare_document, prepare_query, validate_input_tokens
-from obsidian_rag.loaders import Note
-from obsidian_rag.tokenization import load_tokenizer
+from obsidian_rag.knowledge_base.chunking import whole_note_chunks
+from obsidian_rag.knowledge_base.embeddings import prepare_document, prepare_query, validate_input_tokens
+from obsidian_rag.knowledge_base.loaders import Note
+from obsidian_rag.knowledge_base.tokenization import load_tokenizer
 
 
 pytestmark = pytest.mark.skipif(

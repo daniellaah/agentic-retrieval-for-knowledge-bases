@@ -293,7 +293,7 @@ def tokenizer_download(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Mock:
     path = tmp_path / "tokenizer.json"
     tokenizer.save(str(path))
     download = Mock(return_value=str(path))
-    monkeypatch.setattr("obsidian_rag.tokenization.hf_hub_download", download)
+    monkeypatch.setattr("obsidian_rag.knowledge_base.tokenization.hf_hub_download", download)
     return download
 
 

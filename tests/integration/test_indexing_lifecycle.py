@@ -11,7 +11,7 @@ from uuid import uuid4
 import pytest
 from qdrant_client import QdrantClient
 
-from obsidian_rag.storage import SQLiteStorage
+from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
 
 
 pytestmark = pytest.mark.skipif(os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',

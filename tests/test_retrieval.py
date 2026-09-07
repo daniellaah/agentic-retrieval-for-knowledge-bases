@@ -7,11 +7,11 @@ from numpy.typing import NDArray
 import pytest
 from qdrant_client import QdrantClient
 
-from obsidian_rag.chunking import Chunk, chunk_notes, whole_note_chunks
-from obsidian_rag.indexing import QdrantIndex
-from obsidian_rag.loaders import Note
+from obsidian_rag.knowledge_base.chunking import Chunk, chunk_notes, whole_note_chunks
+from obsidian_rag.knowledge_base.vector_index.indexing import QdrantIndex
+from obsidian_rag.knowledge_base.loaders import Note
 from obsidian_rag.retrieval import retrieve, search_qdrant, search_numpy
-from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
+from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord, EmbeddingSpec
 
 
 @pytest.fixture
@@ -176,10 +176,10 @@ def published_index(tmp_path):
     from unittest.mock import Mock
     from ollama import Client, EmbedResponse
     from tokenizers import Tokenizer, models, pre_tokenizers
-    from obsidian_rag.schema import EmbeddingSpec
-    from obsidian_rag.indexing import build_index
-    from obsidian_rag.loaders import Note
-    from obsidian_rag.storage import SQLiteStorage
+    from obsidian_rag.knowledge_base.vector_index.manifest import EmbeddingSpec
+    from obsidian_rag.knowledge_base.vector_index.indexing import build_index
+    from obsidian_rag.knowledge_base.loaders import Note
+    from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
     tokenizer = Tokenizer(models.WordLevel({'[UNK]': 0}, unk_token='[UNK]'))
     tokenizer.pre_tokenizer = pre_tokenizers.WhitespaceSplit()
     spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2, document_template='title-body-v1')
@@ -233,7 +233,7 @@ def test_indexed_search_rejects_missing_and_unpublished_versions(published_index
 
 def test_indexed_search_rejects_unknown_backend_hits(published_index, monkeypatch):
     from obsidian_rag.retrieval import search_index
-    from obsidian_rag.schema import VectorHit
+    from obsidian_rag.knowledge_base.vector_index.manifest import VectorHit
     store, kwargs = published_index
     monkeypatch.setattr('obsidian_rag.retrieval.search_numpy', lambda *a, **kw: [VectorHit('orphan', 0.5)])
     with pytest.raises(ValueError, match='snapshot'):
@@ -342,7 +342,7 @@ def test_search_result_rejects_partial_or_inconsistent_identity(vector_data):
 
 
 def test_search_keeps_requested_snapshot_after_a_new_revision_is_published(published_index):
-    from obsidian_rag.indexing import build_index
+    from obsidian_rag.knowledge_base.vector_index.indexing import build_index
     from obsidian_rag.retrieval import search_index
     store, kwargs = published_index
     build_index(store, [Note('Title', 'Updated source text', 'a.md')],

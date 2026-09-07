@@ -8,11 +8,11 @@ import pytest
 from qdrant_client import QdrantClient
 from tokenizers import Tokenizer, models, pre_tokenizers, processors
 
-from obsidian_rag.chunking import whole_note_chunks
-from obsidian_rag.indexing import build_index, QdrantIndex
-from obsidian_rag.loaders import Note
-from obsidian_rag.schema import EmbeddingSpec, ChunkRecord
-from obsidian_rag.storage import SQLiteStorage
+from obsidian_rag.knowledge_base.chunking import whole_note_chunks
+from obsidian_rag.knowledge_base.vector_index.indexing import build_index, QdrantIndex
+from obsidian_rag.knowledge_base.loaders import Note
+from obsidian_rag.knowledge_base.vector_index.manifest import EmbeddingSpec, ChunkRecord
+from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
 
 
 @pytest.fixture
@@ -182,7 +182,7 @@ def test_invalid_vectors_and_foreign_vault_fail_before_upsert(qdrant_data):
 
 
 def test_snapshot_verification_detects_payload_and_vector_corruption(qdrant_data):
-    from obsidian_rag.schema import point_id
+    from obsidian_rag.knowledge_base.vector_index.manifest import point_id
     spec, records = qdrant_data
     with closing(QdrantClient(':memory:')) as client:
         store = create_qdrant_index(client, spec)

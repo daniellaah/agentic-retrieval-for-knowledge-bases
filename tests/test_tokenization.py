@@ -6,7 +6,7 @@ from huggingface_hub.errors import LocalEntryNotFoundError
 import pytest
 from tokenizers import Tokenizer, models, normalizers, pre_tokenizers, processors
 
-from obsidian_rag.tokenization import count_tokens, load_tokenizer
+from obsidian_rag.knowledge_base.tokenization import count_tokens, load_tokenizer
 
 
 @pytest.fixture
@@ -85,7 +85,7 @@ def test_load_tokenizer_downloads_only_the_fixed_tokenizer_file(
         / "c54f2e6e80b2d7b7de06f51cec4959f6b3e03418" / "tokenizer.json"
     )
     download = Mock(return_value=str(snapshot))
-    monkeypatch.setattr("obsidian_rag.tokenization.hf_hub_download", download)
+    monkeypatch.setattr("obsidian_rag.knowledge_base.tokenization.hf_hub_download", download)
 
     tokenizer = load_tokenizer(cache_dir=tokenizer_cache)
 
@@ -116,7 +116,7 @@ def test_load_tokenizer_propagates_download_errors(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     download = Mock(side_effect=httpx.ConnectError("Download unavailable."))
-    monkeypatch.setattr("obsidian_rag.tokenization.hf_hub_download", download)
+    monkeypatch.setattr("obsidian_rag.knowledge_base.tokenization.hf_hub_download", download)
 
     with pytest.raises(httpx.ConnectError, match="Download unavailable"):
         load_tokenizer(cache_dir=tmp_path)
