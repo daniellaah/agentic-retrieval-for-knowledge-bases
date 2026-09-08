@@ -73,3 +73,26 @@ def test_old_numpy_indexes_are_rejected_instead_of_silently_scanned(indexed):
     with pytest.raises(ValueError, match='Qdrant'):
         vector_search(storage, 'Question?', **options)
     options['client'].embed.assert_not_called()
+
+
+def test_other_methods_and_note_inspection_share_the_pinned_vector_snapshot(indexed):
+    from obsidian_rag.retrieval.grep import grep_search
+    from obsidian_rag.retrieval.metadata import metadata_search, MetadataQuery
+    from obsidian_rag.retrieval.bm25 import bm25_search
+    from obsidian_rag.knowledge_base.lexical_index import LexicalIndex
+    from obsidian_rag.context import build_context
+    storage, options, build = indexed
+    build_index(storage, [Note('A', 'new version', 'a.md')], **build, index_version='second')
+    vector = vector_search(storage, 'alpha', **options, index_version='first', config=VectorSearchConfig(source='a.md')).items[0]
+    knowledge = storage.knowledge_snapshot('first')
+    assert knowledge.read_note(vector.source).content == 'alpha body'
+    grep = grep_search(knowledge, 'alpha').items[0]
+    metadata = metadata_search(knowledge, MetadataQuery(path_prefix='a.md')).items[0]
+    records = storage.snapshot_records('first')
+    lexical = LexicalIndex.build(knowledge, chunks=[r.chunk for r in records])
+    bm25 = bm25_search(lexical, 'alpha').items[0]
+    assert vector.source == grep.source == metadata.source == bm25.source
+    context = build_context('Q?', [vector, grep, metadata, bm25], citation_mode='structured')
+    assert len(context.evidence_blocks) == 1
+    assert {origin.retrieval_method for origin in context.citation_sources[0].origins} == {'vector', 'grep', 'bm25'}
+    assert context.evidence_blocks[0].content == 'alpha body'

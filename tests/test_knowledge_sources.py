@@ -51,3 +51,21 @@ def test_source_references_reject_partial_or_inconsistent_identity():
     assert legacy.document_revision is None
     with pytest.raises(ValueError):
         replace(snapshot.read_span(source, 0, 4), source='a.md')
+
+
+def test_snapshot_restoration_checks_complete_coverage_overlap_and_content_hash():
+    from dataclasses import replace
+    import pytest
+    from obsidian_rag.knowledge_base.models import Note
+    from obsidian_rag.knowledge_base.chunking import chunk_notes
+    snapshot = KnowledgeSnapshot.from_notes([Note('A', 'alpha beta gamma delta', 'a.md')], vault_id='v')
+    chunks = chunk_notes(snapshot.notes, count_tokens=len, chunk_size=12, chunk_overlap=6)
+    records = snapshot.bind_chunks(chunks)
+    from obsidian_rag.knowledge_base.identity import fingerprint_config
+    expected = fingerprint_config({'notes': [{'title': n.title, 'content': n.content, 'source': n.source} for n in snapshot.notes]})
+    restored = KnowledgeSnapshot.from_records(records, vault_id='v', snapshot_id='published', corpus_fingerprint=expected)
+    assert restored.notes == snapshot.notes
+    for broken in (records[1:], records[:-1],
+                   [replace(records[0], chunk=replace(records[0].chunk, content='X' * len(records[0].chunk.content))), *records[1:]]):
+        with pytest.raises(ValueError):
+            KnowledgeSnapshot.from_records(broken, vault_id='v', snapshot_id='published', corpus_fingerprint=expected)

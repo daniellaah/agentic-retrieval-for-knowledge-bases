@@ -230,6 +230,21 @@ class SQLiteStorage:
             raise ValueError("Snapshot counts do not match its manifest.")
         return records
 
+    def knowledge_snapshot(self, version: str):
+        """Open a published source view for inspection, grep, metadata and BM25.
+
+        Existing v1 databases retain complete chunk coverage. Reconstruct and
+        verify full notes using the shared knowledge layer without reading any
+        embedding BLOBs or contacting Qdrant/the model. No schema migration.
+        """
+        from obsidian_rag.knowledge_base.sources import KnowledgeSnapshot
+        manifest = self.get_manifest(version)
+        if manifest.status != 'ready':
+            raise ValueError('Knowledge inspection requires a ready snapshot.')
+        return KnowledgeSnapshot.from_records(
+            self.snapshot_records(version), vault_id=manifest.vault_id, snapshot_id=version,
+            corpus_fingerprint=self.build_metadata(version)['corpus_fingerprint'])
+
     def load_snapshot(self, version: str):
         manifest = self.get_manifest(version)
         spec = manifest.embedding_spec

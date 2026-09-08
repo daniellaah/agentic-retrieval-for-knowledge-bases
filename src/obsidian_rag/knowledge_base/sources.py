@@ -57,6 +57,7 @@ class KnowledgeSnapshot:
     vault_id: str
     snapshot_id: str
     notes: tuple[Note, ...]
+    corpus_fingerprint: str | None = None
 
     def __post_init__(self):
         if not isinstance(self.vault_id, str) or not self.vault_id.strip():
@@ -68,14 +69,54 @@ class KnowledgeSnapshot:
         for note in self.notes:
             ChunkRecord.from_note(Chunk(note.content, note.title, note.source, 0, 0, len(note.content)),
                                   note=note, vault_id=self.vault_id)
-        if self.snapshot_id != 'memory:' + fingerprint_config({'notes': [asdict(n) for n in self.notes]}):
-            raise ValueError('Snapshot identity differs from its content.')
+        require_text(self.snapshot_id, 'snapshot_id')
+        actual = fingerprint_config({'notes': [asdict(n) for n in self.notes]})
+        if self.corpus_fingerprint is None:
+            if self.snapshot_id != 'memory:' + actual:
+                raise ValueError('Snapshot identity differs from its content.')
+            object.__setattr__(self, 'corpus_fingerprint', actual)
+        elif self.corpus_fingerprint != actual:
+            raise ValueError('Snapshot corpus fingerprint differs from its content.')
 
     @classmethod
     def from_notes(cls, notes: Sequence[Note], *, vault_id: str):
         notes = tuple(notes)
         version = 'memory:' + fingerprint_config({'notes': [asdict(note) for note in notes]})
         return cls(vault_id, version, notes)
+
+    @classmethod
+    def from_records(cls, records: Sequence[ChunkRecord], *, vault_id: str, snapshot_id: str,
+                     corpus_fingerprint: str):
+        """Restore old snapshots from complete source spans, never vector values.
+
+        Gaps, conflicting overlap, changed titles/revisions and incomplete source
+        bodies fail validation. Named published snapshots retain their saved ID;
+        the caller supplies the saved corpus fingerprint to verify completeness.
+        """
+        groups = {}
+        for record in records:
+            if not isinstance(record, ChunkRecord) or record.vault_id != vault_id:
+                raise ValueError('Snapshot records must belong to the requested vault.')
+            groups.setdefault(record.chunk.source, []).append(record)
+        notes = []
+        for path, group in groups.items():
+            first = group[0]
+            content = ''
+            for record in sorted(group, key=lambda r: (r.chunk.start_char, r.chunk.end_char)):
+                chunk = record.chunk
+                if record.document_revision != first.document_revision or chunk.title != first.chunk.title:
+                    raise ValueError('Snapshot mixes document revisions or titles.')
+                if chunk.start_char > len(content):
+                    raise ValueError('Snapshot has a gap in source coverage.')
+                overlap = min(chunk.end_char, len(content)) - chunk.start_char
+                if content[chunk.start_char:chunk.start_char + overlap] != chunk.content[:overlap]:
+                    raise ValueError('Snapshot contains conflicting source overlap.')
+                content += chunk.content[overlap:]
+            note = Note(first.chunk.title, content, path)
+            if digest('document-revision', {'title': note.title, 'content': note.content}) != first.document_revision:
+                raise ValueError('Snapshot source body does not match its document revision.')
+            notes.append(note)
+        return cls(vault_id, snapshot_id, tuple(notes), corpus_fingerprint)
 
     def note_refs(self) -> tuple[SourceRef, ...]:
         return tuple(SourceRef.from_note(n, vault_id=self.vault_id, snapshot_id=self.snapshot_id)
