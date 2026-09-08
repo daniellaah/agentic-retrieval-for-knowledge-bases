@@ -4,7 +4,6 @@ from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, replace
 import hashlib
 import json
-import math
 from pathlib import Path
 
 from obsidian_rag.citation import CitationOrigin, CitationSource

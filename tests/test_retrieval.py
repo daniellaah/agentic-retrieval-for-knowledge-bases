@@ -1,26 +1,15 @@
 from contextlib import closing
-
 from dataclasses import replace
-
 import warnings
-
 import numpy as np
-
-from numpy.typing import NDArray
-
 import pytest
-
 from qdrant_client import QdrantClient
-
 from obsidian_rag.knowledge_base.chunking import Chunk, chunk_notes, whole_note_chunks
-
 from obsidian_rag.knowledge_base.vector_index.indexing import QdrantIndex
-
 from obsidian_rag.knowledge_base.loaders import Note
-
 from obsidian_rag.knowledge_base.vector_index.qdrant import search_qdrant
-
 from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord, EmbeddingSpec
+
 
 @pytest.fixture
 def published_index(tmp_path):

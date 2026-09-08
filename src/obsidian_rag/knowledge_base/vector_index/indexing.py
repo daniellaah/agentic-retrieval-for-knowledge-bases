@@ -3,12 +3,10 @@
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass, replace
 from functools import partial, wraps
-import math
 from time import perf_counter
 from uuid import uuid4
 
 from ollama import Client
-from qdrant_client import QdrantClient, models
 from tokenizers import Tokenizer
 
 from obsidian_rag.knowledge_base.chunking import chunk_notes, whole_note_chunks
@@ -18,19 +16,14 @@ from obsidian_rag.knowledge_base.embeddings import (
     prepare_query,
     validate_input_tokens,
     iter_embedding_batches,
-    validate_vectors,
 )
 from obsidian_rag.knowledge_base.loaders import Note
 from obsidian_rag.knowledge_base.sources import KnowledgeSnapshot
 from .qdrant import QdrantIndex
 from obsidian_rag.knowledge_base.vector_index.manifest import (
-    ChunkRecord,
     EmbeddingSpec,
     IndexManifest,
     fingerprint_config,
-    point_id,
-    validate_records,
-    qdrant_identity,
 )
 from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
 from obsidian_rag.knowledge_base.tokenization import count_tokens, tokenizer_fingerprint

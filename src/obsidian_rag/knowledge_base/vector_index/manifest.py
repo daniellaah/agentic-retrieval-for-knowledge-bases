@@ -11,16 +11,9 @@ import re
 from typing import Literal
 from uuid import NAMESPACE_URL, uuid5
 
-from obsidian_rag.knowledge_base.chunking import Chunk
-from obsidian_rag.knowledge_base.loaders import Note
-
-
 from obsidian_rag.knowledge_base.models import ChunkRecord
 from obsidian_rag.knowledge_base.identity import (SCHEMA_VERSION, fingerprint_config, digest as _digest,
     require_text as _require_text, require_integer as _require_integer, require_digest as _require_digest)
-type ConfigValue = (
-    None | bool | int | float | str | list[ConfigValue] | dict[str, ConfigValue]
-)
 
 
 @dataclass(frozen=True)
