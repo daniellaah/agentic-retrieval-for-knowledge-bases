@@ -3,13 +3,13 @@
 Independent retrieval capabilities over a personal Markdown knowledge base.
 The knowledge layer owns source text, chunks, identities and indexes. Retrieval
 methods return a shared `SearchResponse`; Context and Citation consume verified
-source excerpts. The future agent will choose and sequence these capabilities.
-The current CLI remains a deterministic vector retrieval and answer workflow.
+source excerpts. The current CLI provides a deterministic vector retrieval
+and answer workflow.
 
 Implemented methods: `grep_search`, `metadata_search`, `bm25_search`, and
 `vector_search`. Grep, metadata and BM25 are Python APIs; vector search also has
-persistent CLI commands. Agent orchestration, hybrid fusion and reranking remain
-future work. See [architecture and development boundaries](docs/architecture.md).
+persistent CLI commands. Agent orchestration, hybrid fusion and reranking are
+not implemented. See [current code architecture](docs/architecture.md).
 
 ## Package layout
 
@@ -199,7 +199,7 @@ Scores include the conventional `(k1 + 1)` numerator factor; do not assume numer
 parity with Lucene. Source filtering retains whole-index document statistics.
 The initial lexical index is immutable and in memory; rebuild it for changed
 content or analyzer settings. Persistence and language-specific segmentation
-are future enhancements.
+are not implemented.
 
 Vector API callers supply explicit model/tokenizer/client dependencies:
 
@@ -306,9 +306,7 @@ OBSIDIAN_RAG_QDRANT_URL=http://127.0.0.1:6333 \
 ```
 
 The opt-in suite exercises real token counts, generation, HNSW publication,
-recovery and subprocess CLI persistence. New behavior is developed through
-public-interface red → green → refactor slices; completed modules receive their
-own commits.
+recovery and subprocess CLI persistence.
 
 Evaluation uses Qdrant exact as the neighbor reference and compares ANN on the
 same snapshot and frozen query vectors:

@@ -1,8 +1,7 @@
-# Agentic Knowledge Retrieval：架构与后续开发边界
+# Agentic Knowledge Retrieval：当前代码架构
 
-项目目标是让 Agent 根据用户意图选择检索、读取原文、继续搜索或生成回答。
-当前阶段已经交付可独立调用的知识与检索设施；Agent 控制循环尚未实现。
-不要把 CLI 当前的固定 vector → context → generation 流程当成未来所有任务的统一策略。
+本文说明当前代码的模块职责、检索协议、知识快照与 Context 行为。
+当前 CLI 使用固定的 vector → context → generation 流程。
 
 ## 当前职责
 
@@ -13,7 +12,6 @@
 | Context | 摘录去重、重叠合并、预算与消息构造 | 只使用实际摘录；无摘录的笔记定位需要先读取原文 |
 | Citation/Response | 结构化回答、引用与原文引句校验 | 引用结构正确不等于事实支持已验证 |
 | Evaluation | 固定语料/问题/参数，保留结果、来源和运行元数据 | 区分近邻召回、证据覆盖与答案正确性 |
-| Agent / Evidence Store / Tool Registry | 后续阶段 | 不在现有底层函数中夹入 LLM 决策或自动循环 |
 
 模块文件使用 snake_case，类使用 CapWords，函数使用 snake_case。
 `retrieval/vector.py` 中的入口是 `vector_search`；其他方法对应 `grep.py`、
@@ -35,7 +33,7 @@ source 保留 vault、文档身份、文档版本与快照。target 明确是整
 SearchResponse 说明 query、method、scope、items、limit 和完整性。
 grep/metadata/BM25 的分页能明确说明还有没有结果；vector top-k 的 has_more 为 unknown，
 不能据此声称“整个知识库都没有其他相关信息”。页内 rank 从 1 开始。
-不同方法的原始分数不能直接相加或横向比较；未来融合需要明确的算法与评估。
+不同方法的原始分数不能直接相加或横向比较；当前实现不提供跨方法分数融合。
 
 ## 同一任务如何固定来源
 
@@ -66,9 +64,9 @@ BM25 的 NFC/casefold 仅影响词项；返回的正文保持原样。
 
 grep/metadata/BM25 当前提供 Python 能力接口，尚未新增通用工具 CLI。
 递归 Obsidian vault 扫描、完整 Obsidian metadata/link 语义、词法索引持久化与专用分词器
-都需要独立的后续设计及测试，不能在此阶段声称已支持。
+尚未实现。
 
-## Context 与后续 Evidence Store
+## Context 的证据处理
 
 搜索候选和回答证据是不同阶段。没有 excerpts 的 NoteTarget 先经过 read_note/read_span；
 Context 不自动读取文件，也不把标题、tag 命中当成正文事实。当前用 needs_inspection 决策
@@ -77,24 +75,3 @@ Context 不自动读取文件，也不把标题、tag 命中当成正文事实�
 相同文档/版本的相交范围可以合并，前提是重叠文字完全一致。同一正文由 vector、grep、
 BM25 找到时保留各方法来源。Context 当前按照输入优先级选择证据，保留原始分数信息，
 不做跨方法分数融合。预算针对最终实际发送的模型消息。
-
-后续 Evidence Store 应记录操作 ID、来源、读取动作、证据覆盖和重复度，并保持搜索日志
-与当前可用证据的区别。不要把现有 BuiltContext 直接扩张成 Agent 状态容器。
-
-## 后续开发顺序
-
-基础模块完成后，再逐项讨论并实现以下阶段：
-
-1. Tool Registry 与能力 schema：描述每个工具的输入、响应、完整性和错误；支持仅返回
-   搜索结果，以及从候选继续 inspect。避免暴露底层数据库内部结构给 Agent。
-2. Evidence Store 与 trajectory：固定任务快照，记录工具调用、参数、检索来源、原文读取、
-   延迟、预算和阶段状态。确定停止/继续的可观察依据。
-3. 最小 Agent 循环：意图判断、工具选择、观察、继续/停止、输出模式；限制步数与资源预算。
-   先验证简单 grep discovery 与 vector → read_note 两类任务，再增加多轮研究任务。
-4. 融合、reranking 与检索扩展：根据固定问题、必要证据和实际失败样例选择实现，不预先
-   把所有查询绑定到 hybrid，也不把所有底层算法步骤交给 LLM。
-5. Agent 评估：在检索质量之外验证工具选择、无效调用、过早停止、证据缺口、回答支持与成本。
-
-新增行为采用公开接口的 red → green → refactor 小步开发。只在模型或外部服务边界使用替身；
-数据库、快照与来源校验优先运行真实临时实例。完成一个模块后检查 diff、运行相关回归并提交。
-真实服务测试必须显式启用，普通套件跳过这些测试不能代替集成验收。
