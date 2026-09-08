@@ -9,7 +9,7 @@ and answer workflow.
 Implemented methods: `grep_search`, `metadata_search`, `bm25_search`, and
 `vector_search`. Grep, metadata and BM25 are Python APIs; vector search also has
 persistent CLI commands. Agent orchestration, hybrid fusion and reranking are
-not implemented. See [current code architecture](docs/architecture.md).
+not implemented.
 
 ## Package layout
 
