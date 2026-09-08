@@ -60,10 +60,15 @@ def test_grep_and_source_read_do_not_import_vector_dependencies():
     code = '''
 import sys
 from obsidian_rag.retrieval.grep import grep_search
+from obsidian_rag.retrieval.metadata import metadata_search, MetadataQuery
+from obsidian_rag.retrieval.bm25 import bm25_search
+from obsidian_rag.knowledge_base.lexical_index import LexicalIndex
 from obsidian_rag.knowledge_base.models import Note
 from obsidian_rag.knowledge_base.sources import KnowledgeSnapshot
 s = KnowledgeSnapshot.from_notes([Note('A', 'RAG fact', 'a.md')], vault_id='v')
 assert grep_search(s, 'RAG').items
+assert metadata_search(s, MetadataQuery()).items
+assert bm25_search(LexicalIndex.build(s), 'RAG').items
 assert not ({'numpy', 'ollama', 'qdrant_client', 'tokenizers'} & sys.modules.keys())
 '''
     process = subprocess.run([sys.executable, '-B', '-c', code], capture_output=True, text=True)
