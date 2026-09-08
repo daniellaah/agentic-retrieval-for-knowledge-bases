@@ -35,3 +35,19 @@ def test_chunks_can_be_bound_to_a_snapshot_without_a_vector_index():
     assert records[0].document_id == snapshot.note_refs()[0].document_id
     with pytest.raises(ValueError, match='source'):
         snapshot.bind_chunks([replace(chunks[0], content='invalid body')])
+
+
+def test_source_references_reject_partial_or_inconsistent_identity():
+    from dataclasses import replace
+    import pytest
+    from obsidian_rag.knowledge_base.models import Note
+    snapshot = KnowledgeSnapshot.from_notes([Note('A', 'body', 'a.md')], vault_id='v')
+    source = snapshot.note_refs()[0]
+    for fields in ({'document_id': '0' * 64}, {'path': 'b.md'}, {'path': '../a.md'},
+                   {'snapshot_id': None}, {'document_revision': None}, {'vault_id': ''}, {'title': 1}):
+        with pytest.raises(ValueError):
+            replace(source, **fields)
+    legacy = replace(source, snapshot_id=None, document_revision=None)
+    assert legacy.document_revision is None
+    with pytest.raises(ValueError):
+        replace(snapshot.read_span(source, 0, 4), source='a.md')

@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 from collections.abc import Sequence
 
 from .models import Note, Chunk, ChunkRecord
-from .identity import digest, fingerprint_config
+from .identity import digest, fingerprint_config, require_digest, require_text, require_source_path
 
 
 @dataclass(frozen=True)
@@ -15,6 +15,20 @@ class SourceRef:
     title: str
     document_revision: str | None
     snapshot_id: str | None
+
+    def __post_init__(self):
+        require_text(self.vault_id, 'vault_id')
+        require_source_path(self.path)
+        require_digest(self.document_id, 'document_id')
+        if self.document_id != digest('document-id', {'vault_id': self.vault_id, 'source': self.path}):
+            raise ValueError('Source document identity differs from its vault and path.')
+        if not isinstance(self.title, str):
+            raise ValueError('Source title must be a string.')
+        if (self.document_revision is None) != (self.snapshot_id is None):
+            raise ValueError('Source revision and snapshot identity must be supplied together.')
+        if self.document_revision is not None:
+            require_digest(self.document_revision, 'document_revision')
+            require_text(self.snapshot_id, 'snapshot_id')
 
     @classmethod
     def from_note(cls, note: Note, *, vault_id: str, snapshot_id: str):
@@ -31,7 +45,8 @@ class SourceExcerpt:
     content: str
 
     def __post_init__(self):
-        if (type(self.start_char) is not int or type(self.end_char) is not int
+        if (not isinstance(self.source, SourceRef) or not isinstance(self.content, str)
+                or type(self.start_char) is not int or type(self.end_char) is not int
                 or not 0 <= self.start_char <= self.end_char
                 or self.end_char - self.start_char != len(self.content)):
             raise ValueError('Excerpt must match its source character span.')
@@ -67,8 +82,11 @@ class KnowledgeSnapshot:
                      for n in self.notes)
 
     def read_note(self, reference: SourceRef) -> Note:
-        for note, expected in zip(self.notes, self.note_refs()):
-            if reference == expected:
+        if not isinstance(reference, SourceRef):
+            raise ValueError('Expected a source reference.')
+        for note in self.notes:
+            if note.source == reference.path and reference == SourceRef.from_note(
+                    note, vault_id=self.vault_id, snapshot_id=self.snapshot_id):
                 return note
         raise ValueError('Source does not belong to this snapshot.')
 

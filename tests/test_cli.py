@@ -276,3 +276,16 @@ def test_shorthand_queries_the_saved_index(published_cli, capsys):
     assert output['items'][0]['excerpts'][0]['content'] == 'A cue starts a habit.'
     assert published_cli.embed.call_count == 1
     published_cli.chat.assert_not_called()
+
+
+def test_cli_rejects_unpublished_or_foreign_pinned_snapshot_before_service_calls(published_cli, client_factory, capsys):
+    from dataclasses import replace
+    from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
+    with SQLiteStorage(Path('.obsidian-rag/index.sqlite')) as storage:
+        manifest = storage.active_manifest('default')
+        storage.create_build(replace(manifest, index_version='pending', status='building'), corpus_fingerprint='pending')
+    client_factory.reset_mock()
+    for options in (['--index-version', 'pending'], ['--index-version', manifest.index_version, '--vault-id', 'other']):
+        assert main(['query', 'Q?', '--json', *options]) == 1
+        assert 'ready snapshot' in capsys.readouterr().err
+    client_factory.assert_not_called()

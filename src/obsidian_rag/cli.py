@@ -171,6 +171,8 @@ def _persistent_main(argv: Sequence[str]) -> int:
             manifest = storage.get_manifest(args.index_version) if args.index_version else storage.active_manifest(args.vault_id)
             if manifest is None:
                 raise ValueError('No published index; run the index command first.')
+            if manifest.status != 'ready' or manifest.vault_id != args.vault_id:
+                raise ValueError('Queries require a ready snapshot in the requested vault.')
             metadata = storage.build_metadata(manifest.index_version)['backend']
             if metadata['kind'] != 'qdrant':
                 raise ValueError('This index is not Qdrant; run index to rebuild it in Qdrant.')

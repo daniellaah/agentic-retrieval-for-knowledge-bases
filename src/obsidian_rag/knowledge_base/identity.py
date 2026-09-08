@@ -3,7 +3,6 @@
 import hashlib
 import json
 import re
-from typing import Literal
 
 SCHEMA_VERSION = 1
 type ConfigValue = None | bool | int | float | str | list[ConfigValue] | dict[str, ConfigValue]
@@ -52,3 +51,10 @@ def require_integer(value: int, name: str, *, minimum: int) -> None:
 def require_digest(value: str, name: str) -> None:
     if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
         raise ValueError(f"{name} must be a lowercase SHA-256 hex digest.")
+
+
+def require_source_path(source: str) -> None:
+    require_text(source, 'source')
+    if ('\\' in source or any(part in ('', '.', '..') for part in source.split('/'))
+            or re.match(r'^[A-Za-z]:', source)):
+        raise ValueError('source must be a canonical vault-relative POSIX path.')

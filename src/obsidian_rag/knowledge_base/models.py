@@ -1,8 +1,7 @@
 """Immutable knowledge records, independent of indexing methods."""
 
 from dataclasses import asdict, dataclass
-import re
-from .identity import digest, require_text, require_integer, require_digest
+from .identity import digest, require_text, require_integer, require_digest, require_source_path
 
 @dataclass(frozen=True)
 class Note:
@@ -47,12 +46,7 @@ class ChunkRecord:
         require_digest(self.document_revision, "document_revision")
         if not isinstance(self.chunk, Chunk):
             raise ValueError("chunk must be a Chunk.")
-        source = self.chunk.source
-        require_text(source, "source")
-        if "\\" in source or any(part in ("", ".", "..") for part in source.split("/")):
-            raise ValueError("source must be a canonical vault-relative POSIX path.")
-        if re.match(r"^[A-Za-z]:", source):
-            raise ValueError("source must be a canonical vault-relative POSIX path.")
+        require_source_path(self.chunk.source)
         if not isinstance(self.chunk.title, str) or not isinstance(self.chunk.content, str):
             raise ValueError("chunk title and content must be strings.")
         for name in ("chunk_index", "start_char", "end_char"):
