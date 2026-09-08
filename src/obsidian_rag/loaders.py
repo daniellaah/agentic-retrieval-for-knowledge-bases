@@ -1,7 +1,16 @@
 """Read Markdown notes from a directory."""
 
-from .models import Note
+from dataclasses import dataclass
 from pathlib import Path
+
+
+@dataclass(frozen=True)
+class Note:
+    """A Markdown note with a title, body, and source filename."""
+
+    title: str
+    content: str
+    source: str
 
 
 def load_notes(directory: Path) -> list[Note]:

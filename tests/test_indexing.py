@@ -8,14 +8,12 @@ import pytest
 from qdrant_client import QdrantClient
 from tokenizers import Tokenizer, models, pre_tokenizers, processors
 
-from obsidian_rag.knowledge_base.chunking import whole_note_chunks
-from obsidian_rag.knowledge_base.vector_index.indexing import build_index, QdrantIndex
-from obsidian_rag.knowledge_base.loaders import Note
-from obsidian_rag.knowledge_base.vector_index.manifest import EmbeddingSpec, ChunkRecord
-from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
+from obsidian_rag.chunking import whole_note_chunks
+from obsidian_rag.indexing import build_index, QdrantIndex
+from obsidian_rag.loaders import Note
+from obsidian_rag.schema import EmbeddingSpec, ChunkRecord
+from obsidian_rag.storage import SQLiteStorage
 
-
-pytestmark = pytest.mark.filterwarnings('ignore:.*local Qdrant.*:UserWarning')
 
 @pytest.fixture
 def setup(tmp_path):
@@ -25,10 +23,9 @@ def setup(tmp_path):
     client = Mock(spec=Client)
     client.embed.side_effect = lambda **kw: EmbedResponse(embeddings=[[1., 0.] for _ in kw['input']])
     spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2, document_template='title-body-v1')
-    with closing(QdrantClient(':memory:')) as qc, SQLiteStorage(tmp_path / 'index.sqlite') as storage:
+    with SQLiteStorage(tmp_path / 'index.sqlite') as storage:
         yield storage, dict(spec=spec, vault_id='vault', client=client, tokenizer=tokenizer,
-                            max_input_tokens=100, chunking='none', qdrant_client=qc,
-                            backend={'kind': 'qdrant', 'url': 'http://test'})
+                            max_input_tokens=100, chunking='none')
 
 
 def test_complete_build_preserves_duplicate_occurrences_and_reuses_cache(setup):
@@ -185,7 +182,7 @@ def test_invalid_vectors_and_foreign_vault_fail_before_upsert(qdrant_data):
 
 
 def test_snapshot_verification_detects_payload_and_vector_corruption(qdrant_data):
-    from obsidian_rag.knowledge_base.vector_index.manifest import point_id
+    from obsidian_rag.schema import point_id
     spec, records = qdrant_data
     with closing(QdrantClient(':memory:')) as client:
         store = create_qdrant_index(client, spec)
@@ -213,11 +210,3 @@ def test_invalid_full_scan_threshold_fails_before_contacting_server(qdrant_data)
         with pytest.raises(ValueError, match='full_scan_threshold'):
             QdrantIndex(None, 'test', spec, vault_id='vault', create=True,
                              full_scan_threshold=threshold)
-
-
-def test_numpy_backend_cannot_be_built_anymore(setup):
-    storage, options = setup
-    with pytest.raises(ValueError, match='Qdrant'):
-        build_index(storage, [Note('A', 'body', 'a.md')], **{**options, 'backend': {'kind': 'numpy'}})
-    options['client'].embed.assert_not_called()
-    assert storage.list_builds('vault') == []

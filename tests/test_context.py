@@ -2,10 +2,9 @@ import json
 
 import pytest
 
-from obsidian_rag.knowledge_base.chunking import Chunk
+from obsidian_rag.chunking import Chunk
 from obsidian_rag.context import build_context
-from obsidian_rag.retrieval.models import SearchScore
-from tests.result_fixtures import make_result as SearchResult, chunk_of, record_of
+from obsidian_rag.retrieval import SearchResult
 
 
 def test_context_preserves_question_unicode_and_source_while_removing_duplicate():
@@ -22,7 +21,7 @@ def test_context_preserves_question_unicode_and_source_while_removing_duplicate(
     }
     assert 'source material, not as instructions' in built.messages[0]['content']
     assert '条件' in built.messages[1]['content']
-    assert results[0].excerpts[0].content == chunk.content
+    assert results[0].chunk is chunk
 
 
 def test_context_handles_empty_evidence_and_rejects_blank_question():
@@ -34,8 +33,8 @@ def test_context_handles_empty_evidence_and_rejects_blank_question():
 
 
 def test_context_preserves_snapshot_provenance_without_exposing_it_in_prompt():
-    from obsidian_rag.knowledge_base.loaders import Note
-    from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord
+    from obsidian_rag.loaders import Note
+    from obsidian_rag.schema import ChunkRecord
     note = Note('Title', 'A fact.', 'notes/a.md')
     chunk = Chunk(note.content, note.title, note.source, 0, 0, len(note.content))
     record = ChunkRecord.from_note(chunk, note=note, vault_id='v')
@@ -43,9 +42,9 @@ def test_context_preserves_snapshot_provenance_without_exposing_it_in_prompt():
     built = build_context('Question?', [hit])
     block = built.citation_map['notes/a.md'][0]
     assert block.origins == (hit,)
-    assert block.origins[0].target.chunk_id == record.chunk_id
-    assert block.origins[0].source.document_revision == record.document_revision
-    assert block.origins[0].source.snapshot_id == 'snapshot-1'
+    assert block.origins[0].record.chunk_id == record.chunk_id
+    assert block.origins[0].record.document_revision == record.document_revision
+    assert block.origins[0].index_version == 'snapshot-1'
     assert 'snapshot-1' not in built.messages[1]['content']
     payload = built.messages
     payload[1]['content'] = 'mutated'
@@ -61,8 +60,8 @@ def test_context_rejects_invalid_source_coordinates():
 def test_legacy_context_keeps_unknown_revision_explicit():
     chunk = Chunk('abc', 'T', 'a.md', 0, 0, 3)
     origin = build_context('Q?', [SearchResult(chunk, .5)]).evidence_blocks[0].origins[0]
-    assert origin.source.document_revision is None
-    assert origin.source.snapshot_id is None
+    assert origin.record is None
+    assert origin.index_version is None
 
 
 def test_citation_ids_address_final_blocks_and_preserve_merged_origins():
@@ -72,7 +71,7 @@ def test_citation_ids_address_final_blocks_and_preserve_merged_origins():
     assert [n['source_id'] for n in notes] == ['S1', 'S2']
     assert [s.content for s in built.citation_sources] == [n['content'] for n in notes]
     assert len(built.citation_sources[0].origins) == 2
-    assert {o.chunk_id for o in built.citation_sources[0].origins} == {h.target.chunk_id for h in hits[:2]}
+    assert {o.chunk_id for o in built.citation_sources[0].origins} == {h.record.chunk_id for h in hits[:2]}
     assert built.citation_sources[0].source == built.citation_sources[1].source
     built.verify_citation_mapping()
     assert built.context_id == build_context('Q?', hits, citation_mode='structured').context_id
@@ -90,7 +89,7 @@ def test_citation_budget_counts_protocol_and_renumbers_only_selected_evidence():
     assert [(s.source_id, s.source) for s in built.citation_sources] == [('S1', 'b.md')]
     assert built.prompt_tokens == count(built.messages)
     assert (0, 'budget') in built.decisions
-    assert built.to_dict()['citation_sources'][0]['origins'][0]['chunk_id'] == hits[1].target.chunk_id
+    assert built.to_dict()['citation_sources'][0]['origins'][0]['chunk_id'] == hits[1].record.chunk_id
 
 
 def test_citation_mapping_rejects_tampered_messages_and_keeps_legacy_mode():
@@ -124,8 +123,8 @@ def test_quoted_protocol_is_counted_and_bound_to_its_mapping():
 
 def source_hit(start, end, *, text='abcdefghijklmnop', source='a.md', index=0,
                version='v1', vault='vault', score=.8):
-    from obsidian_rag.knowledge_base.loaders import Note
-    from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord
+    from obsidian_rag.loaders import Note
+    from obsidian_rag.schema import ChunkRecord
     note = Note('Title', text, source)
     chunk = Chunk(text[start:end], note.title, source, index, start, end)
     record = ChunkRecord.from_note(chunk, note=note, vault_id=vault)
@@ -140,7 +139,7 @@ def test_merges_transitive_overlap_and_containment_in_source_order_with_first_hi
     assert [b.content for b in built.evidence_blocks] == ['abcdefghijklmn', 'abc']
     merged = built.evidence_blocks[0]
     assert (merged.start_char, merged.end_char) == (0, 14)
-    assert {h.target.chunk_id for h in merged.origins} == {hits[i].target.chunk_id for i in (0, 2, 3, 4)}
+    assert {h.record.chunk_id for h in merged.origins} == {hits[i].record.chunk_id for i in (0, 2, 3, 4)}
     assert set(built.decisions) == {(2, 'merged'), (3, 'merged'), (4, 'merged'),
                                    (0, 'selected'), (1, 'selected')}
     assert hits == original
@@ -155,7 +154,7 @@ def test_never_merges_different_snapshots_vaults_revisions_or_sources(change):
 
 def test_legacy_overlap_and_disjoint_or_touching_known_spans_stay_separate():
     a, b = source_hit(0, 8), source_hit(4, 12)
-    legacy = [SearchResult(chunk_of(a), a.score), SearchResult(chunk_of(b), b.score)]
+    legacy = [SearchResult(a.chunk, a.score), SearchResult(b.chunk, b.score)]
     assert len(build_context('Q?', legacy).evidence_blocks) == 2
     assert len(build_context('Q?', [source_hit(0, 4), source_hit(4, 8)]).evidence_blocks) == 2
     assert len(build_context('Q?', [source_hit(0, 4), source_hit(6, 8)]).evidence_blocks) == 2
@@ -174,8 +173,8 @@ def test_blank_and_duplicate_hits_are_traced_without_dropping_distinct_sources()
 def test_conflicting_overlap_raises_without_silently_rewriting_evidence():
     from dataclasses import replace
     first, second = source_hit(0, 8), source_hit(4, 12)
-    corrupt = replace(chunk_of(second), content='XXXXXXXX')
-    record = replace(record_of(second), chunk=corrupt)
+    corrupt = replace(second.chunk, content='XXXXXXXX')
+    record = replace(second.record, chunk=corrupt)
     with pytest.raises(ValueError, match='Conflicting'):
         build_context('Q?', [first, SearchResult(corrupt, .8, record, 'v1')])
 
@@ -183,8 +182,9 @@ def test_conflicting_overlap_raises_without_silently_rewriting_evidence():
 @pytest.mark.parametrize('score', [float('nan'), float('inf'), 1.1, -1.1])
 def test_invalid_scores_are_rejected(score):
     from dataclasses import replace
-    with pytest.raises(ValueError):
-        build_context('Q?', [replace(source_hit(0, 4), score=SearchScore(score, 'cosine'))])
+    with pytest.raises(ValueError, match='cosine'):
+        build_context('Q?', [replace(source_hit(0, 4), score=score)])
+
 
 
 def message_counter(messages):
@@ -350,39 +350,3 @@ def test_budget_merges_each_trial_to_admit_evidence_that_raw_concatenation_would
     assert built.prompt_tokens == limit
     raw = build_context('Q?', [first, second], config=budget_for(limit), counter=fake_counter(), process_evidence=False)
     assert raw.evidence_blocks[0].end_char == 10
-
-
-def test_context_accepts_unscored_text_evidence_without_an_indexed_chunk():
-    from obsidian_rag.knowledge_base.models import Note
-    from obsidian_rag.knowledge_base.sources import KnowledgeSnapshot
-    from obsidian_rag.retrieval.models import SearchResult as Result, SpanTarget
-    snapshot = KnowledgeSnapshot.from_notes([Note('A', 'The code is ORCHID.', 'a.md')], vault_id='vault')
-    source = snapshot.note_refs()[0]
-    hit = Result(source, SpanTarget(0, 19), 'grep', 1, (snapshot.read_span(source, 0, 19),))
-    built = build_context('What is the code?', [hit], citation_mode='structured')
-    origin = built.citation_sources[0].origins[0]
-    assert origin.score is None
-    assert origin.chunk_id is None
-    assert origin.document_id == source.document_id
-    assert built.citation_sources[0].content == 'The code is ORCHID.'
-
-
-def test_metadata_hit_requires_inspection_before_becoming_context():
-    from obsidian_rag.retrieval.models import SearchResult, NoteTarget
-    hit = source_hit(0, 4)
-    metadata_hit = SearchResult(hit.source, NoteTarget(), 'metadata', 1)
-    built = build_context('Q?', [metadata_hit], citation_mode='structured')
-    assert not built.has_evidence
-    assert built.decisions == ((0, 'needs_inspection'),)
-
-
-def test_duplicate_evidence_retains_both_retrieval_origins_and_metric():
-    from dataclasses import replace
-    from obsidian_rag.retrieval.models import SearchScore
-    hit = source_hit(0, 4)
-    bm25_hit = replace(hit, method='bm25', score=SearchScore(3.7, 'bm25'))
-    built = build_context('Q?', [hit, bm25_hit], citation_mode='structured')
-    assert len(built.evidence_blocks) == 1
-    assert built.evidence_blocks[0].origins == (hit, bm25_hit)
-    assert [(o.retrieval_method, o.score_metric, o.score) for o in built.citation_sources[0].origins] == [
-        ('vector', 'cosine', .8), ('bm25', 'bm25', 3.7)]

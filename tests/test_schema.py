@@ -6,9 +6,9 @@ import sys
 
 import pytest
 
-from obsidian_rag.knowledge_base.chunking import Chunk, chunk_notes, whole_note_chunks
-from obsidian_rag.knowledge_base.loaders import Note
-from obsidian_rag.knowledge_base.vector_index.manifest import (
+from obsidian_rag.chunking import Chunk, chunk_notes, whole_note_chunks
+from obsidian_rag.loaders import Note
+from obsidian_rag.schema import (
     SCHEMA_VERSION,
     ChunkRecord,
     EmbeddingSpec,
@@ -80,9 +80,9 @@ def test_ids_are_stable_across_processes_and_python_hash_seeds(note: Note) -> No
         "0c77bf8396a483e0586ec8b01d18db9f006e69cf9ec8107ca00f005a8bab6159",
     ]
     script = """
-from obsidian_rag.knowledge_base.chunking import whole_note_chunks
-from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord
-from obsidian_rag.knowledge_base.loaders import Note
+from obsidian_rag.chunking import whole_note_chunks
+from obsidian_rag.schema import ChunkRecord
+from obsidian_rag.loaders import Note
 note = Note(title="重复片段", content="ab ab ab", source="notes/repeated.md")
 record = ChunkRecord.from_note(whole_note_chunks([note])[0], note=note, vault_id="personal")
 print(record.document_id, record.document_revision, record.chunk_id)

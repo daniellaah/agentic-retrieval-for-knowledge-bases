@@ -14,7 +14,8 @@ from time import perf_counter
 
 import numpy as np
 
-from obsidian_rag.knowledge_base.embeddings import validate_vectors
+from obsidian_rag.embeddings import validate_vectors
+from obsidian_rag.retrieval import search_numpy
 
 def recall_at_k(reference: list[str], candidate: list[str], k: int) -> float | None:
     """Set recall against exact neighbors; no reference neighbors means undefined."""
@@ -56,7 +57,7 @@ def evidence_statistics(chunks, case: dict) -> dict:
     }
 
 def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spec,
-                      vault_id: str, qdrant_search, backends: dict | None = None, top_k: int = 2) -> dict:
+                      vault_id: str, backends: dict | None = None, top_k: int = 2) -> dict:
     """Compare identical vectors/queries; timings cover search only, including backend I/O.
 
     Additional backends map mode names to (search callable, exact flag).
@@ -71,9 +72,10 @@ def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spe
         raise ValueError('top_k must be positive.')
     query_vectors = validate_vectors(query_vectors, rows=len(cases), dimensions=spec.dimensions,
                                      dtype=spec.dtype, normalization=spec.normalization)
-    modes = {'qdrant_exact': (qdrant_search, True)}
-    if backends and 'qdrant_exact' in backends:
-        raise ValueError('qdrant_exact is reserved for the reference.')
+    reference = partial(search_numpy, records, vectors, spec=spec, vault_id=vault_id)
+    modes = {'numpy_exact': (reference, True)}
+    if backends and 'numpy_exact' in backends:
+        raise ValueError('numpy_exact is reserved for the reference.')
     modes.update(backends or {})
     for search, exact in modes.values():
         if not callable(search) or type(exact) is not bool:
@@ -102,7 +104,7 @@ def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spe
             chunks = [by_id[h.chunk_id].chunk for h in hits]
             row['modes'][name] = {'hits': [asdict(h) for h in hits], 'search_ms': elapsed,
                                   **evidence_statistics(chunks, case)}
-        expected = row['modes']['qdrant_exact']['hits']
+        expected = row['modes']['numpy_exact']['hits']
         expected_ids = [h['chunk_id'] for h in expected]
         expected_scores = {h['chunk_id']: h['score'] for h in expected}
         for mode in row['modes'].values():
@@ -123,7 +125,7 @@ def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spe
         summary[name].update(search_ms_mean=float(np.mean(times)), search_ms_p50=float(np.median(times)),
                              search_ms_p95=float(np.percentile(times, 95)),
                              same_order_cases=sum(entry['same_top_k_order'] for entry in entries))
-    return {'settings': {'reference': 'qdrant_exact', 'top_k': top_k, 'case_count': len(cases), 'chunk_count': len(records),
+    return {'settings': {'top_k': top_k, 'case_count': len(cases), 'chunk_count': len(records),
                          'vector_bytes': int(np.asarray(vectors).nbytes)},
             'summary': summary, 'results': results}
 
@@ -137,9 +139,9 @@ def compare_contexts(question, results, case, *, config, counter) -> dict:
     """
     from obsidian_rag.context import build_context
 
-    if any(hit.source.document_revision is None for hit in results):
+    if any(hit.record is None for hit in results):
         raise ValueError('Context evaluation requires snapshot-identified hits.')
-    identities = {(h.source.snapshot_id, h.source.vault_id) for h in results}
+    identities = {(h.index_version, h.record.vault_id) for h in results}
     if len(identities) > 1:
         raise ValueError('Context evaluation requires one snapshot and vault.')
     modes = {}
@@ -151,7 +153,7 @@ def compare_contexts(question, results, case, *, config, counter) -> dict:
         groups = {}
         for block in blocks:
             hit = block.origins[0]
-            key = (hit.source.snapshot_id, hit.source.document_id, hit.source.document_revision)
+            key = (hit.index_version, hit.record.document_id, hit.record.document_revision)
             groups.setdefault(key, []).append((block.start_char, block.end_char))
         unique_chars = 0
         for intervals in groups.values():
@@ -287,14 +289,14 @@ def main(argv=None) -> int:
     """Evaluate an existing snapshot and save a new, non-overwriting artifact folder."""
     from importlib.metadata import version
     from ollama import Client
-    from obsidian_rag.knowledge_base.vector_index.qdrant import connect_qdrant, search_qdrant
-    from obsidian_rag.knowledge_base.embeddings import resolve_embedding_spec
-    from obsidian_rag.knowledge_base.embeddings import prepare_query, validate_input_tokens
-    from obsidian_rag.knowledge_base.embeddings import embed_texts
-    from obsidian_rag.knowledge_base.vector_index.indexing import QdrantIndex
-    from obsidian_rag.knowledge_base.tokenization import tokenizer_fingerprint
-    from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
-    from obsidian_rag.knowledge_base.tokenization import load_tokenizer
+    from obsidian_rag.retrieval import connect_qdrant, search_qdrant
+    from obsidian_rag.embeddings import resolve_embedding_spec
+    from obsidian_rag.embeddings import prepare_query, validate_input_tokens
+    from obsidian_rag.embeddings import embed_texts
+    from obsidian_rag.indexing import QdrantIndex
+    from obsidian_rag.tokenization import tokenizer_fingerprint
+    from obsidian_rag.storage import SQLiteStorage
+    from obsidian_rag.tokenization import load_tokenizer
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--db', type=Path, required=True)
@@ -306,8 +308,8 @@ def main(argv=None) -> int:
     parser.add_argument('--offline', action='store_true')
     parser.add_argument('--tokenizer-cache', type=Path)
     parser.add_argument('--qdrant-url')
-    parser.add_argument('--context', action='store_true', help='Also compare context policies on the same Qdrant exact hits.')
-    parser.add_argument('--citations', action='store_true', help='Generate and evaluate structured citations on the same Qdrant exact hits.')
+    parser.add_argument('--context', action='store_true', help='Also compare context policies on the same NumPy hits.')
+    parser.add_argument('--citations', action='store_true', help='Generate and evaluate structured citations on the same NumPy hits.')
     parser.add_argument('--generation-model', default='qwen3.5:4b')
     parser.add_argument('--context-window', type=int, default=8192)
     parser.add_argument('--max-output-tokens', type=int, default=1024)
@@ -329,8 +331,6 @@ def main(argv=None) -> int:
         if manifest is None:
             raise ValueError('No active snapshot to evaluate.')
         metadata = storage.build_metadata(manifest.index_version)
-        if metadata['backend']['kind'] != 'qdrant':
-            raise ValueError('Evaluation requires a Qdrant index; rebuild the legacy index first.')
         _, records, vectors = storage.load_snapshot(manifest.index_version)
         tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
         if tokenizer_fingerprint(tokenizer) != metadata['backend']['input']['tokenizer']:
@@ -348,27 +348,28 @@ def main(argv=None) -> int:
                               dimensions=spec.dimensions, dtype=spec.dtype, normalization=spec.normalization,
                               context_length=limit)
         embedding_seconds = perf_counter() - started
-        client = resources.enter_context(closing(connect_qdrant(args.qdrant_url or metadata['backend']['url'], 30)))
-        store = QdrantIndex(client, metadata['backend']['collection'], spec, vault_id=args.vault_id)
-        store.verify_snapshot(records, vectors)
-        info = store.check_configuration()
-        server_info = {'version': client.info().version, 'indexed_vectors': info.indexed_vectors_count,
-                       'hnsw_config': info.config.hnsw_config.model_dump(mode='json')}
-        search = partial(search_qdrant, client, store.collection, spec=spec, vault_id=args.vault_id)
-        modes = {'qdrant_ann': (search, False)}
+        modes, server_info = {}, None
+        if metadata['backend']['kind'] == 'qdrant':
+            client = resources.enter_context(closing(connect_qdrant(args.qdrant_url or metadata['backend']['url'], 30)))
+            store = QdrantIndex(client, metadata['backend']['collection'], spec, vault_id=args.vault_id)
+            store.verify_snapshot(records, vectors)
+            info = store.check_configuration()
+            server_info = {'version': client.info().version, 'indexed_vectors': info.indexed_vectors_count,
+                           'hnsw_config': info.config.hnsw_config.model_dump(mode='json')}
+            search = partial(search_qdrant, client, store.collection, spec=spec, vault_id=args.vault_id)
+            modes = {'qdrant_exact': (search, True), 'qdrant_ann': (search, False)}
         report = compare_retrieval(records, vectors, queries, cases, spec=spec, vault_id=args.vault_id,
-                                   qdrant_search=search, backends=modes, top_k=args.top_k)
+                                   backends=modes, top_k=args.top_k)
         context_rows, citation_rows = [], []
         if args.context or args.citations:
             from obsidian_rag.context import build_context
-            from obsidian_rag.retrieval.models import SearchResult, SearchScore
+            from obsidian_rag.retrieval import SearchResult
             counter = load_generation_counter(client=ollama, model=args.generation_model,
                                               cache_dir=args.tokenizer_cache, local_files_only=args.offline)
             by_id = {record.chunk_id: record for record in records}
             for case, row in zip(cases, report['results']):
-                hits = [SearchResult.from_record(by_id[h['chunk_id']], SearchScore(h['score'], 'cosine'),
-                        snapshot_id=manifest.index_version, rank=rank, method='vector')
-                        for rank, h in enumerate(row['modes']['qdrant_exact']['hits'], 1)]
+                hits = [SearchResult(by_id[h['chunk_id']].chunk, h['score'], by_id[h['chunk_id']], manifest.index_version)
+                        for h in row['modes']['numpy_exact']['hits']]
                 if args.context:
                     context_rows.append({'id': case['id'], 'question': case['question'],
                                          'modes': compare_contexts(case['question'], hits, case, config=context_config, counter=counter)})
@@ -397,8 +398,7 @@ def main(argv=None) -> int:
                'build_metadata': metadata, 'cases_sha256': hashlib.sha256(raw_cases).hexdigest(),
                'python': platform.python_version(), 'numpy': np.__version__, 'qdrant_client': version('qdrant-client'),
                'qdrant_server': server_info, 'source_commit': git.stdout.strip() if git.returncode == 0 else None,
-               'source_hashes': {str(p.relative_to(Path(__file__).parent)): hashlib.sha256(p.read_bytes()).hexdigest()
-                                 for p in sorted(Path(__file__).parent.rglob('*.py'))},
+               'source_hashes': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in Path(__file__).parent.glob('*.py')},
                'query_embedding_seconds': embedding_seconds,
                'sqlite_bytes': args.db.stat().st_size, 'sqlite_wal_bytes': Path(str(args.db) + '-wal').stat().st_size
                if Path(str(args.db) + '-wal').exists() else 0,

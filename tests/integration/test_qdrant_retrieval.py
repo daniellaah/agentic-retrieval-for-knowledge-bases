@@ -9,11 +9,11 @@ import numpy as np
 import pytest
 from qdrant_client import QdrantClient
 
-from obsidian_rag.knowledge_base.chunking import whole_note_chunks
-from obsidian_rag.knowledge_base.vector_index.indexing import QdrantIndex
-from obsidian_rag.knowledge_base.loaders import Note
-from obsidian_rag.knowledge_base.vector_index.qdrant import check_qdrant_collection, search_qdrant
-from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord, EmbeddingSpec
+from obsidian_rag.chunking import whole_note_chunks
+from obsidian_rag.indexing import QdrantIndex
+from obsidian_rag.loaders import Note
+from obsidian_rag.retrieval import check_qdrant_collection, search_qdrant
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
 
 
 pytestmark = pytest.mark.skipif(not os.environ.get('OBSIDIAN_RAG_QDRANT_URL'),

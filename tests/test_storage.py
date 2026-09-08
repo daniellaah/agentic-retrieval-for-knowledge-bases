@@ -4,11 +4,11 @@ import sqlite3
 import numpy as np
 import pytest
 
-from obsidian_rag.knowledge_base.chunking import whole_note_chunks
-from obsidian_rag.knowledge_base.embeddings import prepare_document
-from obsidian_rag.knowledge_base.loaders import Note
-from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
-from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
+from obsidian_rag.chunking import whole_note_chunks
+from obsidian_rag.embeddings import prepare_document
+from obsidian_rag.loaders import Note
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
+from obsidian_rag.storage import SQLiteStorage
 
 
 @pytest.fixture
@@ -133,7 +133,7 @@ def test_process_exit_releases_build_lock(tmp_path):
     script = '''
 import sys, time
 from pathlib import Path
-from obsidian_rag.knowledge_base.vector_index.storage import SQLiteStorage
+from obsidian_rag.storage import SQLiteStorage
 with SQLiteStorage(Path(sys.argv[1])) as storage:
     with storage.writer_lock():
         print('locked', flush=True)

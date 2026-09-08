@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from obsidian_rag.knowledge_base.loaders import load_notes
+from obsidian_rag.loaders import load_notes
 
 
 def test_load_notes_reads_title_content_and_source(tmp_path: Path) -> None:
@@ -95,7 +95,7 @@ def test_load_notes_returns_an_empty_list_for_an_empty_directory(tmp_path: Path)
 
 
 def test_scan_rejects_changes_during_reading(tmp_path, monkeypatch):
-    import obsidian_rag.knowledge_base.loaders as loaders
+    import obsidian_rag.loaders as loaders
     (tmp_path / 'a.md').write_text('# A\nbody')
     original = loaders.load_notes
     def changing(directory):

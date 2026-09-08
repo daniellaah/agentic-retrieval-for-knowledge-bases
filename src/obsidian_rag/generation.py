@@ -14,7 +14,7 @@ from obsidian_rag.context import (
     BuiltContext, ContextBudgetError, ContextConfig, GenerationCounter,
     build_context, load_generation_counter,
 )
-from obsidian_rag.retrieval.models import SearchResult
+from obsidian_rag.retrieval import SearchResult
 
 
 _NO_EVIDENCE = "The provided notes do not contain enough information to answer this question."

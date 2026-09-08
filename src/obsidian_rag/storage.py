@@ -10,9 +10,9 @@ import sqlite3
 
 import numpy as np
 
-from obsidian_rag.knowledge_base.chunking import Chunk
-from obsidian_rag.knowledge_base.embeddings import prepare_document, validate_vectors
-from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord, EmbeddingSpec, IndexManifest
+from obsidian_rag.chunking import Chunk
+from obsidian_rag.embeddings import prepare_document, validate_vectors
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest
 
 
 STORAGE_VERSION = 1
@@ -166,7 +166,7 @@ class SQLiteStorage:
         with self._transaction():
             self.connection.execute("INSERT INTO builds VALUES (?, ?, ?, ?, ?, NULL)",
                                     (manifest.index_version, manifest.vault_id, _json(asdict(manifest)),
-                                     corpus_fingerprint, _json(backend or {"kind": "qdrant"})))
+                                     corpus_fingerprint, _json(backend or {"kind": "numpy"})))
 
     def get_manifest(self, version: str) -> IndexManifest:
         row = self.connection.execute("SELECT manifest FROM builds WHERE version=?", (version,)).fetchone()
@@ -229,21 +229,6 @@ class SQLiteStorage:
         if len(records) != manifest.chunk_count or len(revisions) != manifest.document_count:
             raise ValueError("Snapshot counts do not match its manifest.")
         return records
-
-    def knowledge_snapshot(self, version: str):
-        """Open a published source view for inspection, grep, metadata and BM25.
-
-        Existing v1 databases retain complete chunk coverage. Reconstruct and
-        verify full notes using the shared knowledge layer without reading any
-        embedding BLOBs or contacting Qdrant/the model. No schema migration.
-        """
-        from obsidian_rag.knowledge_base.sources import KnowledgeSnapshot
-        manifest = self.get_manifest(version)
-        if manifest.status != 'ready':
-            raise ValueError('Knowledge inspection requires a ready snapshot.')
-        return KnowledgeSnapshot.from_records(
-            self.snapshot_records(version), vault_id=manifest.vault_id, snapshot_id=version,
-            corpus_fingerprint=self.build_metadata(version)['corpus_fingerprint'])
 
     def load_snapshot(self, version: str):
         manifest = self.get_manifest(version)

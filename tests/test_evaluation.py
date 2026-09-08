@@ -3,13 +3,11 @@ from functools import partial
 import numpy as np
 import pytest
 
-from obsidian_rag.knowledge_base.chunking import Chunk, whole_note_chunks
+from obsidian_rag.chunking import Chunk, whole_note_chunks
 from obsidian_rag.evaluation import compare_retrieval, evidence_statistics, recall_at_k
-from obsidian_rag.knowledge_base.loaders import Note
-from obsidian_rag.knowledge_base.vector_index.qdrant import search_qdrant, QdrantIndex
-from qdrant_client import QdrantClient
-from contextlib import closing
-from obsidian_rag.knowledge_base.vector_index.manifest import ChunkRecord, EmbeddingSpec
+from obsidian_rag.loaders import Note
+from obsidian_rag.retrieval import search_numpy
+from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
 
 
 def test_neighbor_recall_counts_unique_exact_neighbors_and_handles_no_reference():
@@ -34,36 +32,29 @@ def test_section_coverage_uses_union_and_not_just_file_hits():
         evidence_statistics(chunks, {'evidence_anchors': [{'source': 'a.md', 'start_char': 0, 'end_char': 12}]})
 
 
-@pytest.mark.filterwarnings('ignore:.*local Qdrant.*:UserWarning')
-@pytest.mark.filterwarnings('ignore:Local mode performs exact.*:UserWarning')
 def test_comparison_separates_neighbor_recall_from_evidence_coverage():
     spec = EmbeddingSpec(model='test', model_revision='fixed', dimensions=2, document_template='title-body-v1')
     notes = [Note(title='T', content='evidence', source=f'{i}.md') for i in range(2)]
     records = [ChunkRecord.from_note(whole_note_chunks([n])[0], note=n, vault_id='v') for n in notes]
     vectors = np.eye(2)
+    alternate = partial(search_numpy, records, vectors[::-1], spec=spec, vault_id='v')
     cases = [{'id': 'q1', 'question': 'Question?', 'required_source_groups': [['1.md']],
               'evidence_anchors': [{'source': '1.md', 'body_start_char': 0, 'body_end_char': 8}]}]
-    with closing(QdrantClient(':memory:')) as client:
-        QdrantIndex(client, 'reference', spec, vault_id='v', create=True).upsert(records, vectors)
-        QdrantIndex(client, 'different', spec, vault_id='v', create=True).upsert(records, vectors[::-1])
-        reference = partial(search_qdrant, client, 'reference', spec=spec, vault_id='v')
-        alternate = partial(search_qdrant, client, 'different', spec=spec, vault_id='v')
-        result = compare_retrieval(records, vectors, [[1, 0]], cases, spec=spec, vault_id='v', top_k=1,
-                                   qdrant_search=reference, backends={'different': (alternate, False)})
-        assert result['summary']['qdrant_exact']['neighbor_recall_at_k'] == 1
-        assert result['summary']['qdrant_exact']['section_coverage'] == 0
-        assert result['summary']['different']['neighbor_recall_at_k'] == 0
-        assert result['summary']['different']['section_coverage'] == 1
-        assert result['settings']['reference'] == 'qdrant_exact'
-        assert result['settings']['vector_bytes'] == vectors.nbytes
-        with pytest.raises(ValueError, match='unique'):
-            compare_retrieval(records, vectors, [[1, 0], [1, 0]], cases * 2, spec=spec, vault_id='v', qdrant_search=reference)
+    result = compare_retrieval(records, vectors, [[1, 0]], cases, spec=spec, vault_id='v', top_k=1,
+                               backends={'different': (alternate, False)})
+    assert result['summary']['numpy_exact']['neighbor_recall_at_k'] == 1
+    assert result['summary']['numpy_exact']['section_coverage'] == 0
+    assert result['summary']['different']['neighbor_recall_at_k'] == 0
+    assert result['summary']['different']['section_coverage'] == 1
+    assert result['settings']['vector_bytes'] == vectors.nbytes
+    with pytest.raises(ValueError, match='unique'):
+        compare_retrieval(records, vectors, [[1, 0], [1, 0]], cases * 2, spec=spec, vault_id='v')
 
 
 def test_context_comparison_isolates_processing_from_budget_and_measures_span_union():
     from obsidian_rag.context import ContextConfig, GenerationCounter, build_context
     from obsidian_rag.evaluation import compare_contexts
-    from tests.result_fixtures import make_result as SearchResult, chunk_of, record_of
+    from obsidian_rag.retrieval import SearchResult
     note = Note('Title', 'x' * 300, 'a.md')
     hits = []
     for index, (start, end) in enumerate([(0, 200), (150, 300)]):
@@ -87,12 +78,12 @@ def test_context_comparison_isolates_processing_from_budget_and_measures_span_un
     assert built['body_characters'] == 300 and built['block_count'] == 1
     assert modes['built']['context']['citation_map'] == {'a.md': [0]}
     with pytest.raises(ValueError, match='snapshot-identified'):
-        compare_contexts('Q?', [SearchResult(chunk_of(hits[0]), .5)], case, config=config, counter=counter)
+        compare_contexts('Q?', [SearchResult(hits[0].chunk, .5)], case, config=config, counter=counter)
 
 
 def citation_fixture():
     from obsidian_rag.context import ContextConfig, GenerationCounter, build_context
-    from tests.result_fixtures import make_result as SearchResult, chunk_of, record_of
+    from obsidian_rag.retrieval import SearchResult
     note = Note('Title', 'Only small datasets were faster.', 'a.md')
     chunk = whole_note_chunks([note])[0]
     counter = GenerationCounter('test', 'chars', lambda m: 10 + sum(len(x['content']) for x in m))

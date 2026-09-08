@@ -6,9 +6,9 @@ import os
 import pytest
 from tokenizers import Tokenizer
 
-from obsidian_rag.knowledge_base.chunking import chunk_notes
-from obsidian_rag.knowledge_base.loaders import Note
-from obsidian_rag.knowledge_base.tokenization import count_tokens, load_tokenizer
+from obsidian_rag.chunking import chunk_notes
+from obsidian_rag.loaders import Note
+from obsidian_rag.tokenization import count_tokens, load_tokenizer
 
 
 pytestmark = pytest.mark.skipif(
