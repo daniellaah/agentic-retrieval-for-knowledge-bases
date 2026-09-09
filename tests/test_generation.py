@@ -7,7 +7,7 @@ import pytest
 from arkb.indexing.chunking import chunk_notes, whole_note_chunks
 from arkb.generation import generate_cited_answer, CitedGenerationError
 from arkb.indexing.loaders import Note
-from arkb.retrieval import SearchResult
+from arkb.retrieval.qdrant import snapshot_result
 from arkb.schema import ChunkRecord
 
 
@@ -28,7 +28,7 @@ def budgeted_context(*, config=None, estimate=False):
     counter = GenerationCounter('test-model', 'test-renderer',
                                 lambda messages: 12 + sum(len(m['content']) for m in messages),
                                 is_estimate=estimate)
-    return build_context('Q?', [SearchResult(chunk, .8, record, 'snapshot')], config=config or ContextConfig(), counter=counter)
+    return build_context('Q?', [snapshot_result(record, .8, 'snapshot')], config=config or ContextConfig(), counter=counter)
 
 
 def test_generate_uses_prebuilt_messages_and_runtime_budget_without_rebuilding(client):
@@ -174,7 +174,7 @@ def test_generation_sends_only_selected_evidence_and_structured_grounding_prompt
     from arkb.context import ContextConfig, build_context
     note = Note('A note', 'Selected evidence.\n\nUnrelated material.', 'note.md')
     chunk = chunk_notes([note], count_tokens=len, chunk_size=20, chunk_overlap=0)[0]
-    hit = SearchResult(chunk, .9, ChunkRecord.from_note(chunk, note=note, vault_id='v'), 'snapshot')
+    hit = snapshot_result(ChunkRecord.from_note(chunk, note=note, vault_id='v'), .9, 'snapshot')
     context = build_context('What is supported?', [hit], config=ContextConfig(), counter=budgeted_context().counter)
     generate_cited_answer(context, client=client)
     request = client.chat.call_args.kwargs

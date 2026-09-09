@@ -42,7 +42,7 @@ def test_new_process_query_and_incremental_cli_lifecycle(tmp_path):
         assert second['reused_index'] and second['embedded_inputs'] == 0
         query = run('query', 'Why cache vectors?', '--offline', '--json', '--source', 'a.md')
         assert query['index_version'] == first['manifest']['index_version']
-        assert query['results'][0]['chunk']['content'] == 'Store completed vectors for reuse.'
+        assert query['results'][0]['content'] == 'Store completed vectors for reuse.'
         context = run('query', 'Why cache vectors?', '--offline', '--show-context', '--source', 'a.md')
         assert context['status'] == 'ready'
         assert context['citation_sources'][0]['origins'][0]['index_version'] == first['manifest']['index_version']

@@ -1,6 +1,6 @@
-"""Retrieve source evidence with the current semantic search backend."""
+"""Public retrieval contracts and provider-independent semantic search."""
 
-from arkb.retrieval.semantic import search_index, search_qdrant
-from arkb.schema import SearchResult
+from arkb.retrieval.contracts import SearchResponse, SearchResult
+from arkb.retrieval.semantic import Embedder, SemanticRetriever, VectorIndex
 
-__all__ = ["SearchResult", "search_index", "search_qdrant"]
+__all__ = ['SearchResult', 'SearchResponse', 'Embedder', 'VectorIndex', 'SemanticRetriever']

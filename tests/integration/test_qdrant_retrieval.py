@@ -13,7 +13,7 @@ from arkb.indexing.chunking import whole_note_chunks
 from arkb.indexing import QdrantIndex
 from arkb.indexing.loaders import Note
 from arkb.storage import check_qdrant_collection
-from arkb.retrieval import search_qdrant
+from arkb.retrieval.qdrant import search_qdrant
 from arkb.schema import ChunkRecord, EmbeddingSpec
 
 

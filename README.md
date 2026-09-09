@@ -20,7 +20,10 @@ data records are shared by the stages that use them.
 | `chunking.py` | Shared Markdown block splitting, section provenance, and size/overlap policy |
 | `indexing/chunking.py` | Compatibility imports for the shared chunker |
 | `indexing/index.py` | Complete/incremental builds, Qdrant writes, HNSW readiness, verification, and failed-candidate cleanup |
-| `retrieval/semantic.py` | Qdrant exact/ANN search, query embedding, and snapshot evidence lookup |
+| `retrieval/contracts.py` | Source-based `SearchResult` and ranked `SearchResponse` contracts |
+| `retrieval/semantic.py` | `SemanticRetriever` orchestration and replaceable `Embedder` / `VectorIndex` capabilities |
+| `retrieval/ollama.py` | Query preparation, token validation and Ollama query embedding |
+| `retrieval/qdrant.py` | Read-only Qdrant search, pinned SQLite evidence lookup and current adapter wiring |
 | `context/builder.py` | Evidence provenance, deduplication, overlap merging, budgets, and message rendering |
 | `context/citation.py` | Citation contracts, strict parsing, reference/quote validation, and rendering |
 | `embeddings.py` | Document/query input preparation, token budgets, model identity, batching, retries, and vector validation |
@@ -31,13 +34,15 @@ data records are shared by the stages that use them.
 | `evaluation.py` | Qdrant exact/ANN comparisons, context/citation evaluation and reproducible run artifacts |
 | `cli.py` | Command arguments, resource setup, workflow calls, and output |
 
-Use `arkb.indexing.build_index`, `arkb.retrieval.search_index`, and
-`arkb.context.build_context` as the main stage APIs. Direct vector search remains
-available through `arkb.retrieval.search_qdrant`;
-collection writes and lifecycle operations use `arkb.indexing.QdrantIndex`, with
-settings supplied by `arkb.indexing.QdrantConfig`.
-`Note`, `Chunk`, and `SearchResult` are defined in `arkb.schema`; the loader,
-chunker, and retrieval package also expose their respective record types.
+Use `arkb.indexing.build_index`, `arkb.retrieval.SemanticRetriever.search`, and
+`arkb.context.build_context` as the main stage APIs. `arkb.retrieval` exports only
+the shared result contracts and semantic capabilities. The current application
+adapter is `arkb.retrieval.qdrant.search_index`; direct vector searches use
+`arkb.retrieval.qdrant.search_qdrant`. Collection writes and lifecycle operations
+use `arkb.indexing.QdrantIndex`, with `arkb.indexing.QdrantConfig` settings.
+`Note` and `Chunk` remain in `arkb.schema`. The old chunk-only `schema.SearchResult`
+has been replaced by `retrieval.contracts.SearchResult`, also exported from
+`arkb.retrieval`.
 
 The package and command are named `arkb`. Run `uv sync --locked` after updating.
 Only `index`, `query`, and `status` are supported; the old bare-question command,
@@ -423,9 +428,12 @@ candidates are still tried. It never expands to a live note or truncates text.
 This greedy policy is deterministic; it does not claim globally optimal evidence
 selection or automatically infer which facts a question requires.
 
-`SearchResult` requires a matching `ChunkRecord` and a nonblank `index_version`.
-Citation origins also require complete source identities.
-Conflicting overlap within one declared revision raises an error.
+The shared `SearchResult` does not require a chunk or score. This context builder
+currently consumes snapshot evidence with cosine scores, chunk IDs, source spans,
+and `title`, `chunk_index`, `vault_id`, `document_revision`, `index_version` metadata.
+It verifies those identities before merging or citing; unsupported evidence raises
+an error. These are context-consumer constraints. Citation origins retain complete
+source identities. Conflicting overlap within one declared revision raises an error.
 
 ```python
 from ollama import Client
@@ -589,21 +597,121 @@ pointer. Failed candidates cannot replace active data. The storage schema is
 versioned independently of record fingerprints; unknown versions are rejected.
 SQLite files belong in a local runtime directory, never the retrieval corpus.
 
-## Vector search
+## Semantic retrieval
 
-`retrieval.search_qdrant` returns `schema.VectorHit`: a stable chunk ID and a
-cosine score (larger is better). Source filtering happens before top-k selection.
-Qdrant supports exact and ANN queries; callers open and validate the collection
-with `arkb.storage.check_qdrant_collection` before direct searches.
-`retrieval.search_index` handles validation and resolves hits to snapshot evidence
-for application queries. No SQLite/NumPy search fallback is available.
+`SemanticRetriever` is an independently callable primitive:
 
-`retrieval.search_index` queries a captured READY snapshot and embeds only the
-question. Supply the actual model spec and tokenizer; mismatches fail before
-model calls. The saved query instruction and context limit are reused. Explicit
-`index_version` pins a request across concurrent publication. Returned chunks
-come from the snapshot, not potentially edited source files; unknown vector hits
-and invalid scores are rejected. Supply the Qdrant client explicitly.
+```python
+from arkb.retrieval import SemanticRetriever
+
+semantic = SemanticRetriever(embedder, index)
+response = semantic.search(question, top_k=5, filters={"source": "notes/a.md"})
+for result in response.results:
+    print(result.source_id, result.content, result.score, result.score_type)
+```
+
+Its entire flow is query → query embedding → vector lookup → `SearchResponse`.
+`Embedder.embed_query(query)` returns a vector and declares an `EmbeddingSpec`.
+`VectorIndex.search(vector, top_k=..., filters=...)` returns ranked, backend-neutral
+`SearchResult` objects and declares a matching spec and pinned `index_id`. The
+adapter converts database hits and restores source evidence before returning.
+These structural protocols require no inheritance or registry. Incompatible
+embedding spaces fail before embedding; a different provider/backend can implement
+the same capabilities without changing callers.
+
+The core imports no provider SDK, storage, indexing, context builder or generation
+module. It neither rewrites queries nor selects strategies, chunks documents,
+builds indexes, writes embedding caches or generates answers. Lexical, BM25,
+hybrid/fusion, reranking, tools and agents are not implemented by this refactor.
+Future retrieval methods can return the same contracts; a future caller can
+compose them without changing semantic search.
+
+### Result contract
+
+| Field | Meaning |
+| --- | --- |
+| `source_id` | Stable document identity, independent of chunks and revisions; current snapshots use `ChunkRecord.document_id` (vault + source path) |
+| `source` | Source address; currently a vault-relative Markdown path |
+| `content` | Source content or a verbatim snippet |
+| `method` | Retrieval method, currently `semantic` |
+| `metadata` | JSON provenance; snapshots retain title, vault, document revision, index version, chunk index and Markdown section information |
+| `chunk_id` | Optional chunk identity |
+| `start_char`, `end_char` | Optional end-exclusive source span; current coordinates address `Note.content` |
+| `score`, `score_type` | Optional score and its declared semantics; neither is fabricated for unscored methods |
+
+`SearchResponse` contains the original `query`, `method`, ranked `results` tuple,
+and optional `index_id`. No matches produce an empty tuple; errors propagate
+instead of becoming empty success responses. Dataclasses serialize with `asdict`.
+For example, an unscored source needs only:
+
+```python
+from arkb.retrieval import SearchResult
+
+result = SearchResult(source_id="document-id", source="notes/a.md",
+                      content="An excerpt", method="grep")  # data only; no grep implementation
+assert result.score is None and result.chunk_id is None
+```
+
+Today `filters` supports exact `source` equality. Blank queries, nonpositive or
+noninteger `top_k`, malformed filters and unsupported filter keys fail before
+embedding or search. The original query text, including whitespace, is preserved.
+Scores are not normalized or compared across methods by the semantic primitive.
+
+### Current adapters
+
+`retrieval.qdrant.search_index(...)` keeps the existing one-shot input arguments
+and now returns `SearchResponse`. It composes `OllamaQueryEmbedder` and
+`QdrantSnapshotIndex`. Supply the actual runtime model spec and tokenizer;
+mismatches fail before model calls. The saved query instruction and input limit
+are reused. An empty snapshot validates the query without calling either backend.
+
+To reuse a captured snapshot across calls, compose the adapters explicitly:
+
+```python
+from arkb.retrieval import SemanticRetriever
+from arkb.retrieval.ollama import OllamaQueryEmbedder
+from arkb.retrieval.qdrant import QdrantSnapshotIndex
+
+# storage is an existing SQLiteStorage, preferably opened with read_only=True;
+# qdrant_client, ollama_client, runtime_spec and tokenizer are caller-owned.
+index = QdrantSnapshotIndex(storage, qdrant_client, vault_id="default",
+                            exact=True, ef_search=None)
+embedder = OllamaQueryEmbedder(
+    client=ollama_client, spec=runtime_spec, tokenizer=tokenizer,
+    tokenizer_identity=index.inputs["tokenizer"],
+    max_input_tokens=index.inputs["max_tokens"],
+    query_instruction=index.manifest.query_instruction,
+)
+semantic = SemanticRetriever(embedder, index)
+response = semantic.search(question, top_k=5)
+```
+
+The adapter captures one READY snapshot when opened; publishing a new active
+version does not change it. An explicit `index_version` can select an older
+snapshot. Content comes from SQLite hit records, including Markdown section
+provenance, and never from edited live files or a full vector-cache reload.
+The caller owns connection lifetimes. No query path performs index lifecycle writes.
+
+`retrieval.qdrant.search_qdrant` remains the low-level vector benchmark API,
+returning `schema.VectorHit` (chunk ID and cosine score). Direct callers validate
+collections using `arkb.storage.check_qdrant_collection`; `QdrantSnapshotIndex`
+does that itself. Source filters apply before top-k. Invalid identities, scores,
+duplicate hits and missing snapshot records fail instead of returning partial data.
+
+`score_type="cosine_similarity"` means higher is better, in [-1, 1]. Existing
+float32 tolerance is preserved: Qdrant scores within 1e-5 beyond the bounds are
+clipped to the bound; larger excursions fail. Other scores are unchanged.
+Returned ties are ordered by chunk ID. `exact` (default false) and `ef_search`
+are explicit adapter settings. Exact lookup on a fixed snapshot is the reproducible
+baseline; ANN, embedding-provider behavior, and ties at the top-k cutoff can still
+affect repeatability. The primitive does not add randomness or hidden decisions.
+
+Python callers now use `response.results` and direct result fields such as
+`result.content` and `result.source_id`; snapshot revision/version are in
+`result.metadata`. The CLI retains its `question`, `index_version`, `results`
+JSON envelope, adds `method`, and serializes each result using this contract
+instead of the old nested `chunk`/`record` shape. `build_context` consumes
+`response.results`; answer generation remains an application choice.
 
 ## Build an index snapshot
 
@@ -646,7 +754,7 @@ Historical snapshots are retained. The storage API does not expose snapshot dele
 
 `indexing.QdrantIndex` creates, writes, verifies, and removes collections using
 external vectors, with one collection per candidate. Queries live in
-`retrieval.search_qdrant`. Collection metadata binds the embedding spec
+`retrieval.qdrant.search_qdrant`. Collection metadata binds the embedding spec
 and vault; opening incompatible collections fails without changing their data.
 Payload indexes for vault, embedding spec and source are created before ingestion.
 Chunk SHA-256 IDs map deterministically to UUID point IDs; full identities stay in

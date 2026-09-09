@@ -88,7 +88,10 @@ def test_persistent_commands_build_reopen_query_and_show_status(
     assert main(['query', 'Question?', '--offline', '--json', '--source', 'habits.md']) == 0
     result = json.loads(capsys.readouterr().out)
     assert result['index_version'] == report['manifest']['index_version']
-    assert result['results'][0]['chunk']['content'] == 'A cue starts a habit.'
+    assert result['method'] == result['results'][0]['method'] == 'semantic'
+    assert result['results'][0]['score_type'] == 'cosine_similarity'
+    assert result['results'][0]['source_id'] and result['results'][0]['chunk_id']
+    assert result['results'][0]['content'] == 'A cue starts a habit.'
     assert persistent_client.embed.call_count == 1
     assert persistent_client.embed.call_args.kwargs['input'] == [
         'Instruct: Given a question, retrieve relevant notes that help answer it.\nQuery:Question?']

@@ -105,7 +105,7 @@ def _parser():
 def main(argv: Sequence[str] | None = None) -> int:
     from arkb.indexing.index import build_index
     from arkb.indexing.loaders import scan_notes
-    from arkb.retrieval.semantic import search_index
+    from arkb.retrieval.qdrant import search_index
     from arkb.storage import SQLiteStorage
     from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
@@ -169,15 +169,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             with Client(host=args.host, timeout=args.timeout, trust_env=False) as client:
                 spec = resolve_embedding_spec(client, args.embedding_model or manifest.embedding_spec.model,
                                      context_length=metadata['input']['max_tokens'])
-                results = search_index(storage, args.question, vault_id=args.vault_id, spec=spec,
+                response = search_index(storage, args.question, vault_id=args.vault_id, spec=spec,
                                        tokenizer=tokenizer, client=client, top_k=args.top_k,
                                        source=args.source, exact=args.exact, index_version=manifest.index_version,
                                        qdrant_client=qclient)
                 if args.json:
                     print(json.dumps({'index_version': manifest.index_version, 'question': args.question,
-                                      'results': [asdict(r) for r in results]}, ensure_ascii=False))
+                                      'results': [asdict(r) for r in response.results],
+                                      'method': response.method}, ensure_ascii=False))
                 else:
-                    context = _build_cli_context(args, results, client)
+                    context = _build_cli_context(args, response.results, client)
                     if args.show_context:
                         print(json.dumps(context.to_dict(), ensure_ascii=False))
                     else:

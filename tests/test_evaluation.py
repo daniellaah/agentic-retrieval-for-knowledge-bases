@@ -6,7 +6,7 @@ import pytest
 from arkb.indexing.chunking import Chunk, whole_note_chunks
 from arkb.evaluation import compare_retrieval, evidence_statistics, recall_at_k
 from arkb.indexing.loaders import Note
-from arkb.retrieval import search_qdrant
+from arkb.retrieval.qdrant import search_qdrant
 from arkb.schema import ChunkRecord, EmbeddingSpec
 
 
@@ -56,13 +56,13 @@ def test_comparison_separates_neighbor_recall_from_evidence_coverage(qdrant):
 def test_context_evaluation_measures_packed_span_union_and_coverage_retention():
     from arkb.context import ContextConfig, GenerationCounter, build_context
     from arkb.evaluation import evaluate_context
-    from arkb.retrieval import SearchResult
+    from arkb.retrieval.qdrant import snapshot_result
     note = Note('Title', 'x' * 300, 'a.md')
     hits = []
     for index, (start, end) in enumerate([(0, 200), (150, 300)]):
         chunk = Chunk(note.content[start:end], note.title, note.source, index, start, end)
         record = ChunkRecord.from_note(chunk, note=note, vault_id='v')
-        hits.append(SearchResult(chunk, .9 - index / 10, record, 'snapshot'))
+        hits.append(snapshot_result(record, .9 - index / 10, 'snapshot'))
     counter = GenerationCounter('test', 'test-count', lambda messages: 10 + sum(len(m['content']) for m in messages))
     limit = counter(build_context('Q?', hits).messages)
     config = ContextConfig(limit + 20, 20, 0)
@@ -77,16 +77,16 @@ def test_context_evaluation_measures_packed_span_union_and_coverage_retention():
     assert [(s['source_id'], s['source'], s['content']) for s in result['context']['citation_sources']] == [('S1', 'a.md', note.content)]
     from dataclasses import replace
     with pytest.raises(ValueError, match='one snapshot'):
-        evaluate_context('Q?', [hits[0], replace(hits[1], index_version='other')], case, config=config, counter=counter)
+        evaluate_context('Q?', [hits[0], replace(hits[1], metadata={**hits[1].metadata, 'index_version': 'other'})], case, config=config, counter=counter)
 
 
 def citation_fixture():
     from arkb.context import ContextConfig, GenerationCounter, build_context
-    from arkb.retrieval import SearchResult
+    from arkb.retrieval.qdrant import snapshot_result
     note = Note('Title', 'Only small datasets were faster.', 'a.md')
     chunk = whole_note_chunks([note])[0]
     counter = GenerationCounter('test', 'chars', lambda m: 10 + sum(len(x['content']) for x in m))
-    return build_context('Which datasets were faster?', [SearchResult(chunk, .9, ChunkRecord.from_note(chunk, note=note, vault_id='v'), 'snapshot')],
+    return build_context('Which datasets were faster?', [snapshot_result(ChunkRecord.from_note(chunk, note=note, vault_id='v'), .9, 'snapshot')],
                           config=ContextConfig(), counter=counter, citation_mode='structured')
 
 

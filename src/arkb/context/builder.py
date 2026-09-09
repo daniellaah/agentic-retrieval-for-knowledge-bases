@@ -7,7 +7,8 @@ import json
 import math
 
 from arkb.context.citation import CitationOrigin, CitationSource
-from arkb.schema import SearchResult
+from arkb.retrieval.contracts import SearchResult
+from arkb.schema import Chunk, ChunkRecord
 
 
 _CITATION_PROMPT = """Answer the user's question using only the provided notes.
@@ -115,11 +116,10 @@ class EvidenceBlock:
         if len({_document_key(hit) for hit in self.origins}) != 1:
             raise ValueError('Merged evidence requires one known document revision and snapshot.')
         for hit in self.origins:
-            chunk = hit.chunk
-            if (chunk.source != self.source or chunk.title != self.title
-                    or chunk.start_char < self.start_char or chunk.end_char > self.end_char
-                    or self.content[chunk.start_char - self.start_char:chunk.end_char - self.start_char]
-                    != chunk.content):
+            if (hit.source != self.source or hit.metadata['title'] != self.title
+                    or hit.start_char < self.start_char or hit.end_char > self.end_char
+                    or self.content[hit.start_char - self.start_char:hit.end_char - self.start_char]
+                    != hit.content):
                 raise ValueError('Evidence must contain the verbatim source spans.')
 
 
@@ -147,12 +147,12 @@ class BuiltContext:
         for i, block in enumerate(self.evidence_blocks, 1):
             origins = []
             for hit in block.origins:
-                r = hit.record
+                metadata = hit.metadata
                 origins.append(CitationOrigin(
-                    hit.chunk.start_char, hit.chunk.end_char, hit.score,
-                    r.chunk_id, r.document_id,
-                    r.document_revision, r.vault_id,
-                    hit.index_version,
+                    hit.start_char, hit.end_char, hit.score,
+                    hit.chunk_id, hit.source_id,
+                    metadata['document_revision'], metadata['vault_id'],
+                    metadata['index_version'],
                 ))
             sources.append(CitationSource(f'S{i}', block.source, block.title, block.content,
                                           block.start_char, block.end_char, tuple(origins)))
@@ -257,21 +257,47 @@ def _pack_evidence(question, candidates, config, counter, decisions, *, citation
 
 
 def _document_key(hit: SearchResult) -> tuple:
-    return (hit.index_version, hit.record.document_id, hit.record.document_revision)
+    return (hit.metadata['index_version'], hit.source_id, hit.metadata['document_revision'])
+
+
+def _validate_snapshot_evidence(hit: SearchResult) -> None:
+    """The current citation consumer requires verified snapshot spans.
+
+    This is a consumer constraint, not a requirement of the retrieval contract.
+    Recheck serialized source/chunk identity before merging or citing evidence.
+    """
+    if (not isinstance(hit, SearchResult) or hit.score_type != 'cosine_similarity'
+            or hit.score is None or not math.isfinite(hit.score) or not -1 <= hit.score <= 1):
+        raise ValueError('Expected a search result with a finite cosine score.')
+    try:
+        metadata = hit.metadata
+        version = metadata['index_version']
+        if not isinstance(version, str) or not version.strip():
+            raise ValueError('Missing snapshot version.')
+        chunk = Chunk(hit.content, metadata['title'], hit.source, metadata['chunk_index'],
+                      hit.start_char, hit.end_char,
+                      heading_path=tuple(metadata.get('heading_path', ())),
+                      section_id=metadata.get('section_id'),
+                      section_start_char=metadata.get('section_start_char'),
+                      section_end_char=metadata.get('section_end_char'),
+                      occurrence=metadata.get('occurrence', 0))
+        record = ChunkRecord(metadata['vault_id'], metadata['document_revision'], chunk)
+        if record.document_id != hit.source_id or record.chunk_id != hit.chunk_id:
+            raise ValueError('Inconsistent source or chunk identity.')
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError('Context requires valid snapshot identity, metadata and source spans.') from error
 
 
 def _prepare_evidence(results: Sequence[SearchResult]):
     candidates, decisions, seen = [], [], set()
     for rank, hit in enumerate(results):
-        if not isinstance(hit, SearchResult) or not math.isfinite(hit.score) or not -1 <= hit.score <= 1:
-            raise ValueError('Expected a search result with a finite cosine score.')
-        chunk = hit.chunk
-        block = EvidenceBlock(chunk.content, chunk.title, chunk.source,
-                              chunk.start_char, chunk.end_char, (hit,))
-        if not chunk.content.strip():
+        _validate_snapshot_evidence(hit)
+        block = EvidenceBlock(hit.content, hit.metadata['title'], hit.source,
+                              hit.start_char, hit.end_char, (hit,))
+        if not hit.content.strip():
             decisions.append((rank, 'empty'))
             continue
-        key = (hit.index_version, hit.record.vault_id, hit.record.chunk_id)
+        key = (hit.metadata['index_version'], hit.metadata['vault_id'], hit.chunk_id)
         if key in seen:
             decisions.append((rank, 'duplicate'))
             continue

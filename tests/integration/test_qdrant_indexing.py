@@ -14,7 +14,7 @@ from tokenizers import Tokenizer, models, pre_tokenizers
 
 from arkb.indexing import build_index, QdrantConfig, QdrantIndex
 from arkb.indexing.loaders import Note
-from arkb.retrieval import search_index
+from arkb.retrieval.qdrant import search_index
 from arkb.schema import EmbeddingSpec
 from arkb.storage import SQLiteStorage
 
@@ -64,7 +64,7 @@ def test_qdrant_publication_hnsw_and_failure_recovery(tmp_path, monkeypatch):
             monkeypatch.setattr(storage, 'load_snapshot', lambda *a: pytest.fail('loaded every vector during query'))
             results = search_index(storage, 'find', vault_id=vault, spec=spec, client=ollama, tokenizer=tokenizer,
                                    qdrant_client=client, index_version=first.manifest.index_version, top_k=1)
-            assert results[0].chunk.source == '000.md'
+            assert results.results[0].source == '000.md'
             with pytest.raises(ValueError, match='incompatible'):
                 search_index(storage, 'find', vault_id=vault, spec=replace(spec, model_revision='changed'),
                              client=ollama, tokenizer=tokenizer, qdrant_client=client)

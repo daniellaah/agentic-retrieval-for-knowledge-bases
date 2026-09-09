@@ -128,7 +128,7 @@ def evaluate_context(question, results, case, *, config, counter) -> dict:
     """Measure packed evidence against the original, snapshot-identified hits."""
     from arkb.context.builder import build_context
 
-    if len({(h.index_version, h.record.vault_id) for h in results}) > 1:
+    if len({(h.metadata['index_version'], h.metadata['vault_id']) for h in results}) > 1:
         raise ValueError('Context evaluation requires one snapshot and vault.')
     started = perf_counter()
     context = build_context(question, results, config=config, counter=counter)
@@ -137,7 +137,7 @@ def evaluate_context(question, results, case, *, config, counter) -> dict:
     groups = {}
     for block in blocks:
         hit = block.origins[0]
-        key = (hit.index_version, hit.record.document_id, hit.record.document_revision)
+        key = (hit.metadata['index_version'], hit.source_id, hit.metadata['document_revision'])
         groups.setdefault(key, []).append((block.start_char, block.end_char))
     unique_chars = 0
     for intervals in groups.values():
@@ -154,7 +154,7 @@ def evaluate_context(question, results, case, *, config, counter) -> dict:
                     'fits_budget': context.prompt_tokens <= config.input_budget,
                     'build_ms': elapsed, **evidence_statistics(blocks, case)},
     }
-    reference = evidence_statistics([h.chunk for h in results], case)['section_coverage']
+    reference = evidence_statistics(results, case)['section_coverage']
     coverage = result['metrics']['section_coverage']
     result['metrics']['section_coverage_retention'] = coverage / reference if reference else None
     return result
@@ -272,7 +272,7 @@ def main(argv=None) -> int:
     """Evaluate an existing snapshot and save a new, non-overwriting artifact folder."""
     from importlib.metadata import version
     from ollama import Client
-    from arkb.retrieval.semantic import search_qdrant
+    from arkb.retrieval.qdrant import search_qdrant
     from arkb.embeddings import resolve_embedding_spec
     from arkb.embeddings import prepare_query, validate_input_tokens
     from arkb.embeddings import embed_texts
@@ -344,12 +344,12 @@ def main(argv=None) -> int:
                                    search=search, top_k=args.top_k)
         context_rows, citation_rows = [], []
         if args.context or args.citations:
-            from arkb.schema import SearchResult
+            from arkb.retrieval.qdrant import snapshot_result
             counter = load_generation_counter(client=ollama, model=args.generation_model,
                                               cache_dir=args.tokenizer_cache, local_files_only=args.offline)
             by_id = {record.chunk_id: record for record in records}
             for case, row in zip(cases, report['results']):
-                hits = [SearchResult(by_id[h['chunk_id']].chunk, h['score'], by_id[h['chunk_id']], manifest.index_version)
+                hits = [snapshot_result(by_id[h['chunk_id']], h['score'], manifest.index_version)
                         for h in row['modes']['qdrant_exact']['hits']]
                 if args.context:
                     context_rows.append({'id': case['id'], 'question': case['question'],

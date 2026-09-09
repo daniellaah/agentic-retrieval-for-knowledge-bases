@@ -20,7 +20,7 @@ from arkb.generation import load_generation_counter
 from arkb.schema import ChunkRecord
 from arkb.generation import CitedGenerationError, generate_cited_answer
 from arkb.indexing.loaders import Note
-from arkb.retrieval import SearchResult
+from arkb.retrieval.qdrant import snapshot_result
 
 
 pytestmark = pytest.mark.skipif(os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',
@@ -124,7 +124,7 @@ def test_real_quoted_generation_preserves_unicode_and_computes_offsets():
 def snapshot_hit(body):
     note = Note('Project', body, 'project.md')
     chunk = whole_note_chunks([note])[0]
-    return SearchResult(chunk, .9, ChunkRecord.from_note(chunk, note=note, vault_id='test'), 'fixture')
+    return snapshot_result(ChunkRecord.from_note(chunk, note=note, vault_id='test'), .9, 'fixture')
 
 
 @pytest.fixture

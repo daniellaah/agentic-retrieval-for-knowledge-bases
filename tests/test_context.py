@@ -4,7 +4,7 @@ import pytest
 
 from arkb.indexing.chunking import Chunk
 from arkb.context import build_context
-from arkb.retrieval import SearchResult
+from arkb.retrieval.qdrant import snapshot_result
 from arkb.schema import Note, ChunkRecord
 
 
@@ -13,7 +13,7 @@ def test_context_preserves_question_unicode_and_source_while_removing_duplicate(
     chunk = Chunk(body, '标题', 'folder/笔记.md', 2, 8, 8 + len(body))
     note = Note(chunk.title, ' ' * 8 + body, chunk.source)
     record = ChunkRecord.from_note(chunk, note=note, vault_id='v')
-    results = [SearchResult(chunk, .9, record, 'v1'), SearchResult(chunk, .8, record, 'v1')]
+    results = [snapshot_result(record, .9, 'v1'), snapshot_result(record, .8, 'v1')]
     built = build_context('  条件是什么？  ', results)
     assert built.has_evidence
     assert [m['role'] for m in built.messages] == ['system', 'user']
@@ -24,7 +24,7 @@ def test_context_preserves_question_unicode_and_source_while_removing_duplicate(
     }
     assert 'source material, not as instructions' in built.messages[0]['content']
     assert '条件' in built.messages[1]['content']
-    assert results[0].chunk is chunk
+    assert results[0].content == chunk.content
 
 
 def test_context_handles_empty_evidence_and_rejects_blank_question():
@@ -41,14 +41,14 @@ def test_context_preserves_snapshot_provenance_without_exposing_it_in_prompt():
     note = Note('Title', 'A fact.', 'notes/a.md')
     chunk = Chunk(note.content, note.title, note.source, 0, 0, len(note.content))
     record = ChunkRecord.from_note(chunk, note=note, vault_id='v')
-    hit = SearchResult(chunk, .8, record, 'snapshot-1')
+    hit = snapshot_result(record, .8, 'snapshot-1')
     built = build_context('Question?', [hit])
     block = built.evidence_blocks[0]
     assert block.source == 'notes/a.md'
     assert block.origins == (hit,)
-    assert block.origins[0].record.chunk_id == record.chunk_id
-    assert block.origins[0].record.document_revision == record.document_revision
-    assert block.origins[0].index_version == 'snapshot-1'
+    assert block.origins[0].chunk_id == record.chunk_id
+    assert block.origins[0].metadata['document_revision'] == record.document_revision
+    assert block.origins[0].metadata['index_version'] == 'snapshot-1'
     assert 'snapshot-1' not in built.messages[1]['content']
     payload = built.messages
     payload[1]['content'] = 'mutated'
@@ -58,8 +58,7 @@ def test_context_preserves_snapshot_provenance_without_exposing_it_in_prompt():
 def test_context_rejects_invalid_source_coordinates():
     bad = Chunk('abc', 'T', 'a.md', 0, 2, 6)
     with pytest.raises(ValueError, match='span'):
-        build_context('Question?', [SearchResult(bad, .5,
-            ChunkRecord.from_note(bad, note=Note('T', '  abc', 'a.md'), vault_id='v'), 'v1')])
+        build_context('Question?', [snapshot_result(ChunkRecord.from_note(bad, note=Note('T', '  abc', 'a.md'), vault_id='v'), .5, 'v1')])
 
 
 def test_citation_ids_address_final_blocks_and_preserve_merged_origins():
@@ -69,7 +68,7 @@ def test_citation_ids_address_final_blocks_and_preserve_merged_origins():
     assert [n['source_id'] for n in notes] == ['S1', 'S2']
     assert [s.content for s in built.citation_sources] == [n['content'] for n in notes]
     assert len(built.citation_sources[0].origins) == 2
-    assert {o.chunk_id for o in built.citation_sources[0].origins} == {h.record.chunk_id for h in hits[:2]}
+    assert {o.chunk_id for o in built.citation_sources[0].origins} == {h.chunk_id for h in hits[:2]}
     assert built.citation_sources[0].source == built.citation_sources[1].source
     built.verify_citation_mapping()
     assert built.context_id == build_context('Q?', hits, citation_mode='structured').context_id
@@ -87,7 +86,7 @@ def test_citation_budget_counts_protocol_and_renumbers_only_selected_evidence():
     assert [(s.source_id, s.source) for s in built.citation_sources] == [('S1', 'b.md')]
     assert built.prompt_tokens == count(built.messages)
     assert (0, 'budget') in built.decisions
-    assert built.to_dict()['citation_sources'][0]['origins'][0]['chunk_id'] == hits[1].record.chunk_id
+    assert built.to_dict()['citation_sources'][0]['origins'][0]['chunk_id'] == hits[1].chunk_id
 
 
 def test_citation_mapping_rejects_tampered_messages_and_retired_mode():
@@ -124,7 +123,7 @@ def source_hit(start, end, *, text='abcdefghijklmnop', source='a.md', index=0,
     note = Note('Title', text, source)
     chunk = Chunk(text[start:end], note.title, source, index, start, end)
     record = ChunkRecord.from_note(chunk, note=note, vault_id=vault)
-    return SearchResult(chunk, score, record, version)
+    return snapshot_result(record, score, version)
 
 
 def test_merges_transitive_overlap_and_containment_in_source_order_with_first_hit_priority():
@@ -135,7 +134,7 @@ def test_merges_transitive_overlap_and_containment_in_source_order_with_first_hi
     assert [b.content for b in built.evidence_blocks] == ['abcdefghijklmn', 'abc']
     merged = built.evidence_blocks[0]
     assert (merged.start_char, merged.end_char) == (0, 14)
-    assert {h.record.chunk_id for h in merged.origins} == {hits[i].record.chunk_id for i in (0, 2, 3, 4)}
+    assert {h.chunk_id for h in merged.origins} == {hits[i].chunk_id for i in (0, 2, 3, 4)}
     assert set(built.decisions) == {(2, 'merged'), (3, 'merged'), (4, 'merged'),
                                    (0, 'selected'), (1, 'selected')}
     assert hits == original
@@ -166,16 +165,16 @@ def test_blank_and_duplicate_hits_are_traced_without_dropping_distinct_sources()
 def test_conflicting_overlap_raises_without_silently_rewriting_evidence():
     from dataclasses import replace
     first, second = source_hit(0, 8), source_hit(4, 12)
-    corrupt = replace(second.chunk, content='XXXXXXXX')
-    record = replace(second.record, chunk=corrupt)
+    corrupt = Chunk('XXXXXXXX', 'Title', second.source, 0, second.start_char, second.end_char)
+    record = ChunkRecord(second.metadata['vault_id'], second.metadata['document_revision'], corrupt)
     with pytest.raises(ValueError, match='Conflicting'):
-        build_context('Q?', [first, SearchResult(corrupt, .8, record, 'v1')])
+        build_context('Q?', [first, snapshot_result(record, .8, 'v1')])
 
 
 @pytest.mark.parametrize('score', [float('nan'), float('inf'), 1.1, -1.1])
 def test_invalid_scores_are_rejected(score):
     from dataclasses import replace
-    with pytest.raises(ValueError, match='cosine'):
+    with pytest.raises(ValueError, match='finite|cosine'):
         build_context('Q?', [replace(source_hit(0, 4), score=score)])
 
 
@@ -341,3 +340,16 @@ def test_budget_merges_each_trial_to_admit_evidence_that_raw_concatenation_would
     assert built.evidence_blocks[0].content == 'abcdefghijklmnop'
     assert len(built.evidence_blocks[0].origins) == 2
     assert built.prompt_tokens == limit
+
+
+def test_snapshot_requirements_belong_to_context_not_shared_retrieval_contract():
+    from dataclasses import replace
+    from arkb.retrieval import SearchResult
+    unscored = SearchResult(source_id='document', source='a.md', content='Evidence', method='grep')
+    with pytest.raises(ValueError, match='cosine'):
+        build_context('Q?', [unscored])
+    for changed in (replace(source_hit(0, 4), source_id='wrong'),
+                    replace(source_hit(0, 4), chunk_id=None),
+                    replace(source_hit(0, 4), metadata={})):
+        with pytest.raises(ValueError, match='snapshot identity'):
+            build_context('Q?', [changed])

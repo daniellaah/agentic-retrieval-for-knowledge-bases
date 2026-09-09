@@ -248,22 +248,6 @@ class ChunkRecord:
 
 
 @dataclass(frozen=True)
-class SearchResult:
-    """A cosine hit tied to a document revision in an immutable snapshot."""
-
-    chunk: Chunk
-    score: float
-    record: ChunkRecord
-    index_version: str
-
-    def __post_init__(self) -> None:
-        if not isinstance(self.record, ChunkRecord) or self.record.chunk != self.chunk:
-            raise ValueError('Search result chunk must match its source record.')
-        if not isinstance(self.index_version, str) or not self.index_version.strip():
-            raise ValueError('index_version must be nonblank.')
-
-
-@dataclass(frozen=True)
 class IndexManifest:
     """Describe one build, its configuration, and intended snapshot counts.
 
