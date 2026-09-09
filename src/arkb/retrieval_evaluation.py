@@ -85,6 +85,28 @@ def evaluate_retrievers(retrievers, cases: Sequence[dict], *, top_k: int = 10,
             'summary': summary, 'results': rows}
 
 
+
+def evaluate_reranker(reranker, query, candidates, relevance, *, top_k=10,
+                      relevance_key='source') -> dict:
+    """Score one frozen candidate set, retaining input/output and rank movement."""
+    from dataclasses import asdict
+    from time import perf_counter
+    if relevance_key not in ('source', 'source_id', 'chunk_id'):
+        raise ValueError('Invalid relevance key.')
+    candidates = tuple(candidates)
+    def metrics(hits):
+        ids = list(dict.fromkeys(getattr(hit, relevance_key) for hit in hits))
+        return ranking_metrics(relevance, ids, k=top_k)
+    before = metrics(candidates[:top_k])
+    started = perf_counter()
+    results = reranker.rerank(query, candidates, top_k=top_k)
+    latency = (perf_counter() - started) * 1000
+    ranks = {hit.identity: i for i, hit in enumerate(candidates, 1)}
+    return {'query': query, 'before': before, 'after': metrics(results), 'latency_ms': latency,
+            'candidates': [asdict(hit) for hit in candidates], 'results': [asdict(hit) for hit in results],
+            'rank_changes': [{'identity': list(hit.identity), 'before': ranks[hit.identity], 'after': i}
+                             for i, hit in enumerate(results, 1)]}
+
 def main(argv=None) -> int:
     """Run semantic/BM25 baselines against one pinned production snapshot."""
     import argparse

@@ -56,3 +56,32 @@ at the fixed candidate depth, then fuses with RRF and returns the requested
 `top_k` (which must not exceed `candidate_k`). Both retrievers must pin the same
 snapshot. Input queries and filters are passed through; failures propagate.
 The runner exposes `--candidate-k` and `--rrf-k` and the independent `hybrid` mode.
+
+`Reranker(scorer).rerank(query, candidates, top_k=...)` is independent of candidate
+retrieval. `CandidateScorer` declares its identity/score semantics and returns
+one finite higher-is-better score per input candidate. Duplicate candidates and
+malformed scores fail explicitly. Ties sort by identity, source evidence stays
+unchanged, and `metadata.rerank` retains the input rank, method, and raw score.
+`evaluate_reranker` measures before/after metrics, rank movement and latency on
+one frozen list; it does not perform candidate retrieval.
+
+The optional [Sentence Transformers cross-encoder](https://www.sbert.net/docs/package_reference/cross_encoder/model.html)
+adapter runs `cross-encoder/ms-marco-MiniLM-L6-v2` on CPU at pinned revision
+`233902d25c440f23af6f7d6e94d2946bac0bee0a`. Other single-logit models can be supplied
+with an explicit commit revision. It scores query/title+body pairs, explicitly
+requests raw logits, and declares `cross_encoder_logit` semantics. The tokenizer
+truncates pairs to 512 tokens by default; source evidence remains unmodified.
+There is no remote code execution, generation, query rewriting or strategy choice.
+Loading is explicit; importing the retrieval package never imports PyTorch.
+
+```sh
+uv sync --locked --extra rerank
+ARKB_RUN_RERANKER_TESTS=1 ARKB_RERANKER_OFFLINE=0 \
+  ARKB_RERANKER_CACHE=.uv-cache/reranker-models \
+  uv run --locked --extra rerank python -m pytest -q tests/integration/test_cross_encoder_model.py
+```
+
+After caching, use `ARKB_RERANKER_OFFLINE=1` to verify entirely offline. CPU
+inference is repeatable within a fixed environment; bitwise agreement across
+hardware or library versions is not guaranteed. The tiny integration fixture
+checks relevance ordering, not broad model quality.

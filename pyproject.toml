@@ -16,6 +16,11 @@ dependencies = [
 [project.scripts]
 arkb = "arkb.cli:main"
 
+[project.optional-dependencies]
+rerank = [
+    "sentence-transformers>=5,<7",
+]
+
 [dependency-groups]
 dev = [
     "pytest>=8,<10",
