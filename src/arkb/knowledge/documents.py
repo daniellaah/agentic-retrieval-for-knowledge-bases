@@ -1,8 +1,24 @@
-"""Read Markdown notes from a directory."""
+"""Load and access current Markdown documents in the existing flat directory scope."""
 
+from collections.abc import Iterator
+from dataclasses import replace
 from pathlib import Path
 
-from arkb.knowledge.models import Note
+from arkb.knowledge.chunking import _sections, whole_note_chunks
+from arkb.knowledge.models import ChunkRecord, Note, _digest, _require_digest, _require_text
+
+
+def _load_note(path: Path) -> Note:
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines(keepends=True)
+    title = path.stem
+    content = text
+    for index, line in enumerate(lines):
+        if line.startswith("# "):
+            title = line.removeprefix("# ").strip()
+            content = "".join(lines[:index] + lines[index + 1:])
+            break
+    return Note(title=title, content=content.strip(), source=path.name)
 
 
 def load_notes(directory: Path) -> list[Note]:
@@ -18,23 +34,90 @@ def load_notes(directory: Path) -> list[Note]:
     for path in sorted(directory.iterdir()):
         if path.suffix != ".md" or not path.is_file():
             continue
-        text = path.read_text(encoding="utf-8")
-        lines = text.splitlines(keepends=True)
-        title = path.stem
-        content = text
-        for index, line in enumerate(lines):
-            if line.startswith("# "):
-                title = line.removeprefix("# ").strip()
-                content = "".join(lines[:index] + lines[index + 1 :])
-                break
-        notes.append(
-            Note(
-                title=title,
-                content=content.strip(),
-                source=path.name,
-            )
-        )
+        notes.append(_load_note(path))
     return notes
+
+
+class DocumentAccess:
+    """Resolve existing document IDs and read live files without retaining content.
+
+    The directory and vault are supplied by the application, never a tool call.
+    IDs use the same vault/path namespace as ChunkRecord.document_id. File edits
+    are visible on the next call; deleting or renaming a file removes its old ID.
+    Symlinks outside the knowledge root are excluded from document access.
+    """
+
+    def __init__(self, directory: Path, *, vault_id: str):
+        _require_text(vault_id, 'vault_id')
+        self.directory = Path(directory).resolve()
+        self.vault_id = vault_id
+
+    def _paths(self, source: str | None = None) -> Iterator[Path]:
+        if source is not None:
+            _require_text(source, 'source')
+        for path in sorted(self.directory.iterdir()):
+            if (path.suffix == '.md' and (source is None or path.name == source)
+                    and path.resolve().is_relative_to(self.directory) and path.is_file()):
+                yield path
+
+    def records(self, *, source: str | None = None) -> Iterator[ChunkRecord]:
+        """Yield current complete bodies in filename order, filtering before I/O.
+
+        These are source slices represented with existing records, not indexed
+        chunks; consumers must not advertise their synthetic chunk IDs.
+        """
+        for path in self._paths(source):
+            note = _load_note(path)
+            yield ChunkRecord.from_note(whole_note_chunks([note])[0], note=note,
+                                        vault_id=self.vault_id)
+
+    def read(self, document_id: str, *, section_id: str | None = None,
+             start_char: int | None = None, end_char: int | None = None) -> ChunkRecord:
+        """Read a full body, Markdown section, or end-exclusive character range.
+
+        A missing range endpoint means the corresponding document boundary.
+        Sections include their heading and direct body, up to the next heading.
+        Section IDs always refer to current Markdown sections. Use an unqualified
+        read for a whole document, including hits from whole-note indexes.
+        """
+        _require_digest(document_id, 'document_id')
+        if section_id is not None:
+            _require_digest(section_id, 'section_id')
+            if start_char is not None or end_char is not None:
+                raise ValueError('section_id and character range are mutually exclusive.')
+        for name, value in (('start_char', start_char), ('end_char', end_char)):
+            if value is not None and (type(value) is not int or value < 0):
+                raise ValueError(f'{name} must be a nonnegative integer.')
+        if start_char is not None and end_char is not None and start_char > end_char:
+            raise ValueError('start_char must not exceed end_char.')
+
+        # Resolve by path identity without loading unrelated document bodies.
+        path = next((path for path in self._paths() if _digest('document-id', {
+            'vault_id': self.vault_id, 'source': path.name,
+        }) == document_id), None)
+        if path is None:
+            raise LookupError(f'Unknown document: {document_id}.')
+        try:
+            note = _load_note(path)
+        except FileNotFoundError as error:
+            raise LookupError(f'Document no longer exists: {document_id}.') from error
+        chunk = whole_note_chunks([note])[0]
+        if section_id is not None:
+            section = next((s for s in _sections(note) if s.section_id == section_id), None)
+            if section is None:
+                raise LookupError(f'Unknown section: {section_id}.')
+            start, end = section.blocks[0].start, section.blocks[-1].end
+            chunk = replace(chunk, content=note.content[start:end], start_char=start,
+                            end_char=end, section_id=section.section_id,
+                            heading_path=section.heading_path,
+                            section_start_char=start, section_end_char=end)
+        else:
+            start = 0 if start_char is None else start_char
+            end = len(note.content) if end_char is None else end_char
+            if not 0 <= start <= end <= len(note.content):
+                raise ValueError('Character range is outside the current document body.')
+            chunk = replace(chunk, content=note.content[start:end], start_char=start, end_char=end)
+        return ChunkRecord.from_note(chunk, note=note, vault_id=self.vault_id)
 
 
 def scan_notes(directory: Path) -> list[Note]:

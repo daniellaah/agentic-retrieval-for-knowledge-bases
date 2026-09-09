@@ -2,14 +2,18 @@
 
 from collections.abc import Mapping
 from contextlib import ExitStack, closing
+from pathlib import Path
 from typing import TYPE_CHECKING
 from arkb.config import RuntimeConfig, RetrievalConfig
 from arkb.knowledge.models import EmbeddingSpec
 from arkb.retrieval.models import SearchResponse, validate_request
 from arkb.retrieval.semantic import QdrantSnapshotIndex, SemanticRetriever
 if TYPE_CHECKING:
+    from arkb.agent.tools import AgentTools
+    from arkb.retrieval.engine import RetrievalEngine
     from arkb.knowledge.sqlite import SQLiteStorage
     from ollama import Client
+    from qdrant_client import QdrantClient
     from tokenizers import Tokenizer
 
 
@@ -24,7 +28,7 @@ class Runtime:
         self.config = config
         self._resources = ExitStack()
         self._client = None
-        self._qdrant_clients = {}
+        self._qdrant_clients: dict[str, 'QdrantClient'] = {}
         self._tokenizer = None
         self._closed = False
 
@@ -105,6 +109,23 @@ class Runtime:
         return RetrievalEngine(semantic=semantic, bm25=bm25, reranker=reranker,
             candidate_k=settings.candidate_k, rrf_k=settings.rrf_k,
             rerank_candidates=settings.rerank_candidates)
+
+    def agent_tools(self, *, engine: 'RetrievalEngine', directory: Path, vault_id: str,
+                    mode: str = 'semantic', rerank: bool = False) -> 'AgentTools':
+        """Bind live document tools to an already prepared retrieval engine.
+
+        Use the same directory/vault as indexing. The caller selects the search
+        policy here; the agent only supplies a query, source filter, and limit.
+        This composition opens no clients and creates no new resource owners.
+        """
+        self._require_open()
+        from arkb.agent.tools import AgentTools
+        from arkb.knowledge.documents import DocumentAccess
+        from arkb.retrieval.exact import ExactRetriever
+
+        documents = DocumentAccess(directory, vault_id=vault_id)
+        return AgentTools(documents=documents, exact=ExactRetriever(documents), engine=engine,
+                          mode=mode, rerank=rerank)
 
 
 class SnapshotSemanticRetriever:

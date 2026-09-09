@@ -15,10 +15,10 @@ packs that evidence into context and produces validated citations.
 
 | Capability in `src/arkb/` | Modules and responsibility |
 | --- | --- |
-| `knowledge/` | `models.py`: notes, chunks, manifests and stable identities; `documents.py`: Markdown loading and scans; `chunking.py`: the single chunker; `embeddings.py`: input preparation, embedding tokenizer and model adapters; `indexing.py`: builds and publication; `sqlite.py` / `qdrant.py`: persistence and raw data access |
-| `retrieval/` | `models.py`: source-based contracts; `bm25.py` / `semantic.py`: independent retrieval; `hybrid.py` / `fusion.py`: fixed composition and RRF; `rerank.py`: reranking and the optional cross-encoder; `engine.py`: explicit mode selection; `exact.py`: placeholder for future exact text retrieval |
+| `knowledge/` | `models.py`: notes, chunks, manifests and stable identities; `documents.py`: Markdown loading, scans and live document access; `chunking.py`: the single chunker; `embeddings.py`: input preparation, embedding tokenizer and model adapters; `indexing.py`: builds and publication; `sqlite.py` / `qdrant.py`: persistence and raw data access |
+| `retrieval/` | `models.py`: source-based contracts; `bm25.py` / `semantic.py`: independent retrieval; `hybrid.py` / `fusion.py`: fixed composition and RRF; `rerank.py`: reranking and the optional cross-encoder; `engine.py`: explicit mode selection; `exact.py`: literal/regex matching over live source text |
 | `generation/` | `models.py`: context/citation contracts; `context.py`: evidence packing and budgets; `citations.py`: parsing, validation and rendering; `generate.py`: answer generation and generation token counting |
-| `agent/` | `tools.py`, `state.py`, `loop.py`: documented placeholders for future task-driven orchestration |
+| `agent/` | `tools.py`: thin `match`, `search`, `read` adapters and provider-independent tool definitions; `state.py` / `loop.py`: placeholders |
 | `interfaces/` | `cli.py`: CLI arguments, workflows and output; `mcp.py`: protocol placeholder |
 | `evaluation/` | `datasets.py`: experiment inputs and fingerprints; `metrics.py`: ranking, coverage and citation metrics; `retrieval.py`: relevance, ANN and frozen-candidate experiments; `generation.py`: context and citation experiments |
 | `runtime.py` | Lazy client/tokenizer creation, resource reuse and closure, snapshot-bound retrieval composition |
@@ -41,7 +41,8 @@ until the context exits, including exceptional exits. Explicitly supplied SQLite
 storage and clients remain caller-owned. Keep a prepared retriever or engine to
 retain its pinned snapshot across a query session. BM25-only setup opens neither
 model nor vector clients; importing the retrieval package never loads a model.
-Agent, MCP and exact text retrieval are not implemented by this directory change.
+Agent tools expose retrieval and live document access. Agent orchestration and
+MCP remain unimplemented.
 
 Python imports now use these capability paths; the old root `chunking`,
 `embeddings`, `tokenization`, `storage`, `schema`, `cli`, `indexing`, `context`
@@ -70,12 +71,14 @@ in `tests/conftest.py`; runtime ownership checks live in `tests/test_runtime.py`
 Real-service checks live in each capability's `integration/` subdirectory and
 carry the `integration` marker as well as their existing environment gates.
 Run regular tests with `uv run --locked pytest -q -m "not integration"`; they
-need no network or running services.
+need no network or running services. Exact lexical matching tests require `rg`
+(ripgrep) on `PATH`.
 
 ## Requirements
 
 - Python 3.13
 - uv
+- ripgrep (`rg` on `PATH`) for the `match` tool
 - Ollama, running locally for model operations
 - Qdrant Server, running for indexing and semantic/hybrid queries
 - Optional `uv sync --locked --extra rerank` for local cross-encoder reranking
@@ -193,6 +196,109 @@ Run the tests with:
 uv run --locked python -m pytest -q
 ```
 
+## Agent tools
+
+`arkb.agent.AgentTools` exposes three primitives. `TOOL_DEFINITIONS` contains
+plain JSON input schemas and descriptions of when to use each tool, with no
+provider SDK, dispatcher, agent loop, state machine, or MCP server.
+
+```python
+match(query, *, target="content", regex=False, case_sensitive=True,
+      source=None, limit=5)
+search(query, *, source=None, limit=5)
+read(document_id, *, section_id=None, start_char=None, end_char=None)
+```
+
+- `match`: use for a known word, phrase, symbol, filename, or text pattern.
+  Literal substring matching is case-sensitive by default, with no tokenization
+  or implicit word boundaries. Set `regex=True` for a pattern (for example,
+  `r"\bword\b"`); unsupported or malformed expressions raise `ValueError`.
+  `target="content"` searches normalized bodies and returns each exact occurrence
+  with character coordinates. `target="source"` searches filenames/relative
+  paths and returns each matching document once, with its body and null offsets.
+  Ordering is filename, then position; `limit` caps the total result count.
+- `search`: use for a question, topic, or concept when the wording is unknown.
+  Delegates directly to `RetrievalEngine.search`, preserving its result order.
+  The application selects the engine's strategy when composing the tools;
+  retrieval modes, fusion, reranking, scores, and internal metadata are absent
+  from the agent-facing parameters and results.
+- `read`: use a returned `document_id` to read current source text or expand
+  context. No selector reads the full body. A range uses zero-based Python
+  character positions in `Note.content`, with an exclusive end; an omitted
+  endpoint means the corresponding document boundary. Out-of-bounds ranges
+  fail instead of silently clipping. `section_id` and range parameters are
+  mutually exclusive. A section includes its heading and direct body, ending
+  at the next heading, using the existing Markdown parser and IDs.
+
+`source` is an exact knowledge-relative path filter, applied before `limit`.
+The current scope matches the loader/indexer: UTF-8 `.md` files directly in the
+configured directory, without recursive traversal. Live document access excludes
+symlinks that resolve outside that root. Content follows the existing loader's
+title removal and whitespace handling; these are not raw-file line/byte offsets.
+
+`match` and `search` return `{"query": ..., "results": [...]}`; `read` returns
+`{"result": ...}`. Every evidence object has exactly these JSON-friendly fields:
+
+| Field | Meaning |
+| --- | --- |
+| `document_id` | Existing vault/path document identity (`ChunkRecord.document_id`) |
+| `source` | Knowledge-relative source path |
+| `title` | Document title, or null when unavailable |
+| `content` | Verbatim body text or excerpt; an empty body is valid |
+| `document_revision` | Existing title/body content digest, or null when unavailable |
+| `chunk_id` | Indexed chunk ID for search hits; null for live match/read results |
+| `section_id` | Search hit's section or explicitly read section; otherwise null |
+| `start_char`, `end_char` | Body character range, or null when unavailable |
+
+The adapter maps the retrieval model's existing `source_id` field to the public
+name `document_id`; it creates no new identity scheme. Edits preserve document
+identity within a vault/path, while renames change it. Unknown document or section
+IDs raise `LookupError`; malformed IDs/parameters raise `ValueError`. No matches
+produce an empty `results` list. Filesystem, decoding, and backend errors propagate
+instead of being reported as empty successful results.
+
+Compose once with the existing runtime and the same directory/vault used for
+indexing. Keep application strategy settings outside agent tool calls:
+
+```python
+from pathlib import Path
+from arkb.knowledge.sqlite import SQLiteStorage
+from arkb.runtime import Runtime
+
+with Runtime() as runtime, SQLiteStorage(Path(".obsidian-rag/index.sqlite"), read_only=True) as storage:
+    manifest = storage.active_manifest("default")
+    if manifest is None:
+        raise ValueError("Build an index first.")
+    engine = runtime.retrieval_engine(storage, manifest, modes=("semantic",))
+    tools = runtime.agent_tools(engine=engine, directory=Path("example_notes"),
+                                vault_id=manifest.vault_id)
+    hits = tools.search("How can retrieval improve answers?")["results"]
+    if hits:
+        document = tools.read(hits[0]["document_id"])["result"]
+```
+
+Runtime injects `DocumentAccess`, `ExactRetriever`, and the prepared engine; tools
+do not import Runtime or own clients. Exact matching runs `rg` with fixed argv and
+normalized text on stdin inside Retrieval, without a shell. `rg` is a replaceable
+backend detail; its executable must be available for matching. `match` and `read`
+do not call embedding, vector, or generation services.
+
+**Eventual consistency:** `match` and `read` read current files on every call;
+`search` reads the built index captured by its prepared engine. Until reindexing,
+search can return old content, ranges, sections, or deleted document IDs. A live
+read returns current content (or an error), without checking the indexed revision.
+After rebuilding, prepare an engine from the latest active manifest to see that
+index. No new snapshots, persistence, or version management are introduced.
+For whole-note indexes, use `read(document_id)` to expand the entire document:
+their root section ID can also identify just the current Markdown preamble.
+`read(section_id=...)` always interprets IDs as current Markdown sections.
+
+Run focused tests with:
+
+```sh
+uv run --locked python -m pytest -q tests/agent tests/retrieval/test_exact.py tests/knowledge/test_documents.py tests/test_runtime.py
+```
+
 ## Count tokens
 
 `arkb.knowledge.embeddings` provides local token counts for Ollama's
@@ -261,7 +367,8 @@ Both functions return immutable `Chunk` objects. Existing fields remain:
 provenance includes `note_id`, `chunk_id`, `path` (an alias for `source`),
 `heading_path`, `section_id`, `parent_id`, `section_start_char`, and
 `section_end_char`. `parent_id` points to the section; `note_id` and `path` link
-every section back to its note for future `read_note` or parent-note expansion.
+every section back to its note. Indexed records provide the vault-scoped
+`document_id` accepted by `AgentTools.read` for parent-note expansion.
 
 All ranges are Python character offsets into loaded `Note.content`, with
 exclusive ends. They are not byte offsets or raw-file line numbers: the existing

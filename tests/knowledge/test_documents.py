@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from arkb.knowledge.documents import load_notes
+from arkb.knowledge.documents import DocumentAccess, load_notes
 
 
 def test_load_notes_reads_title_content_and_source(tmp_path: Path) -> None:
@@ -105,3 +105,88 @@ def test_scan_rejects_changes_during_reading(tmp_path, monkeypatch):
     monkeypatch.setattr(loaders, 'load_notes', changing)
     with pytest.raises(ValueError, match='changed during scanning'):
         loaders.scan_notes(tmp_path)
+
+
+def test_access_identity_matches_index_records_and_only_reads_resolved_file(tmp_path, monkeypatch):
+    from unittest.mock import Mock
+
+    import arkb.knowledge.documents as documents
+    from arkb.knowledge.chunking import whole_note_chunks
+    from arkb.knowledge.models import ChunkRecord
+
+    (tmp_path / 'a.md').write_text('# A\n\nbody', encoding='utf-8')
+    note, = load_notes(tmp_path)
+    indexed = ChunkRecord.from_note(whole_note_chunks([note])[0], note=note, vault_id='v')
+    (tmp_path / 'unrelated.md').write_bytes(b'\xff')
+    load = Mock(wraps=documents._load_note)
+    monkeypatch.setattr(documents, '_load_note', load)
+    access = DocumentAccess(tmp_path, vault_id='v')
+    assert access.read(indexed.document_id) == indexed
+    load.assert_called_once_with(tmp_path / 'a.md')
+    with pytest.raises(LookupError):
+        DocumentAccess(tmp_path, vault_id='other').read(indexed.document_id)
+
+
+def test_access_sections_reuse_chunker_coordinates_and_ids(tmp_path):
+    from arkb.knowledge.chunking import chunk_notes
+
+    text = '# Title\n\nintro\n## One\nbody\n### Child\nchild body\n## One\nsecond body'
+    (tmp_path / 'a.md').write_text(text, encoding='utf-8')
+    access = DocumentAccess(tmp_path, vault_id='v')
+    whole = next(access.records())
+    chunks = chunk_notes(load_notes(tmp_path), count_tokens=len, chunk_size=100, chunk_overlap=0)
+    for chunk in chunks:
+        read = access.read(whole.document_id, section_id=chunk.section_id)
+        assert read.chunk.content == chunk.content
+        assert read.chunk.heading_path == chunk.heading_path
+        assert read.chunk.section_id == chunk.section_id
+        assert (read.chunk.start_char, read.chunk.end_char) == (chunk.start_char, chunk.end_char)
+    assert access.read(whole.document_id) == whole
+
+
+def test_access_tracks_new_deleted_renamed_files_without_retaining_bodies(tmp_path):
+    access = DocumentAccess(tmp_path, vault_id='v')
+    assert list(access.records()) == []
+    path = tmp_path / 'a.md'
+    path.write_text('# A\nold', encoding='utf-8')
+    original = next(access.records())
+    path.write_text('# A\nnew', encoding='utf-8')
+    current = access.read(original.document_id)
+    assert current.chunk.content == 'new'
+    assert current.document_revision != original.document_revision
+    path.rename(tmp_path / 'renamed.md')
+    with pytest.raises(LookupError):
+        access.read(original.document_id)
+    assert next(access.records()).document_id != original.document_id
+
+
+def test_access_preserves_flat_scope_and_excludes_external_symlinks(tmp_path):
+    root = tmp_path / 'notes'
+    root.mkdir()
+    (root / 'a.md').write_text('inside', encoding='utf-8')
+    (root / 'ignore.txt').write_text('ignore', encoding='utf-8')
+    (root / 'nested').mkdir()
+    (root / 'nested' / 'nested.md').write_text('nested', encoding='utf-8')
+    outside = tmp_path / 'private.md'
+    outside.write_text('outside', encoding='utf-8')
+    (root / 'link.md').symlink_to(outside)
+    access = DocumentAccess(root, vault_id='v')
+    assert [r.chunk.source for r in access.records()] == ['a.md']
+    assert list(access.records(source='../private.md')) == []
+
+
+def test_access_propagates_filesystem_and_decoding_errors(tmp_path, monkeypatch):
+    access = DocumentAccess(tmp_path, vault_id='v')
+    (tmp_path / 'a.md').write_text('body', encoding='utf-8')
+    record = next(access.records())
+    (tmp_path / 'a.md').write_bytes(b'\xff')
+    with pytest.raises(UnicodeDecodeError):
+        access.read(record.document_id)
+    with pytest.raises(FileNotFoundError):
+        list(DocumentAccess(tmp_path / 'missing', vault_id='v').records())
+
+    def disappeared(path):
+        raise FileNotFoundError('removed during read')
+    monkeypatch.setattr('arkb.knowledge.documents._load_note', disappeared)
+    with pytest.raises(LookupError, match='no longer exists'):
+        access.read(record.document_id)
