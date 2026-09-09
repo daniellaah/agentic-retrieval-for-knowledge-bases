@@ -126,7 +126,7 @@ def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spe
 
 def evaluate_context(question, results, case, *, config, counter) -> dict:
     """Measure packed evidence against the original, snapshot-identified hits."""
-    from arkb.context.builder import build_context
+    from arkb.generation.context import build_context
 
     if len({(h.metadata['index_version'], h.metadata['vault_id']) for h in results}) > 1:
         raise ValueError('Context evaluation requires one snapshot and vault.')
@@ -168,7 +168,7 @@ def citation_statistics(raw_response, sources, *, review: dict | None = None, re
     judge the cited sources jointly; the rate uses reviewed claims only and is
     always accompanied by review coverage. No labels means no semantic score.
     """
-    from arkb.context.citation import CitationParseError, parse_cited_answer, validate_citations
+    from arkb.generation.citations import CitationParseError, parse_cited_answer, validate_citations
     metrics = {'structure_valid': False, 'references_valid': False, 'claim_count': None,
                'reference_count': None, 'valid_reference_count': None,
                'citation_id_validity': None, 'claim_reference_coverage': None,
@@ -214,8 +214,8 @@ def evaluate_citation_context(context, *, client) -> dict:
     """Run one frozen context once, preserving failures as well as successes."""
     from httpx import HTTPError
     from ollama import ResponseError
-    from arkb.context.citation import citation_json_schema
-    from arkb.generation import CitedGenerationError, generate_cited_answer
+    from arkb.generation.citations import citation_json_schema
+    from arkb.generation.generate import CitedGenerationError, generate_cited_answer
     context.verify_citation_mapping()
     sources = context.citation_sources
     require_quotes = context.citation_mode == 'quoted'
@@ -241,7 +241,7 @@ def evaluate_citation_context(context, *, client) -> dict:
 
 def evaluate_citation_case(question, results, *, config, counter, client) -> dict:
     """Retain per-question budget failures instead of aborting a batch evaluation."""
-    from arkb.context.builder import ContextBudgetError, build_context
+    from arkb.generation.context import ContextBudgetError, build_context
     try:
         context = build_context(question, results, config=config, counter=counter, citation_mode='structured')
     except ContextBudgetError as error:
@@ -304,8 +304,8 @@ def main(argv=None) -> int:
         parser.error('--output must be a new directory; old evaluation artifacts are preserved')
     context_config = None
     if args.context or args.citations:
-        from arkb.context.builder import ContextConfig
-        from arkb.generation import load_generation_counter
+        from arkb.generation.models import ContextConfig
+        from arkb.generation.generate import load_generation_counter
         try:
             context_config = ContextConfig(args.context_window, args.max_output_tokens, args.context_safety_margin)
         except ValueError as error:

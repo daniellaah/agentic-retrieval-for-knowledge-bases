@@ -55,7 +55,8 @@ def test_comparison_separates_neighbor_recall_from_evidence_coverage(qdrant):
 
 
 def test_context_evaluation_measures_packed_span_union_and_coverage_retention():
-    from arkb.context import ContextConfig, GenerationCounter, build_context
+    from arkb.generation.models import ContextConfig, GenerationCounter
+    from arkb.generation.context import build_context
     from arkb.evaluation import evaluate_context
     from arkb.retrieval.semantic import snapshot_result
     note = Note('Title', 'x' * 300, 'a.md')
@@ -82,7 +83,8 @@ def test_context_evaluation_measures_packed_span_union_and_coverage_retention():
 
 
 def citation_fixture():
-    from arkb.context import ContextConfig, GenerationCounter, build_context
+    from arkb.generation.models import ContextConfig, GenerationCounter
+    from arkb.generation.context import build_context
     from arkb.retrieval.semantic import snapshot_result
     note = Note('Title', 'Only small datasets were faster.', 'a.md')
     chunk = whole_note_chunks([note])[0]
@@ -146,7 +148,7 @@ def test_citation_evaluation_retains_failed_raw_output_and_counts_failures():
 
 def test_citation_case_records_prompt_budget_failure_without_calling_model():
     from unittest.mock import Mock
-    from arkb.context import ContextConfig
+    from arkb.generation.models import ContextConfig
     from arkb.evaluation import evaluate_citation_case
     context = citation_fixture()
     client = Mock()
@@ -165,7 +167,7 @@ def test_runner_hashes_nested_sources_and_preserves_snapshot_and_artifacts(tmp_p
     from tokenizers import Tokenizer, models, pre_tokenizers
 
     import arkb.evaluation as evaluation
-    from arkb.context import GenerationCounter
+    from arkb.generation.models import GenerationCounter
     from arkb.knowledge.indexing import build_index
     from arkb.knowledge.sqlite import SQLiteStorage
 
@@ -210,7 +212,7 @@ def test_runner_hashes_nested_sources_and_preserves_snapshot_and_artifacts(tmp_p
     monkeypatch.setattr('arkb.knowledge.embeddings.load_tokenizer', lambda **kw: tokenizer)
     counter = GenerationCounter('test-generation', 'test-count',
                                  lambda messages: 10 + sum(len(m['content']) for m in messages))
-    monkeypatch.setattr('arkb.generation.load_generation_counter', lambda **kw: counter)
+    monkeypatch.setattr('arkb.generation.generate.load_generation_counter', lambda **kw: counter)
     cases = tmp_path / 'cases.jsonl'
     cases.write_text(json.dumps({'id': 'fact', 'question': 'What is stated?'}) + '\n')
     output = tmp_path / 'evaluation'

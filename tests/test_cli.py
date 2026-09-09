@@ -149,7 +149,7 @@ def test_query_can_generate_from_the_saved_snapshot(persistent_client, capsys):
 
 @pytest.fixture(autouse=True)
 def generation_counter_adapter(monkeypatch):
-    from arkb.context import GenerationCounter
+    from arkb.generation.models import GenerationCounter
     def load(**kwargs):
         return GenerationCounter(kwargs['model'], 'test-counter',
                                  lambda messages: 12 + sum(len(m['content']) for m in messages))

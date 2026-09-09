@@ -3,12 +3,8 @@ import json
 
 import pytest
 
-from arkb.context.citation import (
-    CitationOrigin, CitationSource, CitationValidation, Claim, CitedAnswer,
-    CitationParseError, citation_json_schema, parse_cited_answer, validate_citations,
-    render_cited_answer,
-    CitationQuote,
-)
+from arkb.generation.models import CitationOrigin, CitationSource, CitationValidation, Claim, CitedAnswer, CitationQuote
+from arkb.generation.citations import CitationParseError, citation_json_schema, parse_cited_answer, validate_citations, render_cited_answer
 
 
 def source(source_id='S1', *, content='A fact.', start=0):

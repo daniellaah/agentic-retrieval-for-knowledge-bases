@@ -6,7 +6,7 @@ import hashlib
 import json
 import math
 
-from arkb.context.citation import CitationOrigin, CitationSource
+from arkb.generation.models import CitationOrigin, CitationSource, ContextConfig, GenerationCounter, EvidenceBlock, _document_key
 from arkb.retrieval.models import SearchResult
 from arkb.knowledge.models import Chunk, ChunkRecord
 
@@ -43,84 +43,10 @@ class ContextBudgetError(ValueError):
     """The fixed prompt cannot fit, or no evidence fits the requested budget."""
 
 
-@dataclass(frozen=True)
-class ContextConfig:
-    context_window: int = 8192
-    max_output_tokens: int = 1024
-    safety_margin: int = 128
-
-    def __post_init__(self) -> None:
-        for name, minimum in (('context_window', 1), ('max_output_tokens', 1), ('safety_margin', 0)):
-            value = getattr(self, name)
-            if type(value) is not int or value < minimum:
-                raise ValueError(f'{name} must be an integer >= {minimum}.')
-        if self.input_budget <= 0:
-            raise ValueError('Output reserve and safety margin leave no input budget.')
-
-    @property
-    def input_budget(self) -> int:
-        return self.context_window - self.max_output_tokens - self.safety_margin
 
 
-@dataclass(frozen=True)
-class GenerationCounter:
-    """An explicitly identified model/message counter; estimates are labeled.
-
-    count_messages must include the serving chat template and assistant prefix.
-    The caller is responsible for an adapter's model/template fidelity.
-    The built-in model adapter lives in arkb.generation.
-    """
-
-    model: str
-    identity: str
-    count_messages: Callable[[Sequence[dict[str, str]]], int]
-    is_estimate: bool = False
-    context_limit: int | None = None
-
-    def __post_init__(self) -> None:
-        if not self.model.strip() or not self.identity.strip() or not callable(self.count_messages):
-            raise ValueError('Counter requires a model, identity and callable.')
-        if type(self.is_estimate) is not bool:
-            raise ValueError('is_estimate must be boolean.')
-        if self.context_limit is not None and (type(self.context_limit) is not int or self.context_limit <= 0):
-            raise ValueError('context_limit must be positive.')
-
-    def __call__(self, messages: Sequence[dict[str, str]]) -> int:
-        count = self.count_messages([dict(m) for m in messages])
-        if type(count) is not int or count <= 0:
-            raise ValueError('Message counter must return a positive integer.')
-        return count
 
 
-@dataclass(frozen=True)
-class EvidenceBlock:
-    """Verbatim text in Note.content coordinates, with all contributing hits.
-
-    Origins retain chunk IDs, document revisions, snapshot versions and scores.
-    """
-
-    content: str
-    title: str
-    source: str
-    start_char: int
-    end_char: int
-    origins: tuple[SearchResult, ...]
-
-    def __post_init__(self) -> None:
-        if (type(self.start_char) is not int or type(self.end_char) is not int
-                or self.start_char < 0 or self.end_char < self.start_char
-                or self.end_char - self.start_char != len(self.content)):
-            raise ValueError('Evidence span must match its content length.')
-        if not self.origins:
-            raise ValueError('Evidence must retain its source origins.')
-        if len({_document_key(hit) for hit in self.origins}) != 1:
-            raise ValueError('Merged evidence requires one known document revision and snapshot.')
-        for hit in self.origins:
-            if (hit.source != self.source or hit.metadata['title'] != self.title
-                    or hit.start_char < self.start_char or hit.end_char > self.end_char
-                    or self.content[hit.start_char - self.start_char:hit.end_char - self.start_char]
-                    != hit.content):
-                raise ValueError('Evidence must contain the verbatim source spans.')
 
 
 @dataclass(frozen=True)
@@ -257,8 +183,6 @@ def _pack_evidence(question, candidates, config, counter, decisions, *, citation
     return selected
 
 
-def _document_key(hit: SearchResult) -> tuple:
-    return (hit.metadata['index_version'], hit.source_id, hit.metadata['document_revision'])
 
 
 def _validate_snapshot_evidence(hit: SearchResult) -> None:

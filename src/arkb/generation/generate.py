@@ -7,15 +7,11 @@ from pathlib import Path
 
 from ollama import Client
 
-from arkb.context.citation import (
-    CitedAnswer, CitationSource, CitationParseError, CitationValidation,
-    citation_json_schema, parse_cited_answer, validate_citations,
-    _render_cited_answer, _used_citation_sources,
-)
+from arkb.generation.models import CitedAnswer, CitationSource, CitationValidation
+from arkb.generation.citations import CitationParseError, citation_json_schema, parse_cited_answer, validate_citations, _render_cited_answer, _used_citation_sources
 
-from arkb.context.builder import (
-    BuiltContext, ContextBudgetError, GenerationCounter,
-)
+from arkb.generation.context import BuiltContext, ContextBudgetError
+from arkb.generation.models import GenerationCounter
 
 
 _NO_EVIDENCE = "The provided notes do not contain enough information to answer this question."

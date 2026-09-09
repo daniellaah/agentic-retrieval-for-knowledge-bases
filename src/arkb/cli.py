@@ -15,8 +15,9 @@ from ollama import Client, ResponseError
 
 from arkb.knowledge.embeddings import resolve_embedding_spec
 from arkb.knowledge.models import QdrantConfig
-from arkb.context.builder import ContextConfig, build_context
-from arkb.generation import generate_cited_answer, load_generation_counter
+from arkb.generation.models import ContextConfig
+from arkb.generation.context import build_context
+from arkb.generation.generate import generate_cited_answer, load_generation_counter
 from arkb.knowledge.qdrant import connect_qdrant
 from arkb.knowledge.models import require_qdrant_backend
 from arkb.knowledge.embeddings import load_tokenizer

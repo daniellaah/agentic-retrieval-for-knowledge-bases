@@ -3,7 +3,7 @@ import json
 import pytest
 
 from arkb.knowledge.models import Chunk
-from arkb.context import build_context
+from arkb.generation.context import build_context
 from arkb.retrieval.semantic import snapshot_result
 from arkb.knowledge.models import Note, ChunkRecord
 
@@ -185,12 +185,12 @@ def message_counter(messages):
 
 
 def fake_counter(count=message_counter, **kwargs):
-    from arkb.context import GenerationCounter
+    from arkb.generation.models import GenerationCounter
     return GenerationCounter('test-model', 'test-message-counter', count, **kwargs)
 
 
 def budget_for(tokens):
-    from arkb.context import ContextConfig
+    from arkb.generation.models import ContextConfig
     return ContextConfig(context_window=tokens + 20, max_output_tokens=15, safety_margin=5)
 
 
@@ -221,7 +221,7 @@ def test_budget_skips_oversized_first_block_and_still_packs_later_evidence():
 
 
 def test_fixed_prompt_overflow_differs_from_no_evidence():
-    from arkb.context import ContextBudgetError
+    from arkb.generation.context import ContextBudgetError
     tokens = message_counter(build_context('Q?', []).messages)
     with pytest.raises(ContextBudgetError, match='before adding evidence'):
         build_context('Q?', [], config=budget_for(tokens - 1), counter=fake_counter())
@@ -245,7 +245,7 @@ def test_budget_counts_rendered_json_metadata_and_merged_content():
     {'safety_margin': -1}, {'context_window': True}, {'context_window': 1.5},
     {'context_window': 20, 'max_output_tokens': 20, 'safety_margin': 0}])
 def test_invalid_context_budget_is_rejected(kwargs):
-    from arkb.context import ContextConfig
+    from arkb.generation.models import ContextConfig
     with pytest.raises(ValueError):
         ContextConfig(**kwargs)
 
@@ -277,7 +277,7 @@ def test_counter_cannot_mutate_the_messages_that_will_be_sent():
 def test_generation_counter_rejects_unknown_artifact_before_downloading():
     from unittest.mock import Mock
     from ollama import Client, ListResponse
-    from arkb.generation import load_generation_counter
+    from arkb.generation.generate import load_generation_counter
     client = Mock(spec=Client)
     client.list.return_value = ListResponse(models=[{'model': 'other', 'digest': 'different'}])
     with pytest.raises(ValueError, match='No verified'):
@@ -293,8 +293,8 @@ def test_generation_counter_rejects_unknown_artifact_before_downloading():
                          ids=['english', 'unicode', 'long-code', 'special-marker'])
 def test_generation_token_count_matches_ollama(body):
     from ollama import Client
-    from arkb.context import ContextConfig
-    from arkb.generation import load_generation_counter
+    from arkb.generation.models import ContextConfig
+    from arkb.generation.generate import load_generation_counter
     with Client(host='http://127.0.0.1:11434', timeout=180, trust_env=False) as client:
         counter = load_generation_counter(client=client, local_files_only=True)
         built = build_context('  What is stated? 中文？  ', [source_hit(0, len(body), text=body)],
@@ -307,7 +307,7 @@ def test_generation_token_count_matches_ollama(body):
 def test_generation_counter_rejects_changed_template_and_corrupt_tokenizer(tmp_path, monkeypatch):
     from unittest.mock import Mock
     from ollama import Client, ListResponse, ShowResponse
-    import arkb.generation as module
+    import arkb.generation.generate as module
     client = Mock(spec=Client)
     client.list.return_value = ListResponse(models=[{'model': 'qwen3.5:4b', 'digest': module._GENERATION_MODEL_DIGEST}])
     client.show.return_value = ShowResponse(template='custom', model_info={'general.architecture': 'qwen35'})

@@ -15,10 +15,11 @@ from ollama import Client
 import pytest
 
 from arkb.knowledge.chunking import whole_note_chunks
-from arkb.context import ContextConfig, build_context
-from arkb.generation import load_generation_counter
+from arkb.generation.models import ContextConfig
+from arkb.generation.context import build_context
+from arkb.generation.generate import load_generation_counter
 from arkb.knowledge.models import ChunkRecord
-from arkb.generation import CitedGenerationError, generate_cited_answer
+from arkb.generation.generate import CitedGenerationError, generate_cited_answer
 from arkb.knowledge.models import Note
 from arkb.retrieval.semantic import snapshot_result
 

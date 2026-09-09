@@ -5,7 +5,7 @@ from ollama import ChatResponse, Client, Message, ResponseError
 import pytest
 
 from arkb.knowledge.chunking import chunk_notes, whole_note_chunks
-from arkb.generation import generate_cited_answer, CitedGenerationError
+from arkb.generation.generate import generate_cited_answer, CitedGenerationError
 from arkb.knowledge.models import Note
 from arkb.retrieval.semantic import snapshot_result
 from arkb.knowledge.models import ChunkRecord
@@ -21,7 +21,8 @@ def client() -> Mock:
 
 
 def budgeted_context(*, config=None, estimate=False):
-    from arkb.context import ContextConfig, GenerationCounter, build_context
+    from arkb.generation.models import ContextConfig, GenerationCounter
+    from arkb.generation.context import build_context
     note = Note('Title', 'A fact.', 'a.md')
     chunk = whole_note_chunks([note])[0]
     record = ChunkRecord.from_note(chunk, note=note, vault_id='v')
@@ -32,7 +33,7 @@ def budgeted_context(*, config=None, estimate=False):
 
 
 def test_generate_uses_prebuilt_messages_and_runtime_budget_without_rebuilding(client):
-    from arkb.context import ContextConfig
+    from arkb.generation.models import ContextConfig
     built = budgeted_context(config=ContextConfig(2048, 128, 64))
     client.chat.return_value.prompt_eval_count = built.prompt_tokens
     assert generate_cited_answer(built, client=client)
@@ -42,7 +43,8 @@ def test_generate_uses_prebuilt_messages_and_runtime_budget_without_rebuilding(c
 
 
 def test_generate_rejects_prebuilt_context_overrides_and_unbudgeted_evidence(client):
-    from arkb.context import ContextConfig, build_context
+    from arkb.generation.models import ContextConfig
+    from arkb.generation.context import build_context
     built = budgeted_context()
     for kwargs in ({'model': 'different'}, {'config': ContextConfig()}):
         with pytest.raises(TypeError):
@@ -56,7 +58,8 @@ def test_generate_rejects_prebuilt_context_overrides_and_unbudgeted_evidence(cli
 
 
 def test_generate_distinguishes_budget_exhaustion_from_missing_sources(client):
-    from arkb.context import ContextBudgetError, ContextConfig, build_context
+    from arkb.generation.context import ContextBudgetError, build_context
+    from arkb.generation.models import ContextConfig
     built = budgeted_context()
     empty_tokens = built.counter(build_context('Q?', []).messages)
     exhausted = build_context('Q?', list(built.evidence_blocks[0].origins),
@@ -68,7 +71,7 @@ def test_generate_distinguishes_budget_exhaustion_from_missing_sources(client):
 
 
 def test_generate_detects_actual_count_drift_or_budget_overflow(client):
-    from arkb.context import ContextBudgetError
+    from arkb.generation.context import ContextBudgetError
     built = budgeted_context()
     client.chat.return_value.prompt_eval_count = built.prompt_tokens + 1
     with pytest.raises(ValueError, match='differs'):
@@ -82,7 +85,7 @@ def test_generate_detects_actual_count_drift_or_budget_overflow(client):
 
 
 def cited_context():
-    from arkb.context import build_context
+    from arkb.generation.context import build_context
     built = budgeted_context()
     return build_context('Q?', list(built.evidence_blocks[0].origins), config=built.config,
                           counter=built.counter, citation_mode='structured')
@@ -125,7 +128,7 @@ def test_cited_generation_reports_failures_with_raw_response_and_no_retry(client
 
 
 def test_cited_generation_handles_missing_evidence_and_rejects_old_arguments(client):
-    from arkb.context import build_context
+    from arkb.generation.context import build_context
     result = generate_cited_answer(build_context('Question?', []), client=client)
     assert result.answer.status == 'insufficient_evidence'
     assert result.raw_response is None and result.sources == ()
@@ -147,7 +150,7 @@ def test_cited_generation_rejects_tampered_mapping_or_token_count(client):
 
 
 def test_quoted_generation_requires_and_resolves_exact_excerpts(client):
-    from arkb.context import build_context
+    from arkb.generation.context import build_context
     built = cited_context()
     quoted = build_context('Q?', list(built.evidence_blocks[0].origins), config=built.config,
                             counter=built.counter, citation_mode='quoted')
@@ -171,7 +174,8 @@ def test_generation_propagates_model_and_connection_errors(client, error):
 
 
 def test_generation_sends_only_selected_evidence_and_structured_grounding_prompt(client):
-    from arkb.context import ContextConfig, build_context
+    from arkb.generation.models import ContextConfig
+    from arkb.generation.context import build_context
     note = Note('A note', 'Selected evidence.\n\nUnrelated material.', 'note.md')
     chunk = chunk_notes([note], count_tokens=len, chunk_size=20, chunk_overlap=0)[0]
     hit = snapshot_result(ChunkRecord.from_note(chunk, note=note, vault_id='v'), .9, 'snapshot')
@@ -189,7 +193,7 @@ def test_generation_sends_only_selected_evidence_and_structured_grounding_prompt
 
 
 def test_generation_reuses_validation_for_all_output_forms(client, monkeypatch):
-    import arkb.generation as generation
+    import arkb.generation.generate as generation
     validate = Mock(wraps=generation.validate_citations)
     monkeypatch.setattr(generation, 'validate_citations', validate)
     result = generate_cited_answer(budgeted_context(), client=client)
