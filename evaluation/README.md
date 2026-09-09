@@ -64,3 +64,53 @@ its case requires increasing the match limit or otherwise gathering all sources.
 Each batch runs deterministic cross-module integration checks and the full
 deterministic regression suite before its commit. Real Ollama/Qdrant evaluations
 remain separate from those tests.
+
+## Deterministic metrics
+
+`arkb.evaluation.agent.evaluate_case(case, trace)` returns an `AgentEvalResult`.
+`extract_retrieved_sources` unions exact `source` values from every successful
+`match/search` observation's `results` array and `read` observation's `result`.
+Repeated chunks, sources and calls contribute once to coverage. Tool arguments,
+final citations, unknown tools, missing observations and error payloads are not
+evidence. Document-ID and section/range reads use the returned source identity.
+
+Source recall is `len(expected ∩ retrieved) / len(expected)`. It is null for
+no-retrieval cases. This measures source membership, not passage coverage or
+whether the model understood the evidence.
+
+Every success requires `stop_reason == 'final'`, no forbidden or disallowed
+tool requests, and compliance with `max_tool_calls` if present. Further rules:
+
+| Task | Evidence rule |
+| --- | --- |
+| exact_lookup | All expected sources retrieved, through any valid tools |
+| semantic_discovery | Recall meets `min_source_recall` |
+| direct_read | Every expected source successfully returned by `read` |
+| exploratory_retrieval | Recall meets threshold and `min_read_sources` distinct expected sources read |
+| knowledge_qa | Recall meets threshold (all labeled key evidence in v1) |
+| no_retrieval | No `match`, `search`, or `read` request, including failed requests |
+
+The annotated read minimum is also checked for any other retrieval task that
+sets it. No success check depends on final answer wording or a unique tool order.
+
+Results include expected/retrieved/read sources, ordered tool names, counts by
+name (including zero counts for the three knowledge tools), total calls, trace
+turns, forbidden/disallowed call counts, tool-budget violation, max-turn failure,
+unnecessary retrieval, native stop reason, and simple failed-constraint codes.
+Call counts measure **requests** in the trace: a failed batch may include calls
+that the runtime never executed. Turns include attempted failed model requests.
+
+`summarize_agent_results(results)` computes trial-weighted macro means overall
+and under `by_task_type`. It includes distinct case count, execution count,
+success/failure counts, success rate, mean recall/calls/turns, max-turn failure
+rate, unnecessary retrieval rate, tool request totals and stop distributions.
+Every nullable metric has a `*_defined_trials` denominator. Unnecessary retrieval
+uses only observed no-retrieval trials, not all retrieval tasks. Repeated trials
+are retained; the success rate is neither pass-at-k nor all-trials-success.
+
+If a runtime exception has no partial trace, `evaluate_case(case, None)` records
+failure and leaves unobserved behavior null. Such trials count in task success
+and `missing_trace_trials` but cannot establish recall, zero calls, or absence of
+unnecessary retrieval. Current native stop reasons are `final`, `max_turns`, and
+`error`; distributions also expose `other` and `unavailable`. Error is not guessed
+to mean model_error or tool_error: the current trace has no explicit error stage.

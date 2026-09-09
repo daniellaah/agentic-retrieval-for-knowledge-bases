@@ -83,3 +83,32 @@ class AgentEvalCase:
             raise ValueError('exact_lookup and direct_read require full source recall.')
         if not isinstance(self.notes, str):
             raise ValueError('notes must be a string.')
+
+
+@dataclass(frozen=True, kw_only=True)
+class AgentEvalResult:
+    """Deterministic outcome/behavior metrics for one case execution.
+
+    None denotes an undefined denominator or unavailable trace observation,
+    never a measured zero. stop_reason retains the AgentTrace value verbatim;
+    evaluation does not introduce a competing stop-reason enum.
+    """
+
+    case_id: str
+    task_type: TaskType
+    success: bool
+    source_recall: float | None
+    expected_sources: tuple[str, ...]
+    retrieved_sources: tuple[str, ...] | None
+    read_sources: tuple[str, ...] | None
+    tool_calls: tuple[str, ...] | None
+    tool_counts: dict[str, int] | None
+    tool_call_count: int | None
+    turn_count: int | None
+    forbidden_tool_violations: dict[str, int] | None
+    disallowed_tool_violations: dict[str, int] | None
+    max_tool_calls_exceeded: bool | None
+    max_turn_failure: bool | None
+    unnecessary_retrieval: bool | None
+    stop_reason: str | None
+    failure_reasons: tuple[str, ...]
