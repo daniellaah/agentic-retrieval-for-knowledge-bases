@@ -11,7 +11,7 @@ from ollama import Client
 from qdrant_client import QdrantClient, models
 from tokenizers import Tokenizer
 
-from arkb.indexing.chunking import chunk_notes, whole_note_chunks
+from arkb.chunking import chunk_notes, whole_note_chunks
 from arkb.embeddings import (
     DEFAULT_QUERY_INSTRUCTION,
     prepare_document,
@@ -138,7 +138,9 @@ def build_index(
                                    source=f'{r.chunk.source}, chunk {r.chunk.chunk_index}')
               for text, r in zip(texts, records)]
     token_identity = tokenizer_fingerprint(tokenizer)
-    chunk_config = {'algorithm': f'{chunking}-v1', 'tokenizer': token_identity}
+    # Keep the existing CLI mode names, but invalidate pre-Markdown snapshots.
+    algorithm = 'markdown-v1' if chunking == 'recursive' else 'whole-note-v2'
+    chunk_config = {'algorithm': algorithm, 'tokenizer': token_identity}
     if chunking == 'recursive':
         chunk_config.update(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     manifest = IndexManifest(

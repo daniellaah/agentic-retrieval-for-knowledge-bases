@@ -71,7 +71,9 @@ def test_config_rejects_ambiguous_or_non_json_values(config) -> None:
 
 
 def test_ids_are_stable_across_processes_and_python_hash_seeds(note: Note) -> None:
-    record = ChunkRecord.from_note(whole_note_chunks([note])[0], note=note, vault_id="personal")
+    # Decode a legacy chunk without the new optional section fields.
+    chunk = Chunk(note.content, note.title, note.source, 0, 0, len(note.content))
+    record = ChunkRecord.from_note(chunk, note=note, vault_id="personal")
     # These are persisted-format fixtures: changing them requires a schema
     # version/migration decision, even if IDs remain deterministic in one run.
     assert [record.document_id, record.document_revision, record.chunk_id] == [
@@ -80,11 +82,11 @@ def test_ids_are_stable_across_processes_and_python_hash_seeds(note: Note) -> No
         "0c77bf8396a483e0586ec8b01d18db9f006e69cf9ec8107ca00f005a8bab6159",
     ]
     script = """
-from arkb.indexing.chunking import whole_note_chunks
-from arkb.schema import ChunkRecord
+from arkb.schema import Chunk, ChunkRecord
 from arkb.indexing.loaders import Note
 note = Note(title="重复片段", content="ab ab ab", source="notes/repeated.md")
-record = ChunkRecord.from_note(whole_note_chunks([note])[0], note=note, vault_id="personal")
+chunk = Chunk(note.content, note.title, note.source, 0, 0, len(note.content))
+record = ChunkRecord.from_note(chunk, note=note, vault_id="personal")
 print(record.document_id, record.document_revision, record.chunk_id)
 """
     for seed in ("1", "2"):
@@ -175,7 +177,7 @@ def test_record_rejects_invalid_or_mismatched_chunks(note: Note, changes: dict) 
 
 def test_empty_span_cannot_point_beyond_source_end() -> None:
     note = Note(title="Empty", content="", source="empty.md")
-    chunk = replace(whole_note_chunks([note])[0], start_char=5, end_char=5)
+    chunk = replace(whole_note_chunks([note])[0], start_char=5, end_char=5, section_end_char=5)
     with pytest.raises(ValueError, match="source note"):
         ChunkRecord.from_note(chunk, note=note, vault_id="personal")
 
@@ -272,3 +274,16 @@ def test_records_and_configuration_are_immutable(
     ):
         with pytest.raises(FrozenInstanceError):
             setattr(item, attribute, value)
+
+
+@pytest.mark.parametrize('changes', [
+    {'section_id': 'invalid'}, {'section_start_char': -1},
+    {'section_end_char': True}, {'section_end_char': 1},
+    {'section_start_char': 1}, {'section_end_char': 999},
+    {'occurrence': -1}, {'occurrence': True}, {'heading_path': (1,)}, {'heading_path': 'Section'},
+    {'section_id': None},
+])
+def test_record_validates_section_provenance(note: Note, changes: dict) -> None:
+    chunk = replace(whole_note_chunks([note])[0], **changes)
+    with pytest.raises(ValueError):
+        ChunkRecord.from_note(chunk, note=note, vault_id='vault')

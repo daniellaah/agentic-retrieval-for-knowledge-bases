@@ -17,7 +17,8 @@ data records are shared by the stages that use them.
 | --- | --- |
 | `__init__.py` | Package marker |
 | `indexing/loaders.py` | Markdown loading and consistent source-directory scans |
-| `indexing/chunking.py` | Whole-note and recursive splitting with source positions |
+| `chunking.py` | Shared Markdown block splitting, section provenance, and size/overlap policy |
+| `indexing/chunking.py` | Compatibility imports for the shared chunker |
 | `indexing/index.py` | Complete/incremental builds, Qdrant writes, HNSW readiness, verification, and failed-candidate cleanup |
 | `retrieval/semantic.py` | Qdrant exact/ANN search, query embedding, and snapshot evidence lookup |
 | `context/builder.py` | Evidence provenance, deduplication, overlap merging, budgets, and message rendering |
@@ -114,7 +115,7 @@ produces an error instead of rebuilding during a query.
 | index | `--notes-dir` | `example_notes` | Directory containing Markdown notes |
 | index | `--qdrant-url` | `http://127.0.0.1:6333` | Qdrant endpoint saved with the snapshot |
 | index | `--embedding-model` | `qwen3-embedding:0.6b` | Embedding model |
-| index | `--chunking` | `recursive` | Recursive splitting or whole-note `none` |
+| index | `--chunking` | `recursive` | Markdown sections with recursive overflow splitting, or whole-note `none` |
 | index | `--chunk-size` / `--chunk-overlap` | `512` / `64` | Body token limit and target overlap |
 | index | `--context-length` | `8192` | Full embedding-input limit, including title and special tokens |
 | query | `--top-k` | `2` | Maximum candidates before context processing |
@@ -228,40 +229,77 @@ OBSIDIAN_RAG_RUN_MODEL_TESTS=1 .venv/bin/python -B -m pytest \
 
 ## Split notes into chunks
 
-`arkb.indexing.chunking` exposes `chunk_notes` and `whole_note_chunks`. Both return
-immutable `Chunk` objects with `content`, `title`, `source`, `chunk_index`,
-`start_char`, and `end_char`. Positions are Python character offsets into the
-loaded `Note.content`, with an exclusive end; the loader has already removed the
-title line and outer whitespace, so these are not raw-file line numbers.
+`arkb.chunking` exposes `chunk_notes` and `whole_note_chunks`. It depends only on
+the standard library and shared records in `arkb.schema`; it performs no I/O,
+retrieval, embedding, indexing, LLM calls, or Agent reasoning. The previous
+`arkb.indexing.chunking` import path remains available for compatibility.
+
+Both functions return immutable `Chunk` objects. Existing fields remain:
+`content`, `title`, `source`, `chunk_index`, `start_char`, and `end_char`. New
+provenance includes `note_id`, `chunk_id`, `path` (an alias for `source`),
+`heading_path`, `section_id`, `parent_id`, `section_start_char`, and
+`section_end_char`. `parent_id` points to the section; `note_id` and `path` link
+every section back to its note for future `read_note` or parent-note expansion.
+
+All ranges are Python character offsets into loaded `Note.content`, with
+exclusive ends. They are not byte offsets or raw-file line numbers: the existing
+loader removes the title line and outer whitespace. A section covers its heading
+and direct body up to the next heading; `heading_path` includes ancestor titles.
+Text before the first heading uses the root section and an empty heading path.
+Whole-note chunks use a root section spanning the complete body.
 
 ```python
 from functools import partial
 from pathlib import Path
 
-from arkb.indexing.chunking import chunk_notes, whole_note_chunks
+from arkb.chunking import chunk_notes, whole_note_chunks
 from arkb.indexing.loaders import load_notes
 from arkb.tokenization import count_tokens, load_tokenizer
 
 notes = load_notes(Path("example_notes"))
 tokenizer = load_tokenizer()
 chunks = chunk_notes(notes, count_tokens=partial(count_tokens, tokenizer=tokenizer))
-whole_chunks = whole_note_chunks(notes)  # B0: one whole note per chunk.
+whole_chunks = whole_note_chunks(notes)
 ```
 
-Recursive splitting defaults to a 512-token body budget and up to 64 overlapping
-tokens. It prefers paragraphs, lines, sentence punctuation in Chinese/English,
-then spaces, falling back to character boundaries for oversized units. Smaller
-units are merged by recounting the combined text. Overlap retains whole trailing
-units, so it may be below the target or zero. Titles and embedding end markers
-are outside the body budget and need to be counted with the final input.
+Splitting defaults to a 512-token body budget and up to 64 overlapping tokens.
+The counter is supplied by the caller; use `count_tokens=len` for character
+budgets without a tokenizer. ATX (`## Heading`) and Setext headings create hard
+section boundaries, even in short notes. Paragraphs, lists (including task and
+nested lists), and backtick/tilde fenced code blocks stay whole when they fit.
+Code contents and leading YAML frontmatter do not create headings. Obsidian
+links, embeds, tags, and callouts remain verbatim text; this is a small block
+recognizer, not a complete CommonMark parser or a semantic chunker.
 
-Short notes remain whole. Notes are processed independently, indices restart at
-zero, and repeated passages keep their distinct positions. Text, whitespace, and
-Markdown markers are preserved verbatim; this baseline does not interpret code
-fences or table structure. Empty bodies retain their title and source in one
-chunk. Invalid budgets and a fallback character that cannot fit raise `ValueError`.
-All chunks remain in memory. The CLI uses recursive chunks by default; select
-`--chunking none` to use whole-note chunks.
+Oversized lists split at items first, code at lines, and prose at paragraphs,
+lines, Chinese/English sentence punctuation, spaces, then characters. Split code
+remains exact source text without synthesized opening or closing fences. Merged
+slices are recounted because token counts are not additive. Overlap retains
+whole trailing units up to its budget, may be zero, and never crosses a section
+boundary. Titles and downstream formatting are outside the body budget.
+
+Notes are processed independently, indices restart at zero, and all source text
+and whitespace remain in order. Empty bodies retain their title and provenance
+in one chunk. Invalid budgets and a fallback character that cannot fit raise
+`ValueError`. All chunks remain in memory. The CLI retains the `recursive` mode
+name for Markdown splitting; use `--chunking none` for whole-note chunks.
+
+IDs use deterministic SHA-256 hashes. `note_id` is scoped to a source collection
+and derives from its canonical relative path; renaming the note changes it.
+Section identities derive from heading ancestry and same-heading sibling
+occurrences. Chunk identities derive from their section, exact content, and
+same-content occurrence within that section. They exclude absolute positions,
+note-wide revision, and unrelated content. Moving an unchanged section or editing
+another section preserves its IDs. Inserting indistinguishable duplicate
+headings or chunks before existing ones may renumber those occurrences; no edit
+history is tracked. Changed chunk boundaries/content produce new IDs.
+
+`ChunkRecord.chunk_id` adds vault scope to the new chunk identity, while
+`document_revision` still records the complete note revision for citations.
+Legacy records without section metadata keep their original IDs and remain
+readable. The next index build uses new chunking fingerprints (`markdown-v1` or
+`whole-note-v2`) to publish a fresh snapshot and can reuse unchanged embedding
+inputs from the cache. Historical snapshots remain readable without migration.
 
 The standard chunking tests are offline. To check the real Qwen tokenizer's
 512/64 budgets and lossless reconstruction on long multilingual examples, cache

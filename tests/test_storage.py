@@ -155,3 +155,36 @@ with SQLiteStorage(Path(sys.argv[1])) as storage:
             process.terminate()
             process.wait(timeout=5)
         process.stdout.close()
+
+
+@pytest.mark.parametrize('legacy', [False, True])
+def test_section_metadata_and_legacy_records_survive_storage_roundtrip(tmp_path, sample, legacy):
+    from dataclasses import asdict
+    import json
+
+    from arkb.chunking import chunk_notes
+    from arkb.schema import Chunk
+
+    spec, _, manifest = sample
+    note = Note('Title', '## Section\nBody', 'folder/note.md')
+    chunk = (Chunk(note.content, note.title, note.source, 0, 0, len(note.content)) if legacy
+             else chunk_notes([note], count_tokens=len)[0])
+    record = ChunkRecord.from_note(chunk, note=note, vault_id='vault')
+    path = tmp_path / 'db'
+    with SQLiteStorage(path) as store:
+        populate(store, (spec, record, manifest))
+        if legacy:
+            # Match the old on-disk shape, not just the default-valued new dataclass.
+            payload = asdict(record)
+            payload['chunk'] = {name: payload['chunk'][name] for name in (
+                'content', 'title', 'source', 'chunk_index', 'start_char', 'end_char',
+            )}
+            store.connection.execute('UPDATE snapshot_chunks SET record=?', (json.dumps(payload),))
+        store.publish('v1')
+    with SQLiteStorage(path, read_only=True) as store:
+        restored = store.get_record('v1', record.chunk_id)
+        assert restored == record
+        assert store.snapshot_records('v1') == [record]
+        assert restored.chunk.note_id == note.note_id
+        assert restored.chunk.heading_path == (() if legacy else ('Section',))
+        assert restored.chunk.chunk_id == chunk.chunk_id

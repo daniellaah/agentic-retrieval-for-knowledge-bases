@@ -308,3 +308,46 @@ def test_invalid_qdrant_config_fails_before_any_collection_operation(qdrant_data
         QdrantIndex(client, 'test', spec, vault_id='vault', create=True, config=QdrantConfig(**changes))
     client.create_collection.assert_not_called()
     client.get_collection.assert_not_called()
+
+
+def test_markdown_section_edit_reuses_unchanged_chunk_identity_and_embedding(setup):
+    storage, options = setup
+    options['chunking'] = 'recursive'
+    note = Note('Title', '# First\nOriginal\n\n# Keep\nUnchanged\n', 'note.md')
+    first = build_index(storage, [note], **options)
+    old = storage.snapshot_records(first.manifest.index_version)
+    edited = replace(note, content=note.content.replace('Original', 'A longer edited section'))
+    second = build_index(storage, [edited], **options)
+    new = storage.snapshot_records(second.manifest.index_version)
+
+    assert second.embedded_inputs == 1 and second.cached_inputs == 1
+    assert len(old) == len(new) == 2
+    assert old[1].chunk_id == new[1].chunk_id
+    assert old[1].chunk.start_char != new[1].chunk.start_char
+    assert old[1].document_revision != new[1].document_revision
+    assert old[1].chunk.heading_path == new[1].chunk.heading_path == ('Keep',)
+    assert build_index(storage, [edited], **options).reused_index
+
+
+@pytest.mark.parametrize('mode,old_algorithm', [('recursive', 'recursive-v1'), ('none', 'none-v1')])
+def test_old_chunking_fingerprint_requires_a_new_snapshot_but_reuses_embeddings(setup, mode, old_algorithm):
+    from dataclasses import asdict
+    import json
+
+    from arkb.schema import fingerprint_config
+    from arkb.tokenization import tokenizer_fingerprint
+
+    storage, options = setup
+    options['chunking'] = mode
+    note = Note('Title', 'Body', 'note.md')
+    first = build_index(storage, [note], **options)
+    config = {'algorithm': old_algorithm, 'tokenizer': tokenizer_fingerprint(options['tokenizer'])}
+    if mode == 'recursive':
+        config.update(chunk_size=512, chunk_overlap=64)
+    legacy = replace(first.manifest, chunking_fingerprint=fingerprint_config(config))
+    storage.connection.execute('UPDATE builds SET manifest=? WHERE version=?',
+                               (json.dumps(asdict(legacy)), legacy.index_version))
+    second = build_index(storage, [note], **options)
+    assert not second.reused_index
+    assert second.manifest.index_version != first.manifest.index_version
+    assert second.embedded_inputs == 0 and second.cached_inputs == 1

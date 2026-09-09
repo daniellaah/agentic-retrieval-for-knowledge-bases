@@ -22,10 +22,25 @@ class Note:
     content: str
     source: str
 
+    @property
+    def note_id(self) -> str:
+        """Stable identity within a source collection; a path rename changes it."""
+        return _digest("note-id", {"path": self.source})
+
+    @property
+    def path(self) -> str:
+        return self.source
+
 
 @dataclass(frozen=True)
 class Chunk:
-    """A verbatim slice of Note.content; end_char is exclusive."""
+    """A verbatim slice of Note.content; character range ends are exclusive.
+
+    Section ranges cover a heading and its direct body, up to the next heading.
+    heading_path includes ancestor headings. A root section has an empty path.
+    occurrence distinguishes identical slices within one section. Optional
+    section fields also allow reading records created before Markdown chunking.
+    """
 
     content: str
     title: str
@@ -33,6 +48,41 @@ class Chunk:
     chunk_index: int
     start_char: int
     end_char: int
+    heading_path: tuple[str, ...] = ()
+    section_id: str | None = None
+    section_start_char: int | None = None
+    section_end_char: int | None = None
+    occurrence: int = 0
+
+    def __post_init__(self) -> None:
+        # JSON stores tuples as arrays; restore immutable metadata on decoding.
+        if isinstance(self.heading_path, list):
+            object.__setattr__(self, "heading_path", tuple(self.heading_path))
+
+    @property
+    def path(self) -> str:
+        return self.source
+
+    @property
+    def note_id(self) -> str:
+        return _digest("note-id", {"path": self.source})
+
+    @property
+    def parent_id(self) -> str:
+        return self.section_id or self.note_id
+
+    @property
+    def chunk_id(self) -> str:
+        """Collection-local content identity, independent of document revision.
+
+        Moving an unchanged slice within its section keeps its ID. Inserting an
+        identical slice before it can change its occurrence number. Legacy
+        chunks without section metadata use their original ordinal instead.
+        """
+        return _digest("chunk-content", {
+            "parent_id": self.parent_id, "content": self.content,
+            "occurrence": self.occurrence if self.section_id else self.chunk_index,
+        })
 
 
 SCHEMA_VERSION = 1
@@ -117,8 +167,9 @@ class ChunkRecord:
     that is not supplied (for example when loading a stored record).
 
     IDs do not depend on the embedding model, build version, or machine path.
-    Actual chunk fields determine identity; a chunking configuration change that
-    produces identical chunks need not change their IDs.
+    New chunk identities are scoped to vault_id without including the document
+    revision or positions. Legacy records without section metadata retain their
+    original revision-based IDs so existing snapshots remain readable.
     """
 
     vault_id: str
@@ -142,6 +193,20 @@ class ChunkRecord:
             _require_integer(getattr(self.chunk, name), name, minimum=0)
         if self.chunk.end_char - self.chunk.start_char != len(self.chunk.content):
             raise ValueError("chunk span must match its content length.")
+        if (not isinstance(self.chunk.heading_path, tuple)
+                or any(not isinstance(heading, str) for heading in self.chunk.heading_path)):
+            raise ValueError("heading_path must contain strings.")
+        _require_integer(self.chunk.occurrence, "occurrence", minimum=0)
+        if self.chunk.section_id is not None:
+            _require_digest(self.chunk.section_id, "section_id")
+            for name in ("section_start_char", "section_end_char"):
+                _require_integer(getattr(self.chunk, name), name, minimum=0)
+            if not (self.chunk.section_start_char <= self.chunk.start_char
+                    <= self.chunk.end_char <= self.chunk.section_end_char):
+                raise ValueError("chunk must lie within its section span.")
+        elif (self.chunk.heading_path or self.chunk.section_start_char is not None
+              or self.chunk.section_end_char is not None or self.chunk.occurrence):
+            raise ValueError("section metadata requires a section_id.")
 
     @classmethod
     def from_note(cls, chunk: Chunk, *, note: Note, vault_id: str) -> "ChunkRecord":
@@ -156,6 +221,7 @@ class ChunkRecord:
             chunk.source != note.source
             or chunk.title != note.title
             or chunk.end_char > len(note.content)
+            or (chunk.section_end_char is not None and chunk.section_end_char > len(note.content))
             or chunk.content != note.content[chunk.start_char:chunk.end_char]
         ):
             raise ValueError("chunk must match its source note and character span.")
@@ -167,10 +233,17 @@ class ChunkRecord:
 
     @property
     def chunk_id(self) -> str:
+        if self.chunk.section_id is not None:
+            return _digest("scoped-chunk", {
+                "document_id": self.document_id, "chunk_id": self.chunk.chunk_id,
+            })
+        # Hash precisely the original six fields for pre-Markdown snapshots.
         return _digest("chunk-id", {
             "document_id": self.document_id,
             "document_revision": self.document_revision,
-            "chunk": asdict(self.chunk),
+            "chunk": {name: getattr(self.chunk, name) for name in (
+                "content", "title", "source", "chunk_index", "start_char", "end_char",
+            )},
         })
 
 
