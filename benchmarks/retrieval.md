@@ -85,3 +85,22 @@ After caching, use `ARKB_RERANKER_OFFLINE=1` to verify entirely offline. CPU
 inference is repeatable within a fixed environment; bitwise agreement across
 hardware or library versions is not guaranteed. The tiny integration fixture
 checks relevance ordering, not broad model quality.
+
+`RerankedRetriever(retriever, reranker, candidate_k=20)` composes any primitive
+with optional reranking, requesting the full pool before applying final top-K.
+For hybrid, require `top_k <= rerank_candidates <= candidate_k` (the per-source
+hybrid depth). Retrieval cannot recover candidates excluded from that pool.
+
+```sh
+uv run --locked --extra rerank python -m arkb.retrieval_evaluation \
+  --cases benchmarks/retrieval-cases.jsonl --output /tmp/retrieval-four-way.json \
+  --modes semantic bm25 hybrid hybrid_reranked --top-k 5 \
+  --candidate-k 20 --rerank-candidates 20 \
+  --reranker-cache .uv-cache/reranker-models --offline
+```
+
+`--reranker-model`, `--reranker-revision`, and `--reranker-max-length` select an
+explicit reranker configuration. Relevance and latency use the same questions
+and snapshot for every mode. Full input ranks in reranked hit metadata show
+which candidates moved; isolated `evaluate_reranker` diagnostics measure just
+reranking latency. Whole-pipeline timings include all retrieval and scoring calls.

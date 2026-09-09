@@ -16,6 +16,9 @@ def components():
     index = SimpleNamespace(spec=spec, index_id='snapshot', search=Mock(return_value=tuple(
         chunk_result(r, method='semantic', index_id='snapshot', score=s, score_type='cosine_similarity')
         for r, s in zip(reversed(records), (.9, .5)))))
+    hits = index.search.return_value
+    index.search.side_effect = lambda vector, top_k, filters: tuple(
+        hit for hit in hits if 'source' not in filters or hit.source == filters['source'])[:top_k]
     embedder = SimpleNamespace(spec=spec, embed_query=Mock(return_value=[1., 0.]))
     return BM25Retriever(records, index_id='snapshot'), SemanticRetriever(embedder, index)
 
@@ -72,3 +75,25 @@ def test_three_baselines_share_one_evaluation_dataset():
                                 [{'id': 'q', 'question': 'rare', 'relevance': {'a.md': 1}}], top_k=2)
     assert report['summary']['bm25']['mrr'] == report['summary']['hybrid']['mrr'] == 1
     assert report['summary']['semantic']['mrr'] == .5
+
+
+def test_optional_reranking_scores_full_hybrid_pool_before_final_top_k():
+    from arkb.retrieval.hybrid import HybridRetriever
+    from arkb.retrieval.reranker import Reranker, RerankedRetriever
+    from arkb.retrieval_evaluation import evaluate_retrievers
+    lexical, semantic = components()
+    hybrid = HybridRetriever(lexical, semantic, candidate_k=2)
+    scorer = SimpleNamespace(identity='frozen-relevance', score_type='logit',
+                             score=Mock(return_value=[-1., 3.]))
+    reranked = RerankedRetriever(hybrid, Reranker(scorer), candidate_k=2)
+    report = evaluate_retrievers({'semantic': semantic, 'bm25': lexical, 'hybrid': hybrid,
+                                 'hybrid_reranked': reranked},
+                                [{'id': 'q', 'question': 'rare', 'relevance': {'b.md': 1}}], top_k=1)
+    assert report['summary']['hybrid']['mrr'] == 0
+    assert report['summary']['hybrid_reranked']['mrr'] == 1
+    pool = scorer.score.call_args.args[1]
+    assert [hit.source for hit in pool] == ['a.md', 'b.md']
+    hit = reranked.search('rare', top_k=1).results[0]
+    assert hit.metadata['rerank']['input_rank'] == 2
+    assert hit.metadata['fusion']['contributions'][0]['method'] == 'semantic'
+    assert hit.score_type == 'logit'

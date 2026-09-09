@@ -2,9 +2,9 @@
 
 from arkb.retrieval.contracts import Retriever, SearchResponse, SearchResult
 from arkb.retrieval.bm25 import BM25Retriever
-from arkb.retrieval.reranker import CandidateScorer, Reranker
+from arkb.retrieval.reranker import CandidateScorer, Reranker, RerankedRetriever
 from arkb.retrieval.hybrid import HybridRetriever
 from arkb.retrieval.fusion import rrf
 from arkb.retrieval.semantic import Embedder, SemanticRetriever, VectorIndex
 
-__all__ = ['CandidateScorer', 'Reranker', 'HybridRetriever', 'rrf', 'BM25Retriever', 'Retriever', 'SearchResult', 'SearchResponse', 'Embedder', 'VectorIndex', 'SemanticRetriever']
+__all__ = ['RerankedRetriever', 'CandidateScorer', 'Reranker', 'HybridRetriever', 'rrf', 'BM25Retriever', 'Retriever', 'SearchResult', 'SearchResponse', 'Embedder', 'VectorIndex', 'SemanticRetriever']

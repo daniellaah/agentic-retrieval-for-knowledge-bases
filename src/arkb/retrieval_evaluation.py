@@ -125,8 +125,13 @@ def main(argv=None) -> int:
     parser.add_argument('--index-version')
     parser.add_argument('--cases', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True, help='New JSON file; never overwritten.')
-    parser.add_argument('--modes', nargs='+', choices=('semantic', 'bm25', 'hybrid'), default=['semantic', 'bm25', 'hybrid'])
+    parser.add_argument('--modes', nargs='+', choices=('semantic', 'bm25', 'hybrid', 'hybrid_reranked'), default=['semantic', 'bm25', 'hybrid'])
     parser.add_argument('--candidate-k', type=int, default=20)
+    parser.add_argument('--rerank-candidates', type=int, default=20)
+    parser.add_argument('--reranker-cache')
+    parser.add_argument('--reranker-model', default='cross-encoder/ms-marco-MiniLM-L6-v2')
+    parser.add_argument('--reranker-revision', default='233902d25c440f23af6f7d6e94d2946bac0bee0a')
+    parser.add_argument('--reranker-max-length', type=int, default=512)
     parser.add_argument('--rrf-k', type=float, default=60)
     parser.add_argument('--top-k', type=int, default=10)
     parser.add_argument('--relevance-key', choices=('source', 'source_id', 'chunk_id'), default='source')
@@ -156,7 +161,7 @@ def main(argv=None) -> int:
             if set(case['relevance']) - known:
                 raise ValueError('Relevance labels refer to evidence outside the pinned snapshot.')
         retrievers = {}
-        if set(args.modes) & {'semantic', 'hybrid'}:
+        if set(args.modes) & {'semantic', 'hybrid', 'hybrid_reranked'}:
             from ollama import Client
             from arkb.embeddings import resolve_embedding_spec
             from arkb.retrieval.semantic import SemanticRetriever
@@ -177,13 +182,22 @@ def main(argv=None) -> int:
                 tokenizer_identity=index.inputs['tokenizer'], max_input_tokens=index.inputs['max_tokens'],
                 query_instruction=manifest.query_instruction)
             retrievers['semantic'] = SemanticRetriever(embedder, index)
-        if set(args.modes) & {'bm25', 'hybrid'}:
+        if set(args.modes) & {'bm25', 'hybrid', 'hybrid_reranked'}:
             retrievers['bm25'] = BM25Retriever(records, index_id=manifest.index_version,
                                                 k1=args.bm25_k1, b=args.bm25_b)
-        if 'hybrid' in args.modes:
+        if set(args.modes) & {'hybrid', 'hybrid_reranked'}:
             from arkb.retrieval.hybrid import HybridRetriever
             retrievers['hybrid'] = HybridRetriever(retrievers['bm25'], retrievers['semantic'],
                                                   candidate_k=args.candidate_k, rrf_k=args.rrf_k)
+        if 'hybrid_reranked' in args.modes:
+            from arkb.retrieval.cross_encoder import CrossEncoderScorer
+            from arkb.retrieval.reranker import Reranker, RerankedRetriever
+            if args.rerank_candidates > args.candidate_k:
+                raise ValueError('rerank-candidates cannot exceed hybrid candidate-k.')
+            reranker = Reranker(CrossEncoderScorer(model=args.reranker_model, revision=args.reranker_revision,
+                max_length=args.reranker_max_length, cache_folder=args.reranker_cache, local_files_only=args.offline))
+            retrievers['hybrid_reranked'] = RerankedRetriever(retrievers['hybrid'], reranker,
+                                                           candidate_k=args.rerank_candidates)
         retrievers = {name: retrievers[name] for name in dict.fromkeys(args.modes)}
         report = evaluate_retrievers(retrievers, cases, top_k=args.top_k, relevance_key=args.relevance_key)
         package = Path(__file__).parent

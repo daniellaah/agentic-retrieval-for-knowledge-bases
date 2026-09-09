@@ -1,11 +1,11 @@
 """Rerank frozen candidates with a replaceable, higher-is-better scorer."""
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 import math
 from typing import Protocol
 
-from arkb.retrieval.contracts import SearchResult, validate_request
+from arkb.retrieval.contracts import Retriever, SearchResponse, SearchResult, validate_options, validate_request
 
 
 class CandidateScorer(Protocol):
@@ -52,5 +52,31 @@ class Reranker:
                                  'scorer': self.scorer.identity, 'input_rank': i + 1,
                                  'input_method': candidates[i].method, 'input_score': candidates[i].score,
                                  'input_score_type': candidates[i].score_type,
+                                 'candidate_count': len(candidates),
                                  'previous': candidates[i].metadata.get('rerank')}})
                      for i in order[:top_k])
+
+
+@dataclass(frozen=True)
+class RerankedRetriever:
+    """Optional composition for any retriever; rerank before final truncation."""
+    retriever: Retriever
+    reranker: Reranker
+    candidate_k: int = 20
+
+    def __post_init__(self):
+        validate_options(self.candidate_k, None)
+
+    def search(self, query: str, *, top_k: int = 2,
+               filters: Mapping[str, str] | None = None) -> SearchResponse:
+        filters = validate_request(query, top_k, filters)
+        if top_k > self.candidate_k:
+            raise ValueError('top_k cannot exceed reranking candidate_k.')
+        response = self.retriever.search(query, top_k=self.candidate_k, filters=dict(filters))
+        if (not isinstance(response, SearchResponse) or response.query != query
+                or len(response.results) > self.candidate_k
+                or any('source' in filters and h.source != filters['source'] for h in response.results)):
+            raise ValueError('Retriever returned invalid reranking candidates or filters.')
+        results = self.reranker.rerank(query, response.results, top_k=top_k)
+        return SearchResponse(query=query, method=response.method + '+rerank',
+                              results=results, index_id=response.index_id)
