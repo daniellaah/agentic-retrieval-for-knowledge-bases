@@ -3,11 +3,12 @@ from functools import partial
 import numpy as np
 import pytest
 
-from arkb.indexing.chunking import Chunk, whole_note_chunks
+from arkb.knowledge.models import Chunk
+from arkb.knowledge.chunking import whole_note_chunks
 from arkb.evaluation import compare_retrieval, evidence_statistics, recall_at_k
-from arkb.indexing.loaders import Note
+from arkb.knowledge.models import Note
 from arkb.retrieval.qdrant import search_qdrant
-from arkb.schema import ChunkRecord, EmbeddingSpec
+from arkb.knowledge.models import ChunkRecord, EmbeddingSpec
 
 
 def test_neighbor_recall_counts_unique_exact_neighbors_and_handles_no_reference():
@@ -37,7 +38,7 @@ def test_comparison_separates_neighbor_recall_from_evidence_coverage(qdrant):
     notes = [Note(title='T', content='evidence', source=f'{i}.md') for i in range(2)]
     records = [ChunkRecord.from_note(whole_note_chunks([n])[0], note=n, vault_id='v') for n in notes]
     vectors = np.eye(2)
-    from arkb.indexing import QdrantIndex
+    from arkb.knowledge.qdrant import QdrantIndex
     index = QdrantIndex(qdrant, 'evaluation', spec, vault_id='v', create=True)
     index.upsert(records, vectors)
     search = partial(search_qdrant, qdrant, 'evaluation', spec=spec, vault_id='v')
@@ -165,8 +166,8 @@ def test_runner_hashes_nested_sources_and_preserves_snapshot_and_artifacts(tmp_p
 
     import arkb.evaluation as evaluation
     from arkb.context import GenerationCounter
-    from arkb.indexing import build_index
-    from arkb.storage import SQLiteStorage
+    from arkb.knowledge.indexing import build_index
+    from arkb.knowledge.sqlite import SQLiteStorage
 
     # Identical basenames in different packages must retain distinct identities.
     package_dir = tmp_path / 'src' / 'arkb'
@@ -201,12 +202,12 @@ def test_runner_hashes_nested_sources_and_preserves_snapshot_and_artifacts(tmp_p
         build_index(storage, [Note('Title', 'A fact.', 'a.md')], spec=spec, vault_id='default',
                     client=client, tokenizer=tokenizer, max_input_tokens=100, chunking='none',
                     qdrant_client=qdrant, qdrant_config=qdrant_config)
-    monkeypatch.setattr('arkb.storage.connect_qdrant', lambda *a: qdrant)
+    monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', lambda *a: qdrant)
     before = db.read_bytes()
     client.embed.reset_mock()
     monkeypatch.setattr('ollama.Client', lambda **kw: client)
-    monkeypatch.setattr('arkb.embeddings.resolve_embedding_spec', lambda *a, **kw: spec)
-    monkeypatch.setattr('arkb.tokenization.load_tokenizer', lambda **kw: tokenizer)
+    monkeypatch.setattr('arkb.knowledge.embeddings.resolve_embedding_spec', lambda *a, **kw: spec)
+    monkeypatch.setattr('arkb.knowledge.embeddings.load_tokenizer', lambda **kw: tokenizer)
     counter = GenerationCounter('test-generation', 'test-count',
                                  lambda messages: 10 + sum(len(m['content']) for m in messages))
     monkeypatch.setattr('arkb.generation.load_generation_counter', lambda **kw: counter)

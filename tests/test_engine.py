@@ -4,8 +4,8 @@ from unittest.mock import Mock
 import pytest
 
 from arkb.retrieval import BM25Retriever, Reranker, SearchResponse
-from arkb.chunking import whole_note_chunks
-from arkb.schema import ChunkRecord, Note
+from arkb.knowledge.chunking import whole_note_chunks
+from arkb.knowledge.models import ChunkRecord, Note
 
 
 def test_engine_explicit_modes_preserve_primitive_behavior_and_optional_reranking():

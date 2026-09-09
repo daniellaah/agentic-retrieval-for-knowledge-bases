@@ -9,12 +9,12 @@ import numpy as np
 import pytest
 from qdrant_client import QdrantClient
 
-from arkb.indexing.chunking import whole_note_chunks
-from arkb.indexing import QdrantIndex
-from arkb.indexing.loaders import Note
-from arkb.storage import check_qdrant_collection
+from arkb.knowledge.chunking import whole_note_chunks
+from arkb.knowledge.qdrant import QdrantIndex
+from arkb.knowledge.models import Note
+from arkb.knowledge.qdrant import check_qdrant_collection
 from arkb.retrieval.qdrant import search_qdrant
-from arkb.schema import ChunkRecord, EmbeddingSpec
+from arkb.knowledge.models import ChunkRecord, EmbeddingSpec
 
 
 pytestmark = pytest.mark.skipif(not os.environ.get('OBSIDIAN_RAG_QDRANT_URL'),

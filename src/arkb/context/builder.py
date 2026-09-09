@@ -8,7 +8,7 @@ import math
 
 from arkb.context.citation import CitationOrigin, CitationSource
 from arkb.retrieval.contracts import SearchResult
-from arkb.schema import Chunk, ChunkRecord
+from arkb.knowledge.models import Chunk, ChunkRecord
 
 
 _CITATION_PROMPT = """Answer the user's question using only the provided notes.

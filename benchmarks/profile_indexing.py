@@ -29,11 +29,13 @@ from ollama import EmbedResponse
 from qdrant_client import QdrantClient
 from tokenizers import Tokenizer, models, pre_tokenizers
 
-from arkb.embeddings import prepare_document
-from arkb.indexing import QdrantConfig, QdrantIndex, build_index
-from arkb.indexing.chunking import whole_note_chunks
-from arkb.schema import EmbeddingSpec, Note
-from arkb.storage import SQLiteStorage
+from arkb.knowledge.embeddings import prepare_document
+from arkb.knowledge.models import QdrantConfig
+from arkb.knowledge.qdrant import QdrantIndex
+from arkb.knowledge.indexing import build_index
+from arkb.knowledge.chunking import whole_note_chunks
+from arkb.knowledge.models import EmbeddingSpec, Note
+from arkb.knowledge.sqlite import SQLiteStorage
 
 
 class Timings:

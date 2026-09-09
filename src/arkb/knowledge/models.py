@@ -6,12 +6,12 @@ document's identity; identical embedding inputs may still reuse cached vectors.
 """
 
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
+import math
 import hashlib
 import json
 import re
 from typing import Literal
-from uuid import NAMESPACE_URL, uuid5
 
 
 @dataclass(frozen=True)
@@ -349,14 +349,48 @@ def validate_records(records: Sequence[ChunkRecord], *, vault_id: str) -> None:
     if len({record.chunk_id for record in records}) != len(records):
         raise ValueError("Duplicate chunk IDs in one vector batch.")
 
+def require_qdrant_backend(metadata: dict) -> None:
+    """Retired snapshots remain readable as metadata, but cannot serve queries."""
+    if metadata.get('kind') != 'qdrant':
+        raise ValueError('This index uses a retired backend; run arkb index to rebuild it in Qdrant. '
+                         'Compatible cached embeddings will be reused.')
 
-def point_id(chunk_id: str) -> str:
-    if not isinstance(chunk_id, str) or re.fullmatch('[0-9a-f]{64}', chunk_id) is None:
-        raise ValueError('Expected a SHA-256 chunk ID.')
-    # Preserve the UUID mapping used by existing Qdrant collections.
-    return str(uuid5(NAMESPACE_URL, 'obsidian-rag/chunk/' + chunk_id))
+@dataclass(frozen=True)
+class QdrantConfig:
+    """Endpoint and build settings; defaults also decode existing snapshots.
 
+    The caller supplies a client connected to this endpoint. Credentials belong
+    to that client, never to the persisted configuration.
+    """
 
-def qdrant_identity(spec: EmbeddingSpec, vault_id: str) -> dict:
-    """Metadata identifying one owned Qdrant collection's embedding space."""
-    return {'owner': 'obsidian-rag', 'schema': 1, 'embedding_spec': spec.fingerprint, 'vault_id': vault_id}
+    url: str = 'http://127.0.0.1:6333'
+    hnsw_m: int = 16
+    ef_construct: int = 100
+    indexing_threshold: int = 10000
+    full_scan_threshold: int = 10000
+    index_timeout: float = 30
+    require_hnsw: bool = False
+
+    def __post_init__(self):
+        if not isinstance(self.url, str) or not self.url.strip():
+            raise ValueError('Qdrant url must be nonblank.')
+        for name, minimum in (('hnsw_m', 2), ('ef_construct', 1),
+                              ('indexing_threshold', 0), ('full_scan_threshold', 10)):
+            value = getattr(self, name)
+            if type(value) is not int or value < minimum:
+                raise ValueError(f'{name} must be an integer >= {minimum}.')
+        if (type(self.index_timeout) not in (int, float)
+                or not math.isfinite(self.index_timeout) or self.index_timeout <= 0):
+            raise ValueError('Index readiness timeout must be positive and finite.')
+        if type(self.require_hnsw) is not bool:
+            raise ValueError('require_hnsw must be boolean.')
+        if self.require_hnsw and self.indexing_threshold == 0:
+            raise ValueError('require_hnsw needs a positive indexing_threshold.')
+
+    def to_metadata(self) -> dict:
+        return {'kind': 'qdrant', **asdict(self)}
+
+    @classmethod
+    def from_metadata(cls, metadata: dict) -> 'QdrantConfig':
+        require_qdrant_backend(metadata)
+        return cls(**{field.name: metadata[field.name] for field in fields(cls) if field.name in metadata})

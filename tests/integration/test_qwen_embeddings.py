@@ -5,10 +5,10 @@ import os
 from ollama import Client
 import pytest
 
-from arkb.indexing.chunking import whole_note_chunks
-from arkb.embeddings import prepare_document, prepare_query, validate_input_tokens
-from arkb.indexing.loaders import Note
-from arkb.tokenization import load_tokenizer
+from arkb.knowledge.chunking import whole_note_chunks
+from arkb.knowledge.embeddings import prepare_document, prepare_query, validate_input_tokens
+from arkb.knowledge.models import Note
+from arkb.knowledge.embeddings import load_tokenizer
 
 
 pytestmark = pytest.mark.skipif(

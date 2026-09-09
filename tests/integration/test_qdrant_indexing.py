@@ -12,11 +12,13 @@ import pytest
 from qdrant_client import QdrantClient
 from tokenizers import Tokenizer, models, pre_tokenizers
 
-from arkb.indexing import build_index, QdrantConfig, QdrantIndex
-from arkb.indexing.loaders import Note
+from arkb.knowledge.indexing import build_index
+from arkb.knowledge.models import QdrantConfig
+from arkb.knowledge.qdrant import QdrantIndex
+from arkb.knowledge.models import Note
 from arkb.retrieval.qdrant import search_index
-from arkb.schema import EmbeddingSpec
-from arkb.storage import SQLiteStorage
+from arkb.knowledge.models import EmbeddingSpec
+from arkb.knowledge.sqlite import SQLiteStorage
 
 
 pytestmark = pytest.mark.skipif(not os.environ.get('OBSIDIAN_RAG_QDRANT_URL'),

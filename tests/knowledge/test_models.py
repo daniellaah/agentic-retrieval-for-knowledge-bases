@@ -6,15 +6,10 @@ import sys
 
 import pytest
 
-from arkb.indexing.chunking import Chunk, chunk_notes, whole_note_chunks
-from arkb.indexing.loaders import Note
-from arkb.schema import (
-    SCHEMA_VERSION,
-    ChunkRecord,
-    EmbeddingSpec,
-    IndexManifest,
-    fingerprint_config,
-)
+from arkb.knowledge.models import Chunk
+from arkb.knowledge.chunking import chunk_notes, whole_note_chunks
+from arkb.knowledge.models import Note
+from arkb.knowledge.models import SCHEMA_VERSION, ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
 
 
 @pytest.fixture
@@ -82,8 +77,8 @@ def test_ids_are_stable_across_processes_and_python_hash_seeds(note: Note) -> No
         "0c77bf8396a483e0586ec8b01d18db9f006e69cf9ec8107ca00f005a8bab6159",
     ]
     script = """
-from arkb.schema import Chunk, ChunkRecord
-from arkb.indexing.loaders import Note
+from arkb.knowledge.models import Chunk, ChunkRecord
+from arkb.knowledge.documents import Note
 note = Note(title="重复片段", content="ab ab ab", source="notes/repeated.md")
 chunk = Chunk(note.content, note.title, note.source, 0, 0, len(note.content))
 record = ChunkRecord.from_note(chunk, note=note, vault_id="personal")

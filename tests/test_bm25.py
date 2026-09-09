@@ -1,7 +1,7 @@
 import pytest
 
-from arkb.chunking import whole_note_chunks
-from arkb.schema import ChunkRecord, Note
+from arkb.knowledge.chunking import whole_note_chunks
+from arkb.knowledge.models import ChunkRecord, Note
 
 
 def records(*texts):
@@ -59,11 +59,11 @@ def test_sqlite_baseline_uses_published_semantic_chunks_without_models_or_vector
     from unittest.mock import Mock
     from ollama import Client, EmbedResponse
     from tokenizers import Tokenizer, models
-    from arkb.indexing import build_index
+    from arkb.knowledge.indexing import build_index
     from arkb.retrieval.bm25 import BM25Retriever
     from arkb.retrieval.qdrant import snapshot_result
-    from arkb.schema import EmbeddingSpec
-    from arkb.storage import SQLiteStorage
+    from arkb.knowledge.models import EmbeddingSpec
+    from arkb.knowledge.sqlite import SQLiteStorage
     tokenizer = Tokenizer(models.WordLevel({'[UNK]': 0}, unk_token='[UNK]'))
     client = Mock(spec=Client)
     client.embed.side_effect = lambda **kw: EmbedResponse(embeddings=[[1., 0.] for _ in kw['input']])

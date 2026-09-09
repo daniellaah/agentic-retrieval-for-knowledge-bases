@@ -15,7 +15,7 @@ import unicodedata
 
 from arkb.retrieval.contracts import SearchResponse, validate_request
 from arkb.retrieval.snapshot import chunk_result
-from arkb.schema import ChunkRecord, validate_records
+from arkb.knowledge.models import ChunkRecord, validate_records
 
 
 def _tokens(text: str) -> list[str]:

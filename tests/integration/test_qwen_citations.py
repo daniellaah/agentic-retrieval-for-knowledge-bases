@@ -9,17 +9,17 @@ from contextlib import closing
 from uuid import uuid4
 
 from qdrant_client import QdrantClient
-from arkb.storage import SQLiteStorage
+from arkb.knowledge.sqlite import SQLiteStorage
 
 from ollama import Client
 import pytest
 
-from arkb.indexing.chunking import whole_note_chunks
+from arkb.knowledge.chunking import whole_note_chunks
 from arkb.context import ContextConfig, build_context
 from arkb.generation import load_generation_counter
-from arkb.schema import ChunkRecord
+from arkb.knowledge.models import ChunkRecord
 from arkb.generation import CitedGenerationError, generate_cited_answer
-from arkb.indexing.loaders import Note
+from arkb.knowledge.models import Note
 from arkb.retrieval.qdrant import snapshot_result
 
 

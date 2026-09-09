@@ -2,10 +2,10 @@ import json
 
 import pytest
 
-from arkb.indexing.chunking import Chunk
+from arkb.knowledge.models import Chunk
 from arkb.context import build_context
 from arkb.retrieval.qdrant import snapshot_result
-from arkb.schema import Note, ChunkRecord
+from arkb.knowledge.models import Note, ChunkRecord
 
 
 def test_context_preserves_question_unicode_and_source_while_removing_duplicate():
@@ -36,8 +36,8 @@ def test_context_handles_empty_evidence_and_rejects_blank_question():
 
 
 def test_context_preserves_snapshot_provenance_without_exposing_it_in_prompt():
-    from arkb.indexing.loaders import Note
-    from arkb.schema import ChunkRecord
+    from arkb.knowledge.models import Note
+    from arkb.knowledge.models import ChunkRecord
     note = Note('Title', 'A fact.', 'notes/a.md')
     chunk = Chunk(note.content, note.title, note.source, 0, 0, len(note.content))
     record = ChunkRecord.from_note(chunk, note=note, vault_id='v')
@@ -118,8 +118,8 @@ def test_quoted_protocol_is_counted_and_bound_to_its_mapping():
 
 def source_hit(start, end, *, text='abcdefghijklmnop', source='a.md', index=0,
                version='v1', vault='vault', score=.8):
-    from arkb.indexing.loaders import Note
-    from arkb.schema import ChunkRecord
+    from arkb.knowledge.models import Note
+    from arkb.knowledge.models import ChunkRecord
     note = Note('Title', text, source)
     chunk = Chunk(text[start:end], note.title, source, index, start, end)
     record = ChunkRecord.from_note(chunk, note=note, vault_id=vault)

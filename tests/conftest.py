@@ -16,5 +16,5 @@ def qdrant():
 
 @pytest.fixture
 def qdrant_config():
-    from arkb.indexing import QdrantConfig
+    from arkb.knowledge.models import QdrantConfig
     return QdrantConfig()

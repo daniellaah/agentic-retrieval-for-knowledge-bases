@@ -6,11 +6,12 @@ import numpy as np
 import pytest
 from qdrant_client import QdrantClient
 
-from arkb.indexing.chunking import whole_note_chunks
-from arkb.indexing import QdrantConfig, QdrantIndex
-from arkb.indexing.loaders import Note
+from arkb.knowledge.chunking import whole_note_chunks
+from arkb.knowledge.models import QdrantConfig
+from arkb.knowledge.qdrant import QdrantIndex
+from arkb.knowledge.models import Note
 from arkb.retrieval.qdrant import search_qdrant
-from arkb.schema import ChunkRecord, EmbeddingSpec
+from arkb.knowledge.models import ChunkRecord, EmbeddingSpec
 
 
 @pytest.fixture
@@ -18,10 +19,10 @@ def published_index(tmp_path, qdrant, qdrant_config):
     from unittest.mock import Mock
     from ollama import Client, EmbedResponse
     from tokenizers import Tokenizer, models, pre_tokenizers
-    from arkb.schema import EmbeddingSpec
-    from arkb.indexing import build_index
-    from arkb.indexing.loaders import Note
-    from arkb.storage import SQLiteStorage
+    from arkb.knowledge.models import EmbeddingSpec
+    from arkb.knowledge.indexing import build_index
+    from arkb.knowledge.models import Note
+    from arkb.knowledge.sqlite import SQLiteStorage
     tokenizer = Tokenizer(models.WordLevel({'[UNK]': 0}, unk_token='[UNK]'))
     tokenizer.pre_tokenizer = pre_tokenizers.WhitespaceSplit()
     spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2, document_template='title-body-v1')
@@ -81,7 +82,7 @@ def test_indexed_search_rejects_missing_and_unpublished_versions(published_index
 
 def test_indexed_search_rejects_unknown_backend_hits(published_index, monkeypatch):
     from arkb.retrieval.qdrant import search_index
-    from arkb.schema import VectorHit
+    from arkb.knowledge.models import VectorHit
     store, kwargs = published_index
     monkeypatch.setattr('arkb.retrieval.qdrant.search_qdrant', lambda *a, **kw: [VectorHit('orphan', 0.5)])
     with pytest.raises(ValueError, match='snapshot'):
@@ -123,7 +124,7 @@ def test_qdrant_local_contract_roundtrip_filter_and_update(tmp_path, vector_data
 
 
 def test_search_keeps_requested_snapshot_after_a_new_revision_is_published(published_index):
-    from arkb.indexing import build_index
+    from arkb.knowledge.indexing import build_index
     from arkb.retrieval.qdrant import search_index
     store, kwargs = published_index
     build_index(store, [Note('Title', 'Updated source text', 'a.md')],
@@ -178,7 +179,7 @@ def test_empty_retired_snapshot_still_requires_rebuild(published_index):
 def test_query_adapter_forwards_options_and_reads_only_hit_records(published_index, monkeypatch):
     from unittest.mock import Mock
     from arkb.retrieval.qdrant import search_index
-    from arkb.storage import SQLiteStorage
+    from arkb.knowledge.sqlite import SQLiteStorage
     store, kwargs = published_index
     client = kwargs['qdrant_client']
     search = Mock(wraps=client.query_points)
@@ -205,7 +206,7 @@ def test_query_adapter_forwards_options_and_reads_only_hit_records(published_ind
 def test_qdrant_ties_and_float32_score_tolerance_preserve_defined_cosine_semantics(vector_data):
     from types import SimpleNamespace
     from unittest.mock import Mock
-    from arkb.schema import point_id
+    from arkb.knowledge.qdrant import point_id
     spec, records = vector_data
     points = [SimpleNamespace(id=point_id(r.chunk_id), score=1.000001,
                                payload={'chunk_id': r.chunk_id, 'vault_id': 'vault',
@@ -223,7 +224,7 @@ def test_qdrant_ties_and_float32_score_tolerance_preserve_defined_cosine_semanti
 @pytest.mark.parametrize('corruption', ['duplicate', 'wrong_source', 'bad_score'])
 def test_snapshot_adapter_rejects_corrupt_backend_hits(published_index, monkeypatch, corruption):
     from arkb.retrieval.qdrant import search_index
-    from arkb.schema import VectorHit
+    from arkb.knowledge.models import VectorHit
     store, kwargs = published_index
     record = store.snapshot_records('v1')[0]
     hits = [VectorHit(record.chunk_id, float('nan') if corruption == 'bad_score' else .5)]
@@ -235,7 +236,7 @@ def test_snapshot_adapter_rejects_corrupt_backend_hits(published_index, monkeypa
 
 
 def test_empty_snapshot_validates_input_without_model_or_vector_search(published_index):
-    from arkb.indexing import build_index
+    from arkb.knowledge.indexing import build_index
     from arkb.retrieval.qdrant import search_index
     store, kwargs = published_index
     build_index(store, [], spec=kwargs['spec'], vault_id='vault', tokenizer=kwargs['tokenizer'],
@@ -251,7 +252,7 @@ def test_empty_snapshot_validates_input_without_model_or_vector_search(published
 
 
 def test_opened_snapshot_stays_pinned_and_preserves_markdown_provenance(published_index):
-    from arkb.indexing import build_index
+    from arkb.knowledge.indexing import build_index
     from arkb.retrieval.qdrant import QdrantSnapshotIndex, search_index
     store, kwargs = published_index
     pinned = QdrantSnapshotIndex(store, kwargs['qdrant_client'], vault_id='vault', exact=True)

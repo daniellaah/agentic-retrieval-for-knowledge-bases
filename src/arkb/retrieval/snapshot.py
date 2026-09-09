@@ -1,7 +1,7 @@
 """Shared translation of immutable stored chunks to retrieval evidence."""
 
 from arkb.retrieval.contracts import SearchResult
-from arkb.schema import ChunkRecord
+from arkb.knowledge.models import ChunkRecord
 
 
 def chunk_result(record: ChunkRecord, *, method: str, index_id: str | None = None,

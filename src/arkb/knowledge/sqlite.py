@@ -5,15 +5,13 @@ from dataclasses import asdict, replace
 import fcntl
 import hashlib
 import json
-import os
 from pathlib import Path
 import sqlite3
-from urllib.parse import urlsplit
 
 import numpy as np
 
-from arkb.embeddings import prepare_document, validate_vectors
-from arkb.schema import Chunk, ChunkRecord, EmbeddingSpec, IndexManifest, qdrant_identity
+from arkb.knowledge.embeddings import prepare_document, validate_vectors
+from arkb.knowledge.models import Chunk, ChunkRecord, EmbeddingSpec, IndexManifest
 
 
 STORAGE_VERSION = 1
@@ -286,34 +284,3 @@ class SQLiteStorage:
                 or manifest.embedding_spec.embedding_key(text) != row['embedding_key']):
             raise ValueError('Corrupt snapshot hit identity.')
         return record
-
-
-def check_qdrant_collection(client, collection: str, *, spec: EmbeddingSpec, vault_id: str):
-    """Validate identity when opening a snapshot, before embedding or querying it."""
-    from qdrant_client import models
-    if not isinstance(collection, str) or not collection.strip():
-        raise ValueError('collection must be nonblank.')
-    if not isinstance(vault_id, str) or not vault_id.strip():
-        raise ValueError('vault_id must be nonblank.')
-    info = client.get_collection(collection)
-    vectors = info.config.params.vectors
-    if (not isinstance(vectors, models.VectorParams) or vectors.size != spec.dimensions
-            or vectors.distance != models.Distance.COSINE or info.config.metadata != qdrant_identity(spec, vault_id)):
-        raise ValueError('Qdrant collection configuration does not match the embedding spec and vault.')
-    return info
-
-
-def connect_qdrant(url: str, timeout: float):
-    from qdrant_client import QdrantClient
-    parts = urlsplit(url)
-    if (parts.scheme not in ('http', 'https') or not parts.hostname or parts.username
-            or parts.password or parts.query or parts.fragment):
-        raise ValueError('Use an HTTP(S) Qdrant URL without embedded credentials; set QDRANT_API_KEY if needed.')
-    return QdrantClient(url=url, api_key=os.environ.get('QDRANT_API_KEY'), timeout=timeout, trust_env=False)
-
-
-def require_qdrant_backend(metadata: dict) -> None:
-    """Retired snapshots remain readable as metadata, but cannot serve queries."""
-    if metadata.get('kind') != 'qdrant':
-        raise ValueError('This index uses a retired backend; run arkb index to rebuild it in Qdrant. '
-                         'Compatible cached embeddings will be reused.')

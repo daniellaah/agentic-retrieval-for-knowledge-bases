@@ -6,9 +6,9 @@ import os
 import pytest
 from tokenizers import Tokenizer
 
-from arkb.indexing.chunking import chunk_notes
-from arkb.indexing.loaders import Note
-from arkb.tokenization import count_tokens, load_tokenizer
+from arkb.knowledge.chunking import chunk_notes
+from arkb.knowledge.models import Note
+from arkb.knowledge.embeddings import count_tokens, load_tokenizer
 
 
 pytestmark = pytest.mark.skipif(

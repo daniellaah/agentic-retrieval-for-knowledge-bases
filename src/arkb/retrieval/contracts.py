@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 import math
 from typing import Protocol
 
-from arkb.schema import ConfigValue, fingerprint_config
+from arkb.knowledge.models import ConfigValue, fingerprint_config
 
 
 @dataclass(frozen=True, kw_only=True)

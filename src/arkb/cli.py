@@ -13,12 +13,13 @@ import sys
 from httpx import HTTPError
 from ollama import Client, ResponseError
 
-from arkb.embeddings import resolve_embedding_spec
-from arkb.indexing.index import QdrantConfig
+from arkb.knowledge.embeddings import resolve_embedding_spec
+from arkb.knowledge.models import QdrantConfig
 from arkb.context.builder import ContextConfig, build_context
 from arkb.generation import generate_cited_answer, load_generation_counter
-from arkb.storage import connect_qdrant, require_qdrant_backend
-from arkb.tokenization import load_tokenizer
+from arkb.knowledge.qdrant import connect_qdrant
+from arkb.knowledge.models import require_qdrant_backend
+from arkb.knowledge.embeddings import load_tokenizer
 
 
 def _add_context_arguments(parser):
@@ -58,7 +59,7 @@ def _answer_output(args, context, client):
 
 
 def _parser():
-    from arkb.embeddings import DEFAULT_QUERY_INSTRUCTION
+    from arkb.knowledge.embeddings import DEFAULT_QUERY_INSTRUCTION
     parser = argparse.ArgumentParser(prog='arkb')
     commands = parser.add_subparsers(dest='command', required=True)
     for name in ('index', 'query', 'status'):
@@ -112,11 +113,11 @@ def _parser():
     return parser
 
 def main(argv: Sequence[str] | None = None) -> int:
-    from arkb.indexing.index import build_index
-    from arkb.indexing.loaders import scan_notes
+    from arkb.knowledge.indexing import build_index
+    from arkb.knowledge.documents import scan_notes
     from arkb.retrieval import BM25Retriever, RetrievalEngine, Reranker
     from arkb.retrieval.qdrant import SnapshotSemanticRetriever
-    from arkb.storage import SQLiteStorage
+    from arkb.knowledge.sqlite import SQLiteStorage
     from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
     parser = _parser()

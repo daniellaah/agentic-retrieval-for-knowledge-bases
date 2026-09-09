@@ -10,9 +10,9 @@ import sys
 import pytest
 from tokenizers import Tokenizer, models
 
-from arkb.chunking import chunk_notes, whole_note_chunks
-from arkb.schema import Chunk, ChunkRecord, Note
-from arkb.tokenization import count_tokens
+from arkb.knowledge.chunking import chunk_notes, whole_note_chunks
+from arkb.knowledge.models import Chunk, ChunkRecord, Note
+from arkb.knowledge.embeddings import count_tokens
 
 
 def test_whole_note_chunks_preserves_each_note_and_its_origin() -> None:
@@ -425,24 +425,18 @@ def test_mixed_markdown_is_lossless_across_many_small_budgets() -> None:
 def test_chunking_is_stable_across_processes_and_imports_without_optional_dependencies() -> None:
     script = '''
 import json, sys
-from arkb.chunking import chunk_notes
-from arkb.schema import Note, ChunkRecord
+from arkb.knowledge.chunking import chunk_notes
+from arkb.knowledge.models import Note, ChunkRecord
 note = Note("Title", "# Same\\nabcabc\\n# Same\\nabcabc", "folder/note.md")
 chunks = chunk_notes([note], count_tokens=len, chunk_size=6, chunk_overlap=1)
-assert not any(name.startswith(("arkb.indexing", "arkb.retrieval", "ollama", "qdrant_client", "tokenizers")) for name in sys.modules)
+assert not any(name.startswith(("arkb.knowledge.indexing", "arkb.retrieval", "ollama", "qdrant_client", "tokenizers")) for name in sys.modules)
 print(json.dumps([(c.note_id, c.section_id, c.chunk_id, ChunkRecord.from_note(c, note=note, vault_id="vault").chunk_id) for c in chunks]))
 '''
     outputs = [subprocess.check_output(
         [sys.executable, "-S", "-B", "-c", script], text=True,
         env={**os.environ, "PYTHONHASHSEED": seed,
-             "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")},
+             "PYTHONPATH": str(Path(__file__).resolve().parents[2] / "src")},
     ) for seed in ("1", "99")]
     assert outputs[0] == outputs[1]
     identities = json.loads(outputs[0])
     assert len({row[2] for row in identities}) == len(identities)
-
-
-def test_original_import_path_keeps_the_same_public_functions() -> None:
-    from arkb.indexing import chunking
-    assert chunking.chunk_notes is chunk_notes
-    assert chunking.whole_note_chunks is whole_note_chunks

@@ -62,7 +62,7 @@ def tokenizer_download(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Mock:
     path = tmp_path / "tokenizer.json"
     tokenizer.save(str(path))
     download = Mock(return_value=str(path))
-    monkeypatch.setattr("arkb.tokenization.hf_hub_download", download)
+    monkeypatch.setattr("arkb.knowledge.embeddings.hf_hub_download", download)
     return download
 
 
@@ -318,7 +318,7 @@ def test_index_offline_cache_option(persistent_client, tokenizer_download):
 
 
 def test_query_rejects_retired_snapshot_before_loading_models(indexed_client, client_factory, capsys):
-    from arkb.storage import SQLiteStorage
+    from arkb.knowledge.sqlite import SQLiteStorage
     with SQLiteStorage(Path('.obsidian-rag/index.sqlite')) as storage:
         manifest = storage.active_manifest('default')
         storage.connection.execute("UPDATE builds SET backend=? WHERE version=?",
@@ -418,7 +418,7 @@ def test_four_way_benchmark_runner_uses_saved_adapters_and_preserves_artifacts(i
     from arkb.retrieval_evaluation import main as compare
     capsys.readouterr()
     monkeypatch.setattr('ollama.Client', lambda **kw: indexed_client)
-    monkeypatch.setattr('arkb.storage.connect_qdrant', lambda *a: QdrantClient(path=str(tmp_path / 'qdrant')))
+    monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', lambda *a: QdrantClient(path=str(tmp_path / 'qdrant')))
     model = SimpleNamespace(config=SimpleNamespace(num_labels=1),
         predict=lambda pairs, **kw: np.array([5. if 'habit' in text else -1. for _, text in pairs]))
     monkeypatch.setitem(sys.modules, 'sentence_transformers', SimpleNamespace(CrossEncoder=lambda *a, **kw: model))

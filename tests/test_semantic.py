@@ -10,7 +10,7 @@ from unittest.mock import Mock
 import pytest
 
 from arkb.retrieval import SearchResponse, SearchResult, SemanticRetriever
-from arkb.schema import EmbeddingSpec
+from arkb.knowledge.models import EmbeddingSpec
 
 
 @pytest.fixture
@@ -137,13 +137,13 @@ import sys
 class BlockDependencies:
     def find_spec(self, fullname, *args):
         if fullname.split('.')[0] in ('ollama', 'qdrant_client', 'numpy', 'tokenizers', 'torch', 'sentence_transformers') or fullname in (
-            'arkb.context', 'arkb.generation', 'arkb.indexing', 'arkb.storage', 'arkb.embeddings'
+            'arkb.context', 'arkb.generation', 'arkb.knowledge.indexing', 'arkb.knowledge.sqlite', 'arkb.knowledge.embeddings'
         ):
             raise AssertionError('Unexpected dependency: ' + fullname)
 sys.meta_path.insert(0, BlockDependencies())
 from types import SimpleNamespace
 from arkb.retrieval import SemanticRetriever
-from arkb.schema import EmbeddingSpec
+from arkb.knowledge.models import EmbeddingSpec
 spec = EmbeddingSpec(model='stub', model_revision='v1', dimensions=2, document_template='plain')
 embedder = SimpleNamespace(spec=spec, embed_query=lambda query: [1.0, 0.0])
 index = SimpleNamespace(spec=spec, index_id='v1', search=lambda vector, **kw: ())

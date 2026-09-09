@@ -8,11 +8,13 @@ import pytest
 from qdrant_client import QdrantClient
 from tokenizers import Tokenizer, models, pre_tokenizers, processors
 
-from arkb.indexing.chunking import whole_note_chunks
-from arkb.indexing import build_index, QdrantConfig, QdrantIndex
-from arkb.indexing.loaders import Note
-from arkb.schema import EmbeddingSpec, ChunkRecord
-from arkb.storage import SQLiteStorage
+from arkb.knowledge.chunking import whole_note_chunks
+from arkb.knowledge.indexing import build_index
+from arkb.knowledge.models import QdrantConfig
+from arkb.knowledge.qdrant import QdrantIndex
+from arkb.knowledge.models import Note
+from arkb.knowledge.models import EmbeddingSpec, ChunkRecord
+from arkb.knowledge.sqlite import SQLiteStorage
 
 
 @pytest.fixture
@@ -45,7 +47,7 @@ def test_complete_build_preserves_duplicate_occurrences_and_reuses_cache(setup):
     ('record', 'snapshot record'), ('cache', 'checksum'), ('qdrant', 'payload'),
 ])
 def test_unchanged_build_still_rejects_corrupt_snapshot(setup, corruption, message):
-    from arkb.schema import point_id
+    from arkb.knowledge.qdrant import point_id
 
     storage, options = setup
     notes = [Note(title='A', content='first', source='a.md')]
@@ -209,7 +211,7 @@ def test_invalid_vectors_and_foreign_vault_fail_before_upsert(qdrant_data):
 
 
 def test_snapshot_verification_detects_payload_and_vector_corruption(qdrant_data):
-    from arkb.schema import point_id
+    from arkb.knowledge.qdrant import point_id
     spec, records = qdrant_data
     with closing(QdrantClient(':memory:')) as client:
         store = create_qdrant_index(client, spec)
@@ -334,8 +336,8 @@ def test_old_chunking_fingerprint_requires_a_new_snapshot_but_reuses_embeddings(
     from dataclasses import asdict
     import json
 
-    from arkb.schema import fingerprint_config
-    from arkb.tokenization import tokenizer_fingerprint
+    from arkb.knowledge.models import fingerprint_config
+    from arkb.knowledge.embeddings import tokenizer_fingerprint
 
     storage, options = setup
     options['chunking'] = mode

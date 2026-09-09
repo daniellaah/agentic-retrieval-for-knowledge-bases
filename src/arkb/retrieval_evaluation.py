@@ -117,7 +117,7 @@ def main(argv=None) -> int:
     from pathlib import Path
     import platform
     from arkb.retrieval.bm25 import BM25Retriever
-    from arkb.storage import SQLiteStorage
+    from arkb.knowledge.sqlite import SQLiteStorage
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--db', type=Path, default=Path('.obsidian-rag/index.sqlite'))
@@ -177,10 +177,11 @@ def main(argv=None) -> int:
         retrievers = {}
         if set(args.modes) & {'semantic', 'hybrid', 'hybrid_reranked'}:
             from ollama import Client
-            from arkb.embeddings import resolve_embedding_spec
+            from arkb.knowledge.embeddings import resolve_embedding_spec
             from arkb.retrieval.qdrant import SnapshotSemanticRetriever
-            from arkb.storage import connect_qdrant, require_qdrant_backend
-            from arkb.tokenization import load_tokenizer
+            from arkb.knowledge.qdrant import connect_qdrant
+            from arkb.knowledge.models import require_qdrant_backend
+            from arkb.knowledge.embeddings import load_tokenizer
             metadata = storage.build_metadata(manifest.index_version)['backend']
             require_qdrant_backend(metadata)
             qclient = resources.enter_context(closing(connect_qdrant(args.qdrant_url or metadata['url'], args.timeout)))

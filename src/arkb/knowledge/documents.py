@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from arkb.schema import Note
+from arkb.knowledge.models import Note
 
 
 def load_notes(directory: Path) -> list[Note]:

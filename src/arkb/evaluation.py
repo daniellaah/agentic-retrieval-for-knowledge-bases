@@ -14,7 +14,7 @@ from time import perf_counter
 
 import numpy as np
 
-from arkb.embeddings import validate_vectors
+from arkb.knowledge.embeddings import validate_vectors
 
 
 def recall_at_k(reference: list[str], candidate: list[str], k: int) -> float | None:
@@ -273,13 +273,15 @@ def main(argv=None) -> int:
     from importlib.metadata import version
     from ollama import Client
     from arkb.retrieval.qdrant import search_qdrant
-    from arkb.embeddings import resolve_embedding_spec
-    from arkb.embeddings import prepare_query, validate_input_tokens
-    from arkb.embeddings import embed_texts
-    from arkb.indexing.index import QdrantIndex
-    from arkb.tokenization import tokenizer_fingerprint
-    from arkb.storage import require_qdrant_backend, SQLiteStorage, connect_qdrant
-    from arkb.tokenization import load_tokenizer
+    from arkb.knowledge.embeddings import resolve_embedding_spec
+    from arkb.knowledge.embeddings import prepare_query, validate_input_tokens
+    from arkb.knowledge.embeddings import embed_texts
+    from arkb.knowledge.qdrant import QdrantIndex
+    from arkb.knowledge.embeddings import tokenizer_fingerprint
+    from arkb.knowledge.models import require_qdrant_backend
+    from arkb.knowledge.sqlite import SQLiteStorage
+    from arkb.knowledge.qdrant import connect_qdrant
+    from arkb.knowledge.embeddings import load_tokenizer
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--db', type=Path, required=True)

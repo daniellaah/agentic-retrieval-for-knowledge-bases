@@ -1,63 +1,29 @@
 """Read-only Qdrant/SQLite snapshot adapter and application wiring.
 
-Index creation, upserts, cache writes and publication stay in arkb.indexing.
+Index creation, upserts, cache writes and publication stay in arkb.knowledge.indexing.
 """
 
 from collections.abc import Mapping, Sequence
 import math
+from arkb.knowledge.qdrant import search_qdrant, _validate_qdrant_options
 from typing import TYPE_CHECKING
 
-from arkb.embeddings import validate_vectors
+from arkb.knowledge.embeddings import validate_vectors
 from arkb.retrieval.contracts import SearchResponse, SearchResult, validate_options, validate_request
 from arkb.retrieval.semantic import SemanticRetriever
-from arkb.schema import ChunkRecord, EmbeddingSpec, VectorHit, point_id
-from arkb.storage import SQLiteStorage, check_qdrant_collection, require_qdrant_backend
+from arkb.knowledge.models import ChunkRecord, EmbeddingSpec, VectorHit
+from arkb.knowledge.qdrant import point_id
+from arkb.knowledge.sqlite import SQLiteStorage
+from arkb.knowledge.qdrant import check_qdrant_collection
+from arkb.knowledge.models import require_qdrant_backend
 
 if TYPE_CHECKING:
     from ollama import Client
     from tokenizers import Tokenizer
 
 
-def _validate_qdrant_options(exact: bool, ef_search: int | None) -> None:
-    if type(exact) is not bool:
-        raise ValueError("exact must be a boolean.")
-    if ef_search is not None and (type(ef_search) is not int or ef_search <= 0):
-        raise ValueError('ef_search must be positive.')
 
 
-def search_qdrant(
-    client, collection: str, query_vector, *, spec: EmbeddingSpec, vault_id: str,
-    top_k: int = 2, source: str | None = None, exact: bool = False, ef_search: int | None = None,
-) -> list[VectorHit]:
-    """Query an opened snapshot; check_qdrant_collection validates it once before use.
-
-    No collection creation or writes occur here. Point IDs, filter payload and
-    cosine scores are checked on every result, with the existing float32 tolerance.
-    """
-    from qdrant_client import models
-    validate_options(top_k, {'source': source} if source is not None else None)
-    _validate_qdrant_options(exact, ef_search)
-    query = validate_vectors([query_vector], rows=1, dimensions=spec.dimensions,
-                             dtype=spec.dtype, normalization=spec.normalization)[0]
-    values = {'vault_id': vault_id, 'embedding_spec': spec.fingerprint}
-    if source is not None:
-        values['source'] = source
-    query_filter = models.Filter(must=[models.FieldCondition(key=k, match=models.MatchValue(value=v))
-                                       for k, v in values.items()])
-    points = client.query_points(
-        collection_name=collection, query=query.tolist(), query_filter=query_filter,
-        limit=top_k, with_payload=True, with_vectors=False,
-        search_params=models.SearchParams(exact=exact, hnsw_ef=ef_search),
-    ).points
-    hits = []
-    for point in points:
-        payload = point.payload or {}
-        chunk_id = payload.get('chunk_id')
-        if (point_id(chunk_id) != str(point.id) or any(payload.get(k) != v for k, v in values.items())
-                or not math.isfinite(point.score) or not -1.00001 <= point.score <= 1.00001):
-            raise ValueError('Qdrant returned invalid identity, filter metadata, or cosine score.')
-        hits.append(VectorHit(chunk_id, max(-1.0, min(1.0, float(point.score)))))
-    return sorted(hits, key=lambda hit: (-hit.score, hit.chunk_id))
 
 
 def snapshot_result(record: ChunkRecord, score: float, index_version: str) -> SearchResult:
@@ -138,7 +104,7 @@ class SnapshotSemanticRetriever:
     def __init__(self, storage: SQLiteStorage, *, vault_id: str, spec: EmbeddingSpec,
                  tokenizer: 'Tokenizer', client: 'Client', exact: bool = False,
                  ef_search: int | None = None, index_version: str | None = None, qdrant_client=None):
-        from arkb.retrieval.ollama import OllamaQueryEmbedder
+        from arkb.knowledge.embeddings import OllamaQueryEmbedder
         self.index = QdrantSnapshotIndex(storage, qdrant_client, vault_id=vault_id,
                                         index_version=index_version, exact=exact, ef_search=ef_search)
         self.embedder = OllamaQueryEmbedder(client=client, spec=spec, tokenizer=tokenizer,

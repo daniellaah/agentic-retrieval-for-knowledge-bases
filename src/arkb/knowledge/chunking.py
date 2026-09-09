@@ -9,7 +9,7 @@ from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 import re
 
-from arkb.schema import Chunk, Note, _digest
+from arkb.knowledge.models import Chunk, Note, _digest
 
 __all__ = ["chunk_notes", "whole_note_chunks"]
 

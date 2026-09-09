@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from arkb.retrieval.contracts import SearchResponse, SearchResult, validate_request, validate_options
-from arkb.schema import EmbeddingSpec
+from arkb.knowledge.models import EmbeddingSpec
 
 
 class Embedder(Protocol):

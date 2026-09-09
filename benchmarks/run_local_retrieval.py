@@ -18,15 +18,16 @@ import warnings
 from ollama import Client
 from qdrant_client import QdrantClient
 
-from arkb.embeddings import resolve_embedding_spec
-from arkb.indexing import QdrantConfig, build_index
-from arkb.indexing.loaders import scan_notes
+from arkb.knowledge.embeddings import resolve_embedding_spec
+from arkb.knowledge.models import QdrantConfig
+from arkb.knowledge.indexing import build_index
+from arkb.knowledge.documents import scan_notes
 from arkb.retrieval import BM25Retriever, HybridRetriever, RerankedRetriever, Reranker
 from arkb.retrieval.cross_encoder import CrossEncoderScorer
 from arkb.retrieval.qdrant import SnapshotSemanticRetriever
 from arkb.retrieval_evaluation import evaluate_retrievers, evaluate_reranker
-from arkb.storage import SQLiteStorage
-from arkb.tokenization import load_tokenizer
+from arkb.knowledge.sqlite import SQLiteStorage
+from arkb.knowledge.embeddings import load_tokenizer
 
 
 def main(argv=None):

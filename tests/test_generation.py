@@ -4,11 +4,11 @@ from unittest.mock import Mock
 from ollama import ChatResponse, Client, Message, ResponseError
 import pytest
 
-from arkb.indexing.chunking import chunk_notes, whole_note_chunks
+from arkb.knowledge.chunking import chunk_notes, whole_note_chunks
 from arkb.generation import generate_cited_answer, CitedGenerationError
-from arkb.indexing.loaders import Note
+from arkb.knowledge.models import Note
 from arkb.retrieval.qdrant import snapshot_result
-from arkb.schema import ChunkRecord
+from arkb.knowledge.models import ChunkRecord
 
 
 @pytest.fixture

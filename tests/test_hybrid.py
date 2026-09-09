@@ -3,10 +3,10 @@ from unittest.mock import Mock
 
 import pytest
 
-from arkb.chunking import whole_note_chunks
+from arkb.knowledge.chunking import whole_note_chunks
 from arkb.retrieval import BM25Retriever, SemanticRetriever, rrf
 from arkb.retrieval.snapshot import chunk_result
-from arkb.schema import ChunkRecord, EmbeddingSpec, Note
+from arkb.knowledge.models import ChunkRecord, EmbeddingSpec, Note
 
 
 def components():

@@ -6,13 +6,13 @@ from unittest.mock import Mock
 from ollama import Client, EmbedResponse
 from tokenizers import Tokenizer, models
 
-from arkb.indexing import build_index
+from arkb.knowledge.indexing import build_index
 from arkb.retrieval import BM25Retriever, HybridRetriever, RerankedRetriever, Reranker, SemanticRetriever
-from arkb.retrieval.ollama import OllamaQueryEmbedder
+from arkb.knowledge.embeddings import OllamaQueryEmbedder
 from arkb.retrieval.qdrant import QdrantSnapshotIndex
 from arkb.retrieval_evaluation import evaluate_retrievers
-from arkb.schema import EmbeddingSpec, Note
-from arkb.storage import SQLiteStorage
+from arkb.knowledge.models import EmbeddingSpec, Note
+from arkb.knowledge.sqlite import SQLiteStorage
 
 
 def test_all_four_configurations_share_snapshot_identity_and_apply_filters_before_ranking(tmp_path, qdrant, qdrant_config):

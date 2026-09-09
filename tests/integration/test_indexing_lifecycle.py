@@ -11,7 +11,7 @@ from uuid import uuid4
 import pytest
 from qdrant_client import QdrantClient
 
-from arkb.storage import SQLiteStorage
+from arkb.knowledge.sqlite import SQLiteStorage
 
 
 pytestmark = pytest.mark.skipif(os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',

@@ -4,11 +4,11 @@ import sqlite3
 import numpy as np
 import pytest
 
-from arkb.indexing.chunking import whole_note_chunks
-from arkb.embeddings import prepare_document
-from arkb.indexing.loaders import Note
-from arkb.schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
-from arkb.storage import SQLiteStorage
+from arkb.knowledge.chunking import whole_note_chunks
+from arkb.knowledge.embeddings import prepare_document
+from arkb.knowledge.models import Note
+from arkb.knowledge.models import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
+from arkb.knowledge.sqlite import SQLiteStorage
 
 
 @pytest.fixture
@@ -131,7 +131,7 @@ def test_process_exit_releases_build_lock(tmp_path):
     script = '''
 import sys, time
 from pathlib import Path
-from arkb.storage import SQLiteStorage
+from arkb.knowledge.sqlite import SQLiteStorage
 with SQLiteStorage(Path(sys.argv[1])) as storage:
     with storage.writer_lock():
         print('locked', flush=True)
@@ -162,8 +162,8 @@ def test_section_metadata_and_legacy_records_survive_storage_roundtrip(tmp_path,
     from dataclasses import asdict
     import json
 
-    from arkb.chunking import chunk_notes
-    from arkb.schema import Chunk
+    from arkb.knowledge.chunking import chunk_notes
+    from arkb.knowledge.models import Chunk
 
     spec, _, manifest = sample
     note = Note('Title', '## Section\nBody', 'folder/note.md')
