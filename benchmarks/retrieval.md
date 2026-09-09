@@ -9,7 +9,7 @@ review the labels before making quality claims.
 ```sh
 uv run --locked python -m arkb.retrieval_evaluation \
   --cases benchmarks/retrieval-cases.jsonl --output /tmp/retrieval-baselines.json \
-  --modes semantic bm25 --top-k 5 --offline
+  --modes semantic bm25 hybrid --top-k 5 --offline
 ```
 
 Semantic uses Qdrant exact search and the saved Ollama embedding configuration.
@@ -50,3 +50,9 @@ chunks to documents, falls back to located spans, then whole sources. Conflictin
 text, spans, or known snapshot/revision metadata for one identity are errors.
 `metadata.fusion.contributions` records each list, rank, method, raw score/type
 and input metadata. Fused scores are tagged `rrf`; input scores are never summed.
+
+`HybridRetriever(bm25, semantic, candidate_k=20, rrf_k=60)` calls each primitive
+at the fixed candidate depth, then fuses with RRF and returns the requested
+`top_k` (which must not exceed `candidate_k`). Both retrievers must pin the same
+snapshot. Input queries and filters are passed through; failures propagate.
+The runner exposes `--candidate-k` and `--rrf-k` and the independent `hybrid` mode.

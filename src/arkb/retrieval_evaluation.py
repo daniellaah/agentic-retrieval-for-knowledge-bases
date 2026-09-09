@@ -103,7 +103,9 @@ def main(argv=None) -> int:
     parser.add_argument('--index-version')
     parser.add_argument('--cases', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True, help='New JSON file; never overwritten.')
-    parser.add_argument('--modes', nargs='+', choices=('semantic', 'bm25'), default=['semantic', 'bm25'])
+    parser.add_argument('--modes', nargs='+', choices=('semantic', 'bm25', 'hybrid'), default=['semantic', 'bm25', 'hybrid'])
+    parser.add_argument('--candidate-k', type=int, default=20)
+    parser.add_argument('--rrf-k', type=float, default=60)
     parser.add_argument('--top-k', type=int, default=10)
     parser.add_argument('--relevance-key', choices=('source', 'source_id', 'chunk_id'), default='source')
     parser.add_argument('--host', default='http://127.0.0.1:11434')
@@ -132,7 +134,7 @@ def main(argv=None) -> int:
             if set(case['relevance']) - known:
                 raise ValueError('Relevance labels refer to evidence outside the pinned snapshot.')
         retrievers = {}
-        if 'semantic' in args.modes:
+        if set(args.modes) & {'semantic', 'hybrid'}:
             from ollama import Client
             from arkb.embeddings import resolve_embedding_spec
             from arkb.retrieval.semantic import SemanticRetriever
@@ -153,9 +155,14 @@ def main(argv=None) -> int:
                 tokenizer_identity=index.inputs['tokenizer'], max_input_tokens=index.inputs['max_tokens'],
                 query_instruction=manifest.query_instruction)
             retrievers['semantic'] = SemanticRetriever(embedder, index)
-        if 'bm25' in args.modes:
+        if set(args.modes) & {'bm25', 'hybrid'}:
             retrievers['bm25'] = BM25Retriever(records, index_id=manifest.index_version,
                                                 k1=args.bm25_k1, b=args.bm25_b)
+        if 'hybrid' in args.modes:
+            from arkb.retrieval.hybrid import HybridRetriever
+            retrievers['hybrid'] = HybridRetriever(retrievers['bm25'], retrievers['semantic'],
+                                                  candidate_k=args.candidate_k, rrf_k=args.rrf_k)
+        retrievers = {name: retrievers[name] for name in dict.fromkeys(args.modes)}
         report = evaluate_retrievers(retrievers, cases, top_k=args.top_k, relevance_key=args.relevance_key)
         package = Path(__file__).parent
         report['run'] = {'manifest': asdict(manifest), 'cases': cases,
