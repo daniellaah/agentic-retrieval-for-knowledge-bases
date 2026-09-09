@@ -8,8 +8,8 @@ import math
 from typing import TYPE_CHECKING
 
 from arkb.embeddings import validate_vectors
-from arkb.retrieval.contracts import SearchResponse, SearchResult
-from arkb.retrieval.semantic import SemanticRetriever, validate_options, validate_request
+from arkb.retrieval.contracts import SearchResponse, SearchResult, validate_options, validate_request
+from arkb.retrieval.semantic import SemanticRetriever
 from arkb.schema import ChunkRecord, EmbeddingSpec, VectorHit, point_id
 from arkb.storage import SQLiteStorage, check_qdrant_collection, require_qdrant_backend
 

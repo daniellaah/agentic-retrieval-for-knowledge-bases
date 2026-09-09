@@ -4,7 +4,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
-from arkb.retrieval.contracts import SearchResponse, SearchResult
+from arkb.retrieval.contracts import SearchResponse, SearchResult, validate_request, validate_options
 from arkb.schema import EmbeddingSpec
 
 
@@ -66,22 +66,3 @@ class SemanticRetriever:
                 raise ValueError('Vector index returned invalid semantic evidence or filter metadata.')
         return SearchResponse(query=query, method='semantic', results=results, index_id=self.index.index_id)
 
-
-def validate_request(query: str, top_k: int, filters: Mapping[str, str] | None) -> dict[str, str]:
-    """Validate the original query and explicit retrieval parameters."""
-    if not isinstance(query, str) or not query.strip():
-        raise ValueError('query must be nonblank text.')
-    return validate_options(top_k, filters)
-
-
-def validate_options(top_k: int, filters: Mapping[str, str] | None) -> dict[str, str]:
-    """Only source equality is supported today; never silently ignore filters."""
-    if type(top_k) is not int or top_k <= 0:
-        raise ValueError('top_k must be a positive integer.')
-    if filters is None:
-        return {}
-    if not isinstance(filters, Mapping) or set(filters) - {'source'}:
-        raise ValueError('filters supports only source equality.')
-    if any(not isinstance(value, str) or not value.strip() for value in filters.values()):
-        raise ValueError('source filter must be nonblank text.')
-    return dict(filters)

@@ -4,9 +4,11 @@ Scores are optional and only comparable within their declared semantics and
 retrieval configuration. Result order, not a universal score scale, defines rank.
 """
 
+from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import dataclass, field
 import math
+from typing import Protocol
 
 from arkb.schema import ConfigValue, fingerprint_config
 
@@ -32,6 +34,19 @@ class SearchResult:
     end_char: int | None = None
     score: float | None = None
     score_type: str | None = None
+
+    @property
+    def identity(self) -> tuple[str, ...]:
+        """Method-independent deduplication key, scoped by parent document.
+
+        Prefer chunk identity, then a located span, otherwise the whole source.
+        Unlocated snippets from one document therefore represent one source hit.
+        """
+        if self.chunk_id is not None:
+            return (self.source_id, 'chunk', self.chunk_id)
+        if self.start_char is not None:
+            return (self.source_id, 'span', str(self.start_char), str(self.end_char))
+        return (self.source_id, 'source')
 
     def __post_init__(self) -> None:
         for name in ('source_id', 'source', 'method'):
@@ -60,6 +75,7 @@ class SearchResult:
 class SearchResponse:
     """Ranked results for the original query; an empty tuple means no matches.
 
+    Rank is the one-based position in results, never a stale per-hit field.
     index_id identifies the pinned index when the method uses one. Failures
     raise exceptions rather than masquerading as successful empty responses.
     """
@@ -81,3 +97,29 @@ class SearchResponse:
 def _text(value: str, name: str) -> None:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f'{name} must be nonblank text.')
+
+
+class Retriever(Protocol):
+    """One explicit deterministic strategy; filtering happens before top_k."""
+
+    def search(self, query: str, *, top_k: int = 2,
+               filters: Mapping[str, str] | None = None) -> SearchResponse: ...
+
+def validate_request(query: str, top_k: int, filters: Mapping[str, str] | None) -> dict[str, str]:
+    """Validate the original query and explicit retrieval parameters."""
+    if not isinstance(query, str) or not query.strip():
+        raise ValueError('query must be nonblank text.')
+    return validate_options(top_k, filters)
+
+
+def validate_options(top_k: int, filters: Mapping[str, str] | None) -> dict[str, str]:
+    """Only source equality is supported today; never silently ignore filters."""
+    if type(top_k) is not int or top_k <= 0:
+        raise ValueError('top_k must be a positive integer.')
+    if filters is None:
+        return {}
+    if not isinstance(filters, Mapping) or set(filters) - {'source'}:
+        raise ValueError('filters supports only source equality.')
+    if any(not isinstance(value, str) or not value.strip() for value in filters.values()):
+        raise ValueError('source filter must be nonblank text.')
+    return dict(filters)
