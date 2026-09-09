@@ -7,7 +7,7 @@ from ollama import ChatResponse, Client, EmbedResponse, Message, ResponseError
 import pytest
 from tokenizers import Tokenizer, models, pre_tokenizers, processors
 
-from obsidian_rag.cli import main
+from arkb.cli import main
 
 
 @pytest.fixture(autouse=True)
@@ -47,239 +47,8 @@ def client() -> MagicMock:
 @pytest.fixture(autouse=True)
 def client_factory(client: MagicMock, monkeypatch: pytest.MonkeyPatch) -> Mock:
     factory = Mock(return_value=client)
-    monkeypatch.setattr("obsidian_rag.cli.Client", factory)
+    monkeypatch.setattr("arkb.cli.Client", factory)
     return factory
-
-
-def test_main_answers_using_the_most_relevant_notes(
-    client: MagicMock, client_factory: Mock, capsys: pytest.CaptureFixture[str]
-) -> None:
-    status = main(["How should I write permanent notes?"])
-
-    output = capsys.readouterr()
-    assert status == 0
-    assert output.out.startswith("Develop one idea per note. [1]\n")
-    assert '[1] permanent.md' in output.out
-    assert 'file://' not in output.out
-    assert output.err == ""
-    client_factory.assert_called_once_with(
-        host="http://127.0.0.1:11434", timeout=180.0, trust_env=False
-    )
-    assert [call.kwargs for call in client.embed.call_args_list] == [
-        {
-            "model": "qwen3-embedding:0.6b",
-            "input": [
-                "Habit Stages\n\nA cue starts a habit.",
-                "Literature Notes\n\nPreserve the author's meaning.",
-                "Permanent Notes\n\nDevelop one idea per note.",
-            ],
-            "truncate": False,
-        },
-        {
-            "model": "qwen3-embedding:0.6b",
-            "input": [
-                "Instruct: Given a question, retrieve relevant notes that help answer it.\n"
-                "Query:How should I write permanent notes?"
-            ],
-            "truncate": False,
-        },
-    ]
-    request = client.chat.call_args.kwargs
-    assert request["model"] == "qwen3.5:4b"
-    assert json.loads(request["messages"][1]["content"]) == {
-        "question": "How should I write permanent notes?",
-        "notes": [
-            {
-                "title": "Permanent Notes",
-                "content": "Develop one idea per note.",
-                "source": "permanent.md",
-                "source_id": "S1",
-            },
-            {
-                "title": "Literature Notes",
-                "content": "Preserve the author's meaning.",
-                "source": "literature.md",
-                "source_id": "S2",
-            },
-        ],
-    }
-
-
-def test_main_accepts_directory_retrieval_model_and_connection_options(
-    workspace: Path,
-    client: MagicMock,
-    client_factory: Mock,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    (workspace / "example_notes").rename(workspace / "other_notes")
-
-    status = main([
-        "How should I write permanent notes?",
-        "--notes-dir", "other_notes",
-        "--top-k", "1",
-        "--embedding-model", "qwen3-embedding:4b",
-        "--chunking", "none",
-        "--generation-model", "another-local-model",
-        "--host", "http://127.0.0.1:11435",
-        "--timeout", "15.5",
-    ])
-
-    assert status == 0
-    assert capsys.readouterr().err == ""
-    client_factory.assert_called_once_with(
-        host="http://127.0.0.1:11435", timeout=15.5, trust_env=False
-    )
-    assert [call.kwargs["model"] for call in client.embed.call_args_list] == [
-        "qwen3-embedding:4b", "qwen3-embedding:4b"
-    ]
-    request = client.chat.call_args.kwargs
-    assert request["model"] == "another-local-model"
-    assert [
-        note["source"] for note in json.loads(request["messages"][1]["content"])["notes"]
-    ] == ["permanent.md"]
-
-
-def test_main_preserves_query_whitespace_and_unicode_for_embedding_and_generation(
-    client: MagicMock,
-) -> None:
-    question = "  为什么保留 e\u0301？\r\n"
-
-    assert main([question]) == 0
-
-    assert client.embed.call_args_list[1].kwargs["input"] == [
-        "Instruct: Given a question, retrieve relevant notes that help answer it.\n"
-        "Query:  为什么保留 e\u0301？\r\n"
-    ]
-    payload = json.loads(client.chat.call_args.kwargs["messages"][1]["content"])
-    assert payload["question"] == question
-
-
-def test_main_shows_help_without_connecting_to_ollama(
-    client_factory: Mock, capsys: pytest.CaptureFixture[str]
-) -> None:
-    with pytest.raises(SystemExit) as exit_info:
-        main(["--help"])
-
-    assert exit_info.value.code == 0
-    output = capsys.readouterr()
-    assert "usage:" in output.out
-    assert "--notes-dir" in output.out
-    assert "--top-k" in output.out
-    assert output.err == ""
-    client_factory.assert_not_called()
-
-
-@pytest.mark.parametrize(
-    "arguments",
-    [
-        [],
-        [""],
-        [" \n\t"],
-        ["Question?", "--top-k", "0"],
-        ["Question?", "--top-k", "-1"],
-        ["Question?", "--top-k", "1.5"],
-        ["Question?", "--timeout", "0"],
-        ["Question?", "--timeout", "-1"],
-        ["Question?", "--timeout", "nan"],
-        ["Question?", "--timeout", "inf"],
-        ["Question?", "--unknown"],
-    ],
-    ids=[
-        "missing-question", "empty-question", "whitespace-question",
-        "zero-top-k", "negative-top-k", "fractional-top-k",
-        "zero-timeout", "negative-timeout", "nan-timeout", "infinite-timeout",
-        "unknown-option",
-    ],
-)
-def test_main_rejects_invalid_arguments_before_connecting_to_ollama(
-    arguments: list[str], client_factory: Mock, capsys: pytest.CaptureFixture[str]
-) -> None:
-    with pytest.raises(SystemExit) as exit_info:
-        main(arguments)
-
-    assert exit_info.value.code == 2
-    output = capsys.readouterr()
-    assert output.out == ""
-    assert "error:" in output.err
-    client_factory.assert_not_called()
-
-
-@pytest.mark.parametrize("directory", ["missing", "plain.txt", "empty"])
-def test_main_reports_unusable_note_directories_without_connecting_to_ollama(
-    workspace: Path,
-    directory: str,
-    client_factory: Mock,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    (workspace / "plain.txt").write_text("Not a directory.", encoding="utf-8")
-    (workspace / "empty").mkdir()
-
-    status = main(["Question?", "--notes-dir", directory])
-
-    assert status == 1
-    output = capsys.readouterr()
-    assert output.out == ""
-    assert "Error:" in output.err
-    assert "Traceback" not in output.err
-    client_factory.assert_not_called()
-
-
-@pytest.mark.parametrize(
-    ("operation", "error"),
-    [
-        ("embed", ConnectionError("Ollama is unavailable.")),
-        ("embed", ReadTimeout("Ollama request timed out.")),
-        ("chat", ReadError("Ollama connection was interrupted.")),
-        ("chat", ResponseError("Model not found.", status_code=404)),
-    ],
-    ids=["connection", "timeout", "read-error", "missing-model"],
-)
-def test_main_reports_service_errors_without_printing_an_answer(
-    client: MagicMock,
-    operation: str,
-    error: Exception,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    getattr(client, operation).side_effect = error
-
-    status = main(["Question?"])
-
-    assert status == 1
-    output = capsys.readouterr()
-    assert output.out == ""
-    assert "Error:" in output.err
-    assert str(error) in output.err
-    assert "Traceback" not in output.err
-
-
-def test_main_reports_invalid_embeddings_before_generating_an_answer(
-    client: MagicMock, capsys: pytest.CaptureFixture[str]
-) -> None:
-    client.embed.side_effect = [EmbedResponse(embeddings=[[1.0, 0.0]])]
-
-    status = main(["Question?"])
-
-    assert status == 1
-    output = capsys.readouterr()
-    assert output.out == ""
-    assert "Error:" in output.err
-    assert "one nonempty embedding vector per input text" in output.err
-    client.chat.assert_not_called()
-
-
-def test_main_reports_an_empty_model_answer(
-    client: MagicMock, capsys: pytest.CaptureFixture[str]
-) -> None:
-    client.chat.return_value = ChatResponse(
-        message=Message(role="assistant", content=" \n")
-    )
-
-    status = main(["Question?"])
-
-    assert status == 1
-    output = capsys.readouterr()
-    assert output.out == ""
-    assert "invalid_structure" in output.err
 
 
 @pytest.fixture(autouse=True)
@@ -293,81 +62,8 @@ def tokenizer_download(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Mock:
     path = tmp_path / "tokenizer.json"
     tokenizer.save(str(path))
     download = Mock(return_value=str(path))
-    monkeypatch.setattr("obsidian_rag.tokenization.hf_hub_download", download)
+    monkeypatch.setattr("arkb.tokenization.hf_hub_download", download)
     return download
-
-
-def test_main_embeds_chunks_and_generates_from_the_selected_passage(
-    workspace: Path, client: MagicMock, capsys: pytest.CaptureFixture[str]
-) -> None:
-    directory = workspace / "long_notes"
-    directory.mkdir()
-    (directory / "long.md").write_text("# Long\n\naaaa\n\nbbbb\n\ncccc")
-    client.embed.side_effect = [
-        EmbedResponse(embeddings=[[0.0, 1.0], [1.0, 0.0], [0.5, 0.5]]),
-        EmbedResponse(embeddings=[[1.0, 0.0]]),
-    ]
-
-    status = main(["Which passage?", "--notes-dir", "long_notes", "--top-k", "1",
-                   "--chunk-size", "6", "--chunk-overlap", "0"])
-
-    assert status == 0
-    assert client.embed.call_args_list[0].kwargs["input"] == [
-        "Long\n\naaaa\n\n", "Long\n\nbbbb\n\n", "Long\n\ncccc",
-    ]
-    payload = json.loads(client.chat.call_args.kwargs["messages"][1]["content"])
-    assert payload["notes"] == [{"title": "Long", "content": "bbbb\n\n", "source": "long.md", "source_id": "S1"}]
-    assert capsys.readouterr().err == ""
-
-
-def test_main_whole_note_mode_does_not_load_a_tokenizer(
-    tokenizer_download: Mock, client: MagicMock,
-) -> None:
-    status = main(["A question?", "--chunking", "none",
-                   "--embedding-model", "qwen3-embedding:4b"])
-
-    assert status == 0
-    tokenizer_download.assert_not_called()
-    assert len(client.embed.call_args_list[0].kwargs["input"]) == 3
-
-
-@pytest.mark.parametrize("options", [
-    ["--chunk-size", "0"],
-    ["--chunk-overlap", "-1"],
-    ["--chunk-size", "64", "--chunk-overlap", "64"],
-    ["--embedding-model", "another-model"],
-])
-def test_main_rejects_invalid_chunking_before_download_or_model_calls(
-    options: list[str], tokenizer_download: Mock, client_factory: Mock,
-) -> None:
-    with pytest.raises(SystemExit) as error:
-        main(["A question?", *options])
-    assert error.value.code == 2
-    tokenizer_download.assert_not_called()
-    client_factory.assert_not_called()
-
-
-def test_main_supports_an_offline_tokenizer_cache(
-    workspace: Path, tokenizer_download: Mock,
-) -> None:
-    status = main(["A question?", "--offline", "--tokenizer-cache", "my_cache"])
-
-    assert status == 0
-    assert tokenizer_download.call_args.kwargs["local_files_only"] is True
-    assert tokenizer_download.call_args.kwargs["cache_dir"] == Path("my_cache")
-
-
-@pytest.mark.parametrize("error", [FileNotFoundError("Tokenizer is not cached."),
-                                  ReadError("Tokenizer download failed.")])
-def test_main_reports_tokenizer_failures_before_model_calls(
-    tokenizer_download: Mock, client_factory: Mock,
-    capsys: pytest.CaptureFixture[str], error: Exception,
-) -> None:
-    tokenizer_download.side_effect = error
-
-    assert main(["A question?", "--offline"]) == 1
-    assert str(error) in capsys.readouterr().err
-    client_factory.assert_not_called()
 
 
 @pytest.fixture
@@ -450,26 +146,13 @@ def test_query_can_generate_from_the_saved_snapshot(persistent_client, capsys):
 
 @pytest.fixture(autouse=True)
 def generation_counter_adapter(monkeypatch):
-    from obsidian_rag.context import GenerationCounter
+    from arkb.context import GenerationCounter
     def load(**kwargs):
         return GenerationCounter(kwargs['model'], 'test-counter',
                                  lambda messages: 12 + sum(len(m['content']) for m in messages))
     factory = Mock(side_effect=load)
-    monkeypatch.setattr("obsidian_rag.cli.load_generation_counter", factory)
+    monkeypatch.setattr("arkb.cli.load_generation_counter", factory)
     return factory
-
-
-def test_show_context_reports_final_payload_budget_and_memory_provenance(client, capsys, generation_counter_adapter):
-    assert main(['Q?', '--show-context', '--offline', '--context-window', '2048',
-                 '--max-output-tokens', '128', '--context-safety-margin', '64']) == 0
-    report = json.loads(capsys.readouterr().out)
-    assert report['status'] == 'ready'
-    assert report['config'] == {'context_window': 2048, 'max_output_tokens': 128, 'safety_margin': 64}
-    assert report['token_usage']['prompt_tokens'] <= 1856
-    assert report['evidence_blocks'][0]['origins'][0]['index_version'].startswith('memory:')
-    assert report['citation_map'] == {'permanent.md': [0], 'literature.md': [1]}
-    assert generation_counter_adapter.call_args.kwargs['local_files_only'] is True
-    client.chat.assert_not_called()
 
 
 def test_persistent_show_context_uses_saved_revision_and_json_remains_retrieval_only(
@@ -483,17 +166,19 @@ def test_persistent_show_context_uses_saved_revision_and_json_remains_retrieval_
     (workspace / 'example_notes' / 'habits.md').write_text('# Changed\nNew content.')
     assert main(['query', 'Q?', '--source', 'habits.md', '--offline', '--show-context']) == 0
     context = json.loads(capsys.readouterr().out)
-    assert context['evidence_blocks'][0]['content'] == 'A cue starts a habit.'
-    assert context['evidence_blocks'][0]['origins'][0]['index_version'] == version
+    assert 'evidence_blocks' not in context and 'citation_map' not in context
+    assert context['citation_sources'][0]['source_id'] == 'S1'
+    assert context['citation_sources'][0]['content'] == 'A cue starts a habit.'
+    assert context['citation_sources'][0]['origins'][0]['index_version'] == version
     persistent_client.chat.assert_not_called()
 
 
 @pytest.mark.parametrize('arguments', [
-    ['Q?', '--context-window', '0'], ['Q?', '--max-output-tokens', '0'],
-    ['Q?', '--context-safety-margin', '-1'], ['Q?', '--context-window', '100'],
-    ['query', 'Q?', '--context-window', '0'], ['query', 'Q?', '--json', '--show-context'],
-    ['Q?', '--answer-json', '--show-context'], ['query', 'Q?', '--json', '--answer-json'],
-    ['Q?', '--answer-json', '--citation-mode', 'legacy'],
+    ['query', 'Q?', '--context-window', '0'], ['query', 'Q?', '--max-output-tokens', '0'],
+    ['query', 'Q?', '--context-safety-margin', '-1'], ['query', 'Q?', '--context-window', '100'],
+    ['query', 'Q?', '--json', '--show-context'],
+    ['query', 'Q?', '--answer-json', '--show-context'], ['query', 'Q?', '--json', '--answer-json'],
+    ['query', 'Q?', '--answer-json', '--citation-mode', 'legacy'],
 ])
 def test_context_argument_errors_happen_before_model_calls(arguments, client_factory):
     with pytest.raises(SystemExit) as error:
@@ -502,24 +187,13 @@ def test_context_argument_errors_happen_before_model_calls(arguments, client_fac
     client_factory.assert_not_called()
 
 
-def test_cli_reports_fixed_prompt_overflow_without_generating(client, capsys):
-    assert main(['Q?', '--context-window', '300', '--max-output-tokens', '100',
+def test_cli_reports_fixed_prompt_overflow_without_generating(indexed_client, client, capsys):
+    assert main(['query', 'Q?', '--context-window', '300', '--max-output-tokens', '100',
                  '--context-safety-margin', '0']) == 1
     output = capsys.readouterr()
     assert 'before adding evidence' in output.err
     assert output.out == ''
     client.chat.assert_not_called()
-
-
-def test_memory_answer_json_contains_only_cited_sources_and_validation(client, capsys):
-    assert main(['Q?', '--answer-json']) == 0
-    output = json.loads(capsys.readouterr().out)
-    assert output['answer']['claims'][0]['source_ids'] == ['S1']
-    assert len(output['sources']) == 1
-    assert output['sources'][0]['source'] == 'permanent.md'
-    assert output['sources'][0]['origins'][0]['index_version'].startswith('memory:')
-    assert output['validation']['support_status'] == 'not_checked'
-    assert output['raw_response'] == client.chat.return_value.message.content
 
 
 def test_persistent_answer_json_keeps_saved_source_after_live_file_changes(workspace, persistent_client, capsys):
@@ -532,28 +206,133 @@ def test_persistent_answer_json_keeps_saved_source_after_live_file_changes(works
     assert result['sources'][0]['origins'][0]['index_version'] == version
 
 
-def test_cli_legacy_protocol_remains_explicitly_available(client, capsys):
-    client.chat.return_value.message.content = 'A legacy answer. [permanent.md]'
-    assert main(['Q?', '--citation-mode', 'legacy']) == 0
-    assert capsys.readouterr().out == 'A legacy answer. [permanent.md]\n'
-    assert 'format' not in client.chat.call_args.kwargs
-
-
-def test_cli_invalid_citation_fails_without_printing_the_unverified_answer(client, capsys):
+def test_cli_invalid_citation_fails_without_printing_the_unverified_answer(indexed_client, client, capsys):
     client.chat.return_value.message.content = json.dumps({'status': 'answered', 'claims': [
         {'text': 'Unverified content', 'source_ids': ['S99']}], 'missing_information': []})
-    assert main(['Q?', '--answer-json']) == 1
+    assert main(['query', 'Q?', '--answer-json']) == 1
     output = capsys.readouterr()
     assert output.out == ''
     assert 'invalid_references' in output.err
     assert 'Unverified content' not in output.err
 
 
-def test_cli_quoted_answer_json_exposes_program_computed_offsets(client, capsys):
+def test_cli_quoted_answer_json_exposes_program_computed_offsets(indexed_client, client, capsys):
     client.chat.return_value.message.content = json.dumps({'status': 'answered', 'claims': [
         {'text': 'Develop one idea per note.', 'source_ids': ['S1'],
          'quotes': [{'source_id': 'S1', 'text': 'one idea'}]}], 'missing_information': []})
-    assert main(['Q?', '--answer-json', '--citation-mode', 'quoted']) == 0
+    assert main(['query', 'Q?', '--source', 'permanent.md', '--answer-json', '--citation-mode', 'quoted']) == 0
     result = json.loads(capsys.readouterr().out)
     quote = result['validation']['resolved_quotes'][0]
     assert (quote['start_char'], quote['end_char']) == (8, 16)
+
+
+@pytest.fixture(autouse=True)
+def qdrant_connections(tmp_path, monkeypatch):
+    from qdrant_client import QdrantClient
+    import warnings
+    def connect(*args):
+        return QdrantClient(path=str(tmp_path / 'qdrant'))
+    monkeypatch.setattr('arkb.cli.connect_qdrant', connect)
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', message='Payload indexes have no effect in the local Qdrant.*')
+        yield
+
+
+@pytest.fixture
+def indexed_client(persistent_client, capsys):
+    assert main(['index', '--offline']) == 0
+    capsys.readouterr()
+    persistent_client.embed.reset_mock()
+    return persistent_client
+
+
+@pytest.mark.parametrize('arguments', [[], ['Question?'], ['index', '--backend', 'numpy'],
+                                       ['query', 'Q?', '--citation-mode', 'legacy']])
+def test_retired_interfaces_are_rejected(arguments, client_factory):
+    with pytest.raises(SystemExit) as error:
+        main(arguments)
+    assert error.value.code == 2
+    client_factory.assert_not_called()
+
+
+@pytest.mark.parametrize('arguments', [['--help'], ['index', '--help'], ['query', '--help'], ['status', '--help']])
+def test_help_needs_no_services(arguments, client_factory, capsys):
+    with pytest.raises(SystemExit) as error:
+        main(arguments)
+    assert error.value.code == 0
+    assert 'usage:' in capsys.readouterr().out
+    client_factory.assert_not_called()
+
+
+@pytest.mark.parametrize('operation,error', [
+    ('embed', ConnectionError('Ollama is unavailable.')),
+    ('embed', ReadTimeout('Ollama request timed out.')),
+    ('chat', ReadError('Ollama connection was interrupted.')),
+    ('chat', ResponseError('Model not found.', status_code=404)),
+])
+def test_query_reports_service_errors_without_an_answer(indexed_client, operation, error, capsys):
+    getattr(indexed_client, operation).side_effect = error
+    assert main(['query', 'Question?', '--offline']) == 1
+    output = capsys.readouterr()
+    assert output.out == '' and str(error) in output.err
+    assert 'Traceback' not in output.err
+
+
+def test_query_preserves_unicode_and_whitespace(indexed_client):
+    question = "  为什么保留 e\u0301？\r\n"
+    assert main(['query', question, '--offline']) == 0
+    assert indexed_client.embed.call_args.kwargs['input'][0].endswith('Query:' + question)
+    assert json.loads(indexed_client.chat.call_args.kwargs['messages'][1]['content'])['question'] == question
+
+
+@pytest.mark.parametrize('body', ['', '   ', '{'])
+def test_query_rejects_invalid_generated_structure(indexed_client, body, capsys):
+    indexed_client.chat.return_value.message.content = body
+    assert main(['query', 'Q?', '--offline']) == 1
+    output = capsys.readouterr()
+    assert output.out == '' and 'invalid_structure' in output.err
+
+
+def test_query_rejects_invalid_embedding_before_generation(indexed_client, capsys):
+    indexed_client.embed.side_effect = [EmbedResponse(embeddings=[[0., 0.]])]
+    assert main(['query', 'Q?', '--offline']) == 1
+    assert capsys.readouterr().out == ''
+    indexed_client.chat.assert_not_called()
+
+
+@pytest.mark.parametrize('error', [FileNotFoundError('Tokenizer is not cached.'), ReadError('Download failed.')])
+def test_index_tokenizer_failure_makes_no_model_calls(tokenizer_download, client_factory, error, capsys):
+    tokenizer_download.side_effect = error
+    assert main(['index', '--offline']) == 1
+    assert str(error) in capsys.readouterr().err
+    client_factory.assert_not_called()
+
+
+def test_index_offline_cache_option(persistent_client, tokenizer_download):
+    assert main(['index', '--offline', '--tokenizer-cache', 'cache']) == 0
+    assert tokenizer_download.call_args.kwargs['local_files_only'] is True
+    assert tokenizer_download.call_args.kwargs['cache_dir'] == Path('cache')
+
+
+def test_query_rejects_retired_snapshot_before_loading_models(indexed_client, client_factory, capsys):
+    from arkb.storage import SQLiteStorage
+    with SQLiteStorage(Path('.obsidian-rag/index.sqlite')) as storage:
+        manifest = storage.active_manifest('default')
+        storage.connection.execute("UPDATE builds SET backend=? WHERE version=?",
+                                   (json.dumps({'kind': 'numpy'}), manifest.index_version))
+        storage.connection.commit()
+    client_factory.reset_mock()
+    assert main(['query', 'Q?', '--json']) == 1
+    assert 'run arkb index' in capsys.readouterr().err
+    client_factory.assert_not_called()
+
+
+@pytest.mark.parametrize('options', [
+    ['--hnsw-m', '1'], ['--index-timeout', 'nan'], ['--full-scan-threshold', '9'],
+    ['--require-hnsw', '--indexing-threshold', '0'],
+])
+def test_cli_qdrant_config_errors_precede_service_calls(options, client_factory):
+    with pytest.raises(SystemExit) as error:
+        main(['index', *options])
+    assert error.value.code == 2
+    client_factory.assert_not_called()

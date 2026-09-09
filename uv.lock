@@ -25,6 +25,37 @@ wheels = [
 ]
 
 [[package]]
+name = "arkb"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "httpx" },
+    { name = "huggingface-hub" },
+    { name = "numpy" },
+    { name = "ollama" },
+    { name = "qdrant-client" },
+    { name = "tokenizers" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.28,<1" },
+    { name = "huggingface-hub", specifier = ">=1.30,<2" },
+    { name = "numpy", specifier = ">=2,<3" },
+    { name = "ollama", specifier = ">=0.6,<1" },
+    { name = "qdrant-client", specifier = ">=1.19,<2" },
+    { name = "tokenizers", specifier = "==0.23.2" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8,<10" }]
+
+[[package]]
 name = "certifi"
 version = "2026.7.22"
 source = { registry = "https://pypi.org/simple" }
@@ -235,37 +266,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/15/20/f3489f86d81ea460b2bcdceaed094142ca6579f6be0ec527b781d39afe68/numpy-2.5.2-cp313-cp313-win_amd64.whl", hash = "sha256:85aaccb24182c25df891ad0ec333585967e115269d5f1b17f2c9ae005bc96657", size = 12460532, upload-time = "2026-08-09T13:45:57.167Z" },
     { url = "https://files.pythonhosted.org/packages/d5/21/35b31dde1b283b79de828b80f876afd8c94e28fe1e9c375f89e261cc4c0d/numpy-2.5.2-cp313-cp313-win_arm64.whl", hash = "sha256:bd68ece1553d2023c09a4226d9e41c586ad2d20594d1a456186c33513d2cb3f2", size = 10396725, upload-time = "2026-08-09T13:46:00.478Z" },
 ]
-
-[[package]]
-name = "obsidian-rag"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "httpx" },
-    { name = "huggingface-hub" },
-    { name = "numpy" },
-    { name = "ollama" },
-    { name = "qdrant-client" },
-    { name = "tokenizers" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "httpx", specifier = ">=0.28,<1" },
-    { name = "huggingface-hub", specifier = ">=1.30,<2" },
-    { name = "numpy", specifier = ">=2,<3" },
-    { name = "ollama", specifier = ">=0.6,<1" },
-    { name = "qdrant-client", specifier = ">=1.19,<2" },
-    { name = "tokenizers", specifier = "==0.23.2" },
-]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8,<10" }]
 
 [[package]]
 name = "ollama"

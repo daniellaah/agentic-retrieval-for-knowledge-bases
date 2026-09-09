@@ -4,11 +4,11 @@ import sqlite3
 import numpy as np
 import pytest
 
-from obsidian_rag.chunking import whole_note_chunks
-from obsidian_rag.embeddings import prepare_document
-from obsidian_rag.loaders import Note
-from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
-from obsidian_rag.storage import SQLiteStorage
+from arkb.indexing.chunking import whole_note_chunks
+from arkb.embeddings import prepare_document
+from arkb.indexing.loaders import Note
+from arkb.schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
+from arkb.storage import SQLiteStorage
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def sample():
 def populate(store, sample):
     spec, record, manifest = sample
     store.put_embeddings(spec, [prepare_document(record.chunk)], [[0.6, 0.8]])
-    store.create_build(manifest, corpus_fingerprint='corpus')
+    store.create_build(manifest, corpus_fingerprint='corpus', backend={'kind': 'qdrant'})
     store.add_chunk(manifest.index_version, record, ordinal=0)
 
 
@@ -46,7 +46,7 @@ def test_failed_publication_rolls_back_and_preserves_active_version(tmp_path, sa
     with SQLiteStorage(tmp_path / 'db') as store:
         populate(store, sample)
         store.publish('v1')
-        store.create_build(replace(sample[2], index_version='v2'), corpus_fingerprint='other')
+        store.create_build(replace(sample[2], index_version='v2'), corpus_fingerprint='other', backend={'kind': 'qdrant'})
         with pytest.raises(ValueError, match='counts'):
             store.publish('v2')
         assert store.active_manifest('vault').index_version == 'v1'
@@ -55,8 +55,6 @@ def test_failed_publication_rolls_back_and_preserves_active_version(tmp_path, sa
         assert store.build_metadata('v2')['error'] == 'incomplete'
         with pytest.raises(ValueError):
             store.add_chunk('v1', sample[1], ordinal=1)
-        with pytest.raises(ValueError):
-            store.delete_build('v1')
 
 
 def test_cache_batch_conflict_rolls_back_all_new_entries(tmp_path, sample):
@@ -87,12 +85,12 @@ def test_empty_snapshot_and_readonly_restrictions(tmp_path, sample):
     path = tmp_path / 'db'
     manifest = replace(sample[2], document_count=0, chunk_count=0)
     with SQLiteStorage(path) as store:
-        store.create_build(manifest, corpus_fingerprint='empty')
+        store.create_build(manifest, corpus_fingerprint='empty', backend={'kind': 'qdrant'})
         store.publish('v1')
         assert store.load_snapshot('v1')[2].shape == (0, 2)
     with SQLiteStorage(path, read_only=True) as store:
         with pytest.raises(sqlite3.OperationalError):
-            store.create_build(replace(manifest, index_version='v2'), corpus_fingerprint='empty')
+            store.create_build(replace(manifest, index_version='v2'), corpus_fingerprint='empty', backend={'kind': 'qdrant'})
 
 
 def test_storage_rejects_unknown_schema_without_reinitializing(tmp_path):
@@ -133,7 +131,7 @@ def test_process_exit_releases_build_lock(tmp_path):
     script = '''
 import sys, time
 from pathlib import Path
-from obsidian_rag.storage import SQLiteStorage
+from arkb.storage import SQLiteStorage
 with SQLiteStorage(Path(sys.argv[1])) as storage:
     with storage.writer_lock():
         print('locked', flush=True)

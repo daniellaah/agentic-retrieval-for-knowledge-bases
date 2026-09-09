@@ -1,5 +1,5 @@
 [project]
-name = "obsidian-rag"
+name = "arkb"
 version = "0.1.0"
 description = "Local retrieval over Markdown notes."
 readme = "README.md"
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-obsidian-rag = "obsidian_rag.cli:main"
+arkb = "arkb.cli:main"
 
 [dependency-groups]
 dev = [

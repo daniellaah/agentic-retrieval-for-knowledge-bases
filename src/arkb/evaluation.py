@@ -14,8 +14,8 @@ from time import perf_counter
 
 import numpy as np
 
-from obsidian_rag.embeddings import validate_vectors
-from obsidian_rag.retrieval import search_numpy
+from arkb.embeddings import validate_vectors
+
 
 def recall_at_k(reference: list[str], candidate: list[str], k: int) -> float | None:
     """Set recall against exact neighbors; no reference neighbors means undefined."""
@@ -57,11 +57,11 @@ def evidence_statistics(chunks, case: dict) -> dict:
     }
 
 def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spec,
-                      vault_id: str, backends: dict | None = None, top_k: int = 2) -> dict:
+                      search, top_k: int = 2) -> dict:
     """Compare identical vectors/queries; timings cover search only, including backend I/O.
 
-    Additional backends map mode names to (search callable, exact flag).
-    Each callable receives a query vector, top_k and exact; callers bind the
+    Compare Qdrant exact and ANN modes. The search callable receives a query
+    vector, top_k and exact; callers bind the
     already validated snapshot, embedding spec and vault when preparing it. Mode order
     rotates between cases to reduce a fixed warm-order advantage. Exact ranking
     ties may select different IDs; raw IDs/scores are retained for inspection.
@@ -72,14 +72,9 @@ def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spe
         raise ValueError('top_k must be positive.')
     query_vectors = validate_vectors(query_vectors, rows=len(cases), dimensions=spec.dimensions,
                                      dtype=spec.dtype, normalization=spec.normalization)
-    reference = partial(search_numpy, records, vectors, spec=spec, vault_id=vault_id)
-    modes = {'numpy_exact': (reference, True)}
-    if backends and 'numpy_exact' in backends:
-        raise ValueError('numpy_exact is reserved for the reference.')
-    modes.update(backends or {})
-    for search, exact in modes.values():
-        if not callable(search) or type(exact) is not bool:
-            raise ValueError('Evaluation requires search callables and boolean exact flags.')
+    if not callable(search):
+        raise ValueError('Evaluation requires a Qdrant search callable.')
+    modes = {'qdrant_exact': True, 'qdrant_ann': False}
     by_id = {r.chunk_id: r for r in records}
     for case in cases:
         if not isinstance(case.get('question'), str) or not case['question'].strip():
@@ -95,16 +90,15 @@ def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spe
         row = {'id': case['id'], 'question': case['question'], 'modes': {}}
         order = names[i % len(names):] + names[:i % len(names)]
         for name in order:
-            search, exact = modes[name]
             started = perf_counter()
-            hits = search(query, top_k=top_k, exact=exact)
+            hits = search(query, top_k=top_k, exact=modes[name])
             elapsed = (perf_counter() - started) * 1000
             if len(hits) > top_k or any(h.chunk_id not in by_id for h in hits):
                 raise ValueError('Evaluation backend returned unknown or excess hits.')
             chunks = [by_id[h.chunk_id].chunk for h in hits]
             row['modes'][name] = {'hits': [asdict(h) for h in hits], 'search_ms': elapsed,
                                   **evidence_statistics(chunks, case)}
-        expected = row['modes']['numpy_exact']['hits']
+        expected = row['modes']['qdrant_exact']['hits']
         expected_ids = [h['chunk_id'] for h in expected]
         expected_scores = {h['chunk_id']: h['score'] for h in expected}
         for mode in row['modes'].values():
@@ -130,51 +124,40 @@ def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spe
             'summary': summary, 'results': results}
 
 
-def compare_contexts(question, results, case, *, config, counter) -> dict:
-    """Compare the same frozen hits under raw and processed context policies.
+def evaluate_context(question, results, case, *, config, counter) -> dict:
+    """Measure packed evidence against the original, snapshot-identified hits."""
+    from arkb.context.builder import build_context
 
-    raw is the historical unbounded concatenation; raw_budgeted and built share
-    the exact input budget and renderer. Metrics measure source spans/sections,
-    not necessary-fact recall, claim support or generated-answer accuracy.
-    """
-    from obsidian_rag.context import build_context
-
-    if any(hit.record is None for hit in results):
-        raise ValueError('Context evaluation requires snapshot-identified hits.')
-    identities = {(h.index_version, h.record.vault_id) for h in results}
-    if len(identities) > 1:
+    if len({(h.index_version, h.record.vault_id) for h in results}) > 1:
         raise ValueError('Context evaluation requires one snapshot and vault.')
-    modes = {}
-    for mode, processing, budget in (('raw', False, None), ('raw_budgeted', False, config), ('built', True, config)):
-        started = perf_counter()
-        context = build_context(question, results, config=budget, counter=counter, process_evidence=processing)
-        elapsed = (perf_counter() - started) * 1000
-        blocks = context.evidence_blocks
-        groups = {}
-        for block in blocks:
-            hit = block.origins[0]
-            key = (hit.index_version, hit.record.document_id, hit.record.document_revision)
-            groups.setdefault(key, []).append((block.start_char, block.end_char))
-        unique_chars = 0
-        for intervals in groups.values():
-            cursor = 0
-            for start, end in sorted(intervals):
-                unique_chars += max(0, end - max(cursor, start))
-                cursor = max(cursor, end)
-        chars = sum(len(b.content) for b in blocks)
-        modes[mode] = {
-            'context': context.to_dict(),
-            'metrics': {'prompt_tokens': context.prompt_tokens, 'block_count': len(blocks),
-                        'body_characters': chars, 'unique_span_characters': unique_chars,
-                        'duplicate_span_fraction': (chars - unique_chars) / chars if chars else 0.0,
-                        'fits_budget': context.prompt_tokens <= config.input_budget,
-                        'build_ms': elapsed, **evidence_statistics(blocks, case)},
-        }
-    reference = modes['raw']['metrics']['section_coverage']
-    for entry in modes.values():
-        coverage = entry['metrics']['section_coverage']
-        entry['metrics']['section_coverage_retention'] = coverage / reference if reference else None
-    return modes
+    started = perf_counter()
+    context = build_context(question, results, config=config, counter=counter)
+    elapsed = (perf_counter() - started) * 1000
+    blocks = context.evidence_blocks
+    groups = {}
+    for block in blocks:
+        hit = block.origins[0]
+        key = (hit.index_version, hit.record.document_id, hit.record.document_revision)
+        groups.setdefault(key, []).append((block.start_char, block.end_char))
+    unique_chars = 0
+    for intervals in groups.values():
+        cursor = 0
+        for start, end in sorted(intervals):
+            unique_chars += max(0, end - max(cursor, start))
+            cursor = max(cursor, end)
+    chars = sum(len(b.content) for b in blocks)
+    result = {
+        'context': context.to_dict(),
+        'metrics': {'prompt_tokens': context.prompt_tokens, 'block_count': len(blocks),
+                    'body_characters': chars, 'unique_span_characters': unique_chars,
+                    'duplicate_span_fraction': (chars - unique_chars) / chars if chars else 0.0,
+                    'fits_budget': context.prompt_tokens <= config.input_budget,
+                    'build_ms': elapsed, **evidence_statistics(blocks, case)},
+    }
+    reference = evidence_statistics([h.chunk for h in results], case)['section_coverage']
+    coverage = result['metrics']['section_coverage']
+    result['metrics']['section_coverage_retention'] = coverage / reference if reference else None
+    return result
 
 
 def citation_statistics(raw_response, sources, *, review: dict | None = None, require_quotes=False) -> dict:
@@ -185,7 +168,7 @@ def citation_statistics(raw_response, sources, *, review: dict | None = None, re
     judge the cited sources jointly; the rate uses reviewed claims only and is
     always accompanied by review coverage. No labels means no semantic score.
     """
-    from obsidian_rag.citation import CitationParseError, parse_cited_answer, validate_citations
+    from arkb.context.citation import CitationParseError, parse_cited_answer, validate_citations
     metrics = {'structure_valid': False, 'references_valid': False, 'claim_count': None,
                'reference_count': None, 'valid_reference_count': None,
                'citation_id_validity': None, 'claim_reference_coverage': None,
@@ -231,8 +214,8 @@ def evaluate_citation_context(context, *, client) -> dict:
     """Run one frozen context once, preserving failures as well as successes."""
     from httpx import HTTPError
     from ollama import ResponseError
-    from obsidian_rag.citation import citation_json_schema
-    from obsidian_rag.generation import CitedGenerationError, generate_cited_answer
+    from arkb.context.citation import citation_json_schema
+    from arkb.generation import CitedGenerationError, generate_cited_answer
     context.verify_citation_mapping()
     sources = context.citation_sources
     require_quotes = context.citation_mode == 'quoted'
@@ -258,7 +241,7 @@ def evaluate_citation_context(context, *, client) -> dict:
 
 def evaluate_citation_case(question, results, *, config, counter, client) -> dict:
     """Retain per-question budget failures instead of aborting a batch evaluation."""
-    from obsidian_rag.context import ContextBudgetError, build_context
+    from arkb.context.builder import ContextBudgetError, build_context
     try:
         context = build_context(question, results, config=config, counter=counter, citation_mode='structured')
     except ContextBudgetError as error:
@@ -289,14 +272,14 @@ def main(argv=None) -> int:
     """Evaluate an existing snapshot and save a new, non-overwriting artifact folder."""
     from importlib.metadata import version
     from ollama import Client
-    from obsidian_rag.retrieval import connect_qdrant, search_qdrant
-    from obsidian_rag.embeddings import resolve_embedding_spec
-    from obsidian_rag.embeddings import prepare_query, validate_input_tokens
-    from obsidian_rag.embeddings import embed_texts
-    from obsidian_rag.indexing import QdrantIndex
-    from obsidian_rag.tokenization import tokenizer_fingerprint
-    from obsidian_rag.storage import SQLiteStorage
-    from obsidian_rag.tokenization import load_tokenizer
+    from arkb.retrieval.semantic import search_qdrant
+    from arkb.embeddings import resolve_embedding_spec
+    from arkb.embeddings import prepare_query, validate_input_tokens
+    from arkb.embeddings import embed_texts
+    from arkb.indexing.index import QdrantIndex
+    from arkb.tokenization import tokenizer_fingerprint
+    from arkb.storage import require_qdrant_backend, SQLiteStorage, connect_qdrant
+    from arkb.tokenization import load_tokenizer
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--db', type=Path, required=True)
@@ -308,8 +291,8 @@ def main(argv=None) -> int:
     parser.add_argument('--offline', action='store_true')
     parser.add_argument('--tokenizer-cache', type=Path)
     parser.add_argument('--qdrant-url')
-    parser.add_argument('--context', action='store_true', help='Also compare context policies on the same NumPy hits.')
-    parser.add_argument('--citations', action='store_true', help='Generate and evaluate structured citations on the same NumPy hits.')
+    parser.add_argument('--context', action='store_true', help='Evaluate packed context on the same Qdrant exact hits.')
+    parser.add_argument('--citations', action='store_true', help='Generate and evaluate structured citations on the same Qdrant exact hits.')
     parser.add_argument('--generation-model', default='qwen3.5:4b')
     parser.add_argument('--context-window', type=int, default=8192)
     parser.add_argument('--max-output-tokens', type=int, default=1024)
@@ -319,7 +302,8 @@ def main(argv=None) -> int:
         parser.error('--output must be a new directory; old evaluation artifacts are preserved')
     context_config = None
     if args.context or args.citations:
-        from obsidian_rag.context import ContextConfig, load_generation_counter
+        from arkb.context.builder import ContextConfig
+        from arkb.generation import load_generation_counter
         try:
             context_config = ContextConfig(args.context_window, args.max_output_tokens, args.context_safety_margin)
         except ValueError as error:
@@ -331,6 +315,7 @@ def main(argv=None) -> int:
         if manifest is None:
             raise ValueError('No active snapshot to evaluate.')
         metadata = storage.build_metadata(manifest.index_version)
+        require_qdrant_backend(metadata['backend'])
         _, records, vectors = storage.load_snapshot(manifest.index_version)
         tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
         if tokenizer_fingerprint(tokenizer) != metadata['backend']['input']['tokenizer']:
@@ -348,31 +333,27 @@ def main(argv=None) -> int:
                               dimensions=spec.dimensions, dtype=spec.dtype, normalization=spec.normalization,
                               context_length=limit)
         embedding_seconds = perf_counter() - started
-        modes, server_info = {}, None
-        if metadata['backend']['kind'] == 'qdrant':
-            client = resources.enter_context(closing(connect_qdrant(args.qdrant_url or metadata['backend']['url'], 30)))
-            store = QdrantIndex(client, metadata['backend']['collection'], spec, vault_id=args.vault_id)
-            store.verify_snapshot(records, vectors)
-            info = store.check_configuration()
-            server_info = {'version': client.info().version, 'indexed_vectors': info.indexed_vectors_count,
-                           'hnsw_config': info.config.hnsw_config.model_dump(mode='json')}
-            search = partial(search_qdrant, client, store.collection, spec=spec, vault_id=args.vault_id)
-            modes = {'qdrant_exact': (search, True), 'qdrant_ann': (search, False)}
-        report = compare_retrieval(records, vectors, queries, cases, spec=spec, vault_id=args.vault_id,
-                                   backends=modes, top_k=args.top_k)
+        client = resources.enter_context(closing(connect_qdrant(args.qdrant_url or metadata['backend']['url'], 30)))
+        store = QdrantIndex(client, metadata['backend']['collection'], spec, vault_id=args.vault_id)
+        store.verify_snapshot(records, vectors)
+        info = store.check_configuration()
+        server_info = {'version': client.info().version, 'indexed_vectors': info.indexed_vectors_count,
+                       'hnsw_config': info.config.hnsw_config.model_dump(mode='json')}
+        search = partial(search_qdrant, client, store.collection, spec=spec, vault_id=args.vault_id)
+        report = compare_retrieval(records, vectors, queries, cases, spec=spec,
+                                   search=search, top_k=args.top_k)
         context_rows, citation_rows = [], []
         if args.context or args.citations:
-            from obsidian_rag.context import build_context
-            from obsidian_rag.retrieval import SearchResult
+            from arkb.schema import SearchResult
             counter = load_generation_counter(client=ollama, model=args.generation_model,
                                               cache_dir=args.tokenizer_cache, local_files_only=args.offline)
             by_id = {record.chunk_id: record for record in records}
             for case, row in zip(cases, report['results']):
                 hits = [SearchResult(by_id[h['chunk_id']].chunk, h['score'], by_id[h['chunk_id']], manifest.index_version)
-                        for h in row['modes']['numpy_exact']['hits']]
+                        for h in row['modes']['qdrant_exact']['hits']]
                 if args.context:
                     context_rows.append({'id': case['id'], 'question': case['question'],
-                                         'modes': compare_contexts(case['question'], hits, case, config=context_config, counter=counter)})
+                                         'result': evaluate_context(case['question'], hits, case, config=context_config, counter=counter)})
                 if args.citations:
                     citation_rows.append({'id': case['id'], 'question': case['question'],
                                           **evaluate_citation_case(case['question'], hits, config=context_config,
@@ -385,20 +366,19 @@ def main(argv=None) -> int:
             report['context'] = {'config': asdict(context_config), 'counter': counter.identity,
                                  'generation_model': counter.model, 'is_estimate': counter.is_estimate,
                                  'summary': {}}
-            for mode in ('raw', 'raw_budgeted', 'built'):
-                entries = [row['modes'][mode]['metrics'] for row in context_rows]
-                summary = {}
-                for key in entries[0]:
-                    values = [entry[key] for entry in entries if entry[key] is not None]
-                    summary[key] = float(np.mean(values)) if values else None
-                report['context']['summary'][mode] = summary
-        repo = Path(__file__).resolve().parents[2]
+            entries = [row['result']['metrics'] for row in context_rows]
+            for key in entries[0]:
+                values = [entry[key] for entry in entries if entry[key] is not None]
+                report['context']['summary'][key] = float(np.mean(values)) if values else None
+        package_dir = Path(__file__).resolve().parent
+        repo = package_dir.parents[1]
         git = subprocess.run(['git', '-C', str(repo), 'rev-parse', 'HEAD'], capture_output=True, text=True)
         run = {'created_at': datetime.now(timezone.utc).isoformat(), 'manifest': asdict(manifest),
                'build_metadata': metadata, 'cases_sha256': hashlib.sha256(raw_cases).hexdigest(),
                'python': platform.python_version(), 'numpy': np.__version__, 'qdrant_client': version('qdrant-client'),
                'qdrant_server': server_info, 'source_commit': git.stdout.strip() if git.returncode == 0 else None,
-               'source_hashes': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in Path(__file__).parent.glob('*.py')},
+               'source_hashes': {p.relative_to(package_dir).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                                 for p in sorted(package_dir.rglob('*.py'))},
                'query_embedding_seconds': embedding_seconds,
                'sqlite_bytes': args.db.stat().st_size, 'sqlite_wal_bytes': Path(str(args.db) + '-wal').stat().st_size
                if Path(str(args.db) + '-wal').exists() else 0,

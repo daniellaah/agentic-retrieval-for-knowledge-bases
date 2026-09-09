@@ -6,7 +6,7 @@ from ollama import Client
 import pytest
 from tokenizers import Tokenizer
 
-from obsidian_rag.tokenization import count_tokens, load_tokenizer
+from arkb.tokenization import count_tokens, load_tokenizer
 
 
 pytestmark = pytest.mark.skipif(

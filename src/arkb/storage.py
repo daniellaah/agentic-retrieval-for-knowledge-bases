@@ -1,18 +1,19 @@
-"""SQLite snapshots, document-vector cache, and atomic index publication."""
+"""Snapshot persistence, embedding cache, and shared Qdrant connection checks."""
 
 from contextlib import contextmanager
 from dataclasses import asdict, replace
 import fcntl
 import hashlib
 import json
+import os
 from pathlib import Path
 import sqlite3
+from urllib.parse import urlsplit
 
 import numpy as np
 
-from obsidian_rag.chunking import Chunk
-from obsidian_rag.embeddings import prepare_document, validate_vectors
-from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest
+from arkb.embeddings import prepare_document, validate_vectors
+from arkb.schema import Chunk, ChunkRecord, EmbeddingSpec, IndexManifest, qdrant_identity
 
 
 STORAGE_VERSION = 1
@@ -160,13 +161,13 @@ class SQLiteStorage:
                                 dtype=spec.dtype, normalization=spec.normalization)[0]
 
     def create_build(self, manifest: IndexManifest, *, corpus_fingerprint: str,
-                     backend: dict | None = None) -> None:
+                     backend: dict) -> None:
         if manifest.status != 'building':
             raise ValueError("New builds must start in building state.")
         with self._transaction():
             self.connection.execute("INSERT INTO builds VALUES (?, ?, ?, ?, ?, NULL)",
                                     (manifest.index_version, manifest.vault_id, _json(asdict(manifest)),
-                                     corpus_fingerprint, _json(backend or {"kind": "numpy"})))
+                                     corpus_fingerprint, _json(backend)))
 
     def get_manifest(self, version: str) -> IndexManifest:
         row = self.connection.execute("SELECT manifest FROM builds WHERE version=?", (version,)).fetchone()
@@ -270,12 +271,6 @@ class SQLiteStorage:
         return [_manifest(row['manifest']) for row in self.connection.execute(
             "SELECT manifest FROM builds WHERE vault_id=? ORDER BY rowid", (vault_id,))]
 
-    def delete_build(self, version: str) -> None:
-        with self._transaction():
-            if self.connection.execute("SELECT 1 FROM active_indexes WHERE version=?", (version,)).fetchone():
-                raise ValueError("Cannot delete an active snapshot.")
-            self.connection.execute("DELETE FROM builds WHERE version=?", (version,))
-
     def get_record(self, version: str, chunk_id: str) -> ChunkRecord:
         """Fetch one verified source record without loading any document vectors."""
         manifest = self.get_manifest(version)
@@ -291,3 +286,34 @@ class SQLiteStorage:
                 or manifest.embedding_spec.embedding_key(text) != row['embedding_key']):
             raise ValueError('Corrupt snapshot hit identity.')
         return record
+
+
+def check_qdrant_collection(client, collection: str, *, spec: EmbeddingSpec, vault_id: str):
+    """Validate identity when opening a snapshot, before embedding or querying it."""
+    from qdrant_client import models
+    if not isinstance(collection, str) or not collection.strip():
+        raise ValueError('collection must be nonblank.')
+    if not isinstance(vault_id, str) or not vault_id.strip():
+        raise ValueError('vault_id must be nonblank.')
+    info = client.get_collection(collection)
+    vectors = info.config.params.vectors
+    if (not isinstance(vectors, models.VectorParams) or vectors.size != spec.dimensions
+            or vectors.distance != models.Distance.COSINE or info.config.metadata != qdrant_identity(spec, vault_id)):
+        raise ValueError('Qdrant collection configuration does not match the embedding spec and vault.')
+    return info
+
+
+def connect_qdrant(url: str, timeout: float):
+    from qdrant_client import QdrantClient
+    parts = urlsplit(url)
+    if (parts.scheme not in ('http', 'https') or not parts.hostname or parts.username
+            or parts.password or parts.query or parts.fragment):
+        raise ValueError('Use an HTTP(S) Qdrant URL without embedded credentials; set QDRANT_API_KEY if needed.')
+    return QdrantClient(url=url, api_key=os.environ.get('QDRANT_API_KEY'), timeout=timeout, trust_env=False)
+
+
+def require_qdrant_backend(metadata: dict) -> None:
+    """Retired snapshots remain readable as metadata, but cannot serve queries."""
+    if metadata.get('kind') != 'qdrant':
+        raise ValueError('This index uses a retired backend; run arkb index to rebuild it in Qdrant. '
+                         'Compatible cached embeddings will be reused.')

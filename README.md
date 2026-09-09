@@ -1,6 +1,6 @@
-# Obsidian RAG
+# ARKB
 
-Local retrieval over Markdown notes using Python, NumPy, and Ollama.
+Local retrieval over Markdown notes using Python, Qdrant, and Ollama.
 
 The repository includes a command-line interface, a Markdown note loader, an
 Ollama embedding client function, cosine similarity search, answer generation,
@@ -8,48 +8,60 @@ and sample Markdown notes in `example_notes/`.
 
 ## Python modules
 
-The package stays flat: one module per stage, with both retrieval backends in
-`retrieval.py` and all embedding preparation and model calls in `embeddings.py`.
+The package separates knowledge preparation, semantic retrieval, context
+construction, and answer generation. The CLI composes these stages; generation
+is an independent capability. Embeddings, embedding tokenization, storage, and
+data records are shared by the stages that use them.
 
-| File in `src/obsidian_rag/` | Responsibility |
+| File in `src/arkb/` | Responsibility |
 | --- | --- |
 | `__init__.py` | Package marker |
-| `loaders.py` | Note records, Markdown loading, and consistent source-directory scans |
-| `chunking.py` | Whole-note and recursive splitting with source positions and section metadata |
-| `tokenization.py` | Pinned tokenizer loading, token counting, and tokenizer fingerprints |
+| `indexing/loaders.py` | Markdown loading and consistent source-directory scans |
+| `indexing/chunking.py` | Whole-note and recursive splitting with source positions |
+| `indexing/index.py` | Complete/incremental builds, Qdrant writes, HNSW readiness, verification, and failed-candidate cleanup |
+| `retrieval/semantic.py` | Qdrant exact/ANN search, query embedding, and snapshot evidence lookup |
+| `context/builder.py` | Evidence provenance, deduplication, overlap merging, budgets, and message rendering |
+| `context/citation.py` | Citation contracts, strict parsing, reference/quote validation, and rendering |
 | `embeddings.py` | Document/query input preparation, token budgets, model identity, batching, retries, and vector validation |
-| `schema.py` | Shared embedding specs, chunk records, manifests, search hits, and stable identity rules |
-| `storage.py` | SQLite embedding cache, immutable snapshots, build states, writer locks, and atomic publication |
-| `indexing.py` | Complete/incremental builds, Qdrant writes, HNSW readiness, verification, and failed-candidate cleanup |
-| `retrieval.py` | NumPy exact search, Qdrant exact/ANN search, query embedding, and snapshot evidence lookup |
-| `context.py` | Evidence provenance, deduplication, overlap merging, generation token counting, budgets, and message rendering |
-| `generation.py` | Grounded answer generation from the final budgeted messages |
-| `evaluation.py` | Fixed-case backend comparisons, evidence metrics, and reproducible run artifacts |
+| `tokenization.py` | Pinned embedding tokenizer loading, token counting, and tokenizer fingerprints |
+| `schema.py` | Shared notes, chunks, search results, embedding specs, manifests, and stable identity rules |
+| `storage.py` | SQLite cache/snapshots, build states, locks, atomic publication, and shared Qdrant connection/configuration checks |
+| `generation.py` | Grounded answer generation and the Qwen generation-tokenizer adapter |
+| `evaluation.py` | Qdrant exact/ANN comparisons, context/citation evaluation and reproducible run artifacts |
 | `cli.py` | Command arguments, resource setup, workflow calls, and output |
 
-Each functional module has a corresponding `tests/test_<module>.py` file.
-Real-service tests live in `tests/integration/`: `test_qwen_tokenizer.py`,
-`test_qwen_chunking.py`, `test_qwen_embeddings.py`, `test_qdrant_retrieval.py`,
-`test_qdrant_indexing.py`, and `test_indexing_lifecycle.py`. The context-specific
-real-model counting checks remain in `tests/test_context.py` alongside its unit tests.
+Use `arkb.indexing.build_index`, `arkb.retrieval.search_index`, and
+`arkb.context.build_context` as the main stage APIs. Direct vector search remains
+available through `arkb.retrieval.search_qdrant`;
+collection writes and lifecycle operations use `arkb.indexing.QdrantIndex`, with
+settings supplied by `arkb.indexing.QdrantConfig`.
+`Note`, `Chunk`, and `SearchResult` are defined in `arkb.schema`; the loader,
+chunker, and retrieval package also expose their respective record types.
 
-Python imports changed with this refactor: `notes` became `loaders`,
-`index_schema` became `schema`, and `embedding_inputs` merged into `embeddings`.
-The former vector-store adapters were removed. Use `retrieval.search_numpy` or
-`retrieval.search_qdrant` for search, and `indexing.QdrantIndex` for collection
-writes and lifecycle operations. `build_index` and `search_index` select their
-backend from snapshot settings; their former `vector_store` injection argument
-was removed. Evaluation backends now supply `(search_callable, exact_flag)` pairs.
+The package and command are named `arkb`. Run `uv sync --locked` after updating.
+Only `index`, `query`, and `status` are supported; the old bare-question command,
+`obsidian-rag` alias, `retrieve`, and `search_numpy` APIs have been removed.
+Qdrant is the only search backend. NumPy remains a dependency for embedding
+validation, vector serialization, snapshot verification, and evaluation statistics.
 
-CLI commands, input templates, chunk/cache identity rules, SQLite schema, and
-Qdrant collection metadata remain compatible. Existing indexes can be reopened
-without migrating data or embedding the corpus again.
+The default `.obsidian-rag/index.sqlite` path, persisted identity namespaces,
+Qdrant collection names/ownership, and `OBSIDIAN_RAG_*` test variables retain
+their existing names. Existing Qdrant indexes remain compatible. Queries against
+old NumPy indexes explicitly require `arkb index` to rebuild into Qdrant. Keep the
+same `--db`, `--vault-id`, note directory, and embedding settings to reuse compatible
+cached vectors. The old active snapshot is replaced only after successful publication;
+rebuilding does not delete historical snapshots or the embedding cache.
+
+Functional tests remain in `tests/test_<module>.py`. Real-service tests live in
+`tests/integration/`; generation counting checks also remain in
+`tests/test_context.py`. Regular tests need no network or running services.
 
 ## Requirements
 
 - Python 3.13
 - uv
 - Ollama, running locally for model operations
+- Qdrant Server, running for indexing and queries
 
 ## Set up the Python environment
 
@@ -69,80 +81,79 @@ manually:
 
 ```sh
 uv run --locked python --version
-uv run --locked python -c "import obsidian_rag, numpy, ollama; print('Imports OK')"
-uv run --locked pytest --version
+uv run --locked python -c "import arkb, numpy, ollama; print('Imports OK')"
+uv run --locked python -m pytest --version
 ```
 
-## Ask a question
+## Index notes and ask a question
 
-After syncing the environment and starting Ollama with the models below
-available, run this command from the repository root:
+Start Ollama with the models below and Qdrant Server, then build an index:
 
 ```sh
-uv run --locked obsidian-rag "When should temporary notes be processed and deleted?"
+uv run --locked arkb index --notes-dir example_notes --qdrant-url http://127.0.0.1:6333
+uv run --locked arkb query "Why combine lexical and vector retrieval?"
+uv run --locked arkb query "How does Reciprocal Rank Fusion combine rankings?" --top-k 2 --json
+uv run --locked arkb status
 ```
 
-The command reads `example_notes/`, splits long notes into chunks, embeds the
-chunks and question, retrieves the two most similar chunks, and prints the answer. The embedding query
-uses a Qwen retrieval instruction; answer generation receives the original
-question. Each invocation reads, splits, and embeds the notes again, keeping
-chunks and vectors in memory for that invocation.
+`index` reads Markdown files directly in the selected directory, splits long notes,
+embeds uncached inputs, writes a Qdrant collection, and publishes a snapshot.
+`query` embeds only the question and reads evidence from that saved snapshot.
+Its default output is a structured-citation answer rendered as text; `--json`
+returns retrieved evidence without calling the generation model.
 
-Specify another note directory or result count with:
+Repeat `index` after editing notes. Relative paths resolve from the current
+working directory; subdirectories are not scanned. The default database is
+`.obsidian-rag/index.sqlite`; use `--db` and `--vault-id` consistently across commands.
+`index` prints a JSON build report. `status` reads saved manifests without loading
+a tokenizer or contacting Ollama. A missing index or mismatched model/tokenizer
+produces an error instead of rebuilding during a query.
 
-```sh
-uv run --locked obsidian-rag "How do literature and permanent notes differ?" \
-  --notes-dir example_notes --top-k 2
-```
+| Command | Option | Default | Purpose |
+| --- | --- | --- | --- |
+| index | `--notes-dir` | `example_notes` | Directory containing Markdown notes |
+| index | `--qdrant-url` | `http://127.0.0.1:6333` | Qdrant endpoint saved with the snapshot |
+| index | `--embedding-model` | `qwen3-embedding:0.6b` | Embedding model |
+| index | `--chunking` | `recursive` | Recursive splitting or whole-note `none` |
+| index | `--chunk-size` / `--chunk-overlap` | `512` / `64` | Body token limit and target overlap |
+| index | `--context-length` | `8192` | Full embedding-input limit, including title and special tokens |
+| query | `--top-k` | `2` | Maximum candidates before context processing |
+| query | `--source` | unset | Filter by an exact saved source path |
+| query | `--exact` | off | Request Qdrant exact search |
+| query | `--generation-model` | `qwen3.5:4b` | Answer model |
+| query | `--context-window` | `8192` | Generation window, also passed as `num_ctx` |
+| query | `--max-output-tokens` | `1024` | Output reserve, also passed as `num_predict` |
+| query | `--context-safety-margin` | `128` | Additional reserved space |
+| query | `--show-context` | off | Inspect final messages, evidence and budget without generation |
+| query | `--citation-mode` | `structured` | Validated source IDs; `quoted` also requires exact excerpts |
+| query | `--answer-json` | off | Answer, used sources, raw response and validation |
+| index/query | `--host` | `http://127.0.0.1:11434` | Ollama endpoint |
+| index/query | `--timeout` | `180` | Request timeout in seconds |
+| index/query | `--tokenizer-cache` | Hub default | Tokenizer cache directory |
+| index/query | `--offline` | off | Prevent tokenizer downloads; local model/server calls still occur |
 
-Relative note paths are resolved from the current working directory. The loader
-reads Markdown files directly in that directory without visiting subdirectories.
+The CLI validates the supported Qwen 0.6b embedding tokenizer/model pairing.
+The installed model supplies its digest, dimensions and maximum context length.
+`--context-length` cannot exceed that limit and is sent as `num_ctx` for document
+and query embeddings. `--batch-size`, `--max-batch-tokens`, and `--max-retries`
+control embedding work; `--query-instruction ''` saves a raw-query configuration.
+Both chunking modes count the complete embedding input and keep `truncate=False`.
+In recursive mode, require `chunk_size > 0` and `0 <= chunk_overlap < chunk_size`.
+Use `--offline` after caching tokenizers; a missing tokenizer is an error.
 
-| Option | Default | Purpose |
-| --- | --- | --- |
-| `--notes-dir` | `example_notes` | Directory containing Markdown notes |
-| `--top-k` | `2` | Maximum number of retrieved candidates before context processing |
-| `--embedding-model` | `qwen3-embedding:0.6b` | Qwen embedding model |
-| `--generation-model` | `qwen3.5:4b` | Model used to generate the answer |
-| `--host` | `http://127.0.0.1:11434` | Ollama server URL |
-| `--timeout` | `180` | Ollama request timeout in seconds |
-| `--chunking` | `recursive` | `recursive` for B1, `none` for whole-note B0 |
-| `--chunk-size` | `512` | Maximum body tokens per chunk |
-| `--chunk-overlap` | `64` | Target overlap in body tokens |
-| `--tokenizer-cache` | Hub default | Optional tokenizer cache directory |
-| `--offline` | off | Prevent embedding/generation tokenizer Hub requests; Ollama is still used |
-| `--context-window` | `8192` | Generation window, also passed as `num_ctx` |
-| `--max-output-tokens` | `1024` | Output reserve, also passed as `num_predict` |
-| `--context-safety-margin` | `128` | Extra space reserved outside the measured input |
-| `--show-context` | off | Print final messages, evidence identities and budget diagnostics without generating |
-| `--citation-mode` | `structured` | Validate citations; `quoted` adds exact excerpts, `legacy` uses filename prompting |
-| `--answer-json` | off | Print answer, used sources, raw response and citation diagnostics |
+`--json`, `--show-context`, and `--answer-json` are mutually exclusive.
+An empty source directory publishes an empty index. Source scan errors leave the
+previous active index unchanged. Exit codes are `0` for success, `1` for runtime
+failure, and `2` for invalid arguments; errors go to standard error.
 
-Recursive mode currently supports the validated `qwen3-embedding:0.6b` tokenizer
-pairing. For another embedding model, use `--chunking none`. In recursive mode,
-`--chunk-size` must be positive and `0 <= --chunk-overlap < --chunk-size`.
-Use `--offline` after the tokenizer is cached; missing cache files are reported.
-Whole-note mode skips the embedding tokenizer and ignores chunk budget options.
-Answer generation and `--show-context` still load the generation tokenizer.
-Embedding requests keep `truncate=False`, so Ollama rejects full inputs exceeding
-its active context limit rather than silently truncating titles or text.
-
-`--top-k` must be a positive integer and `--timeout` a positive finite number.
-Answers go to standard output; errors go to standard error. Exit codes are `0`
-for success, `1` for a runtime failure, and `2` for invalid arguments. An empty
-note directory reports an error without contacting Ollama.
-
-Show all options with `uv run --locked obsidian-rag --help`. The same interface
-is available through `uv run --locked python -m obsidian_rag.cli`.
-
-CLI tests exercise loading, tokenization, chunking, embedding conversion,
-retrieval, context building, and generation together. External tokenizer loading,
-generation counting and Ollama are replaced at their boundaries in CLI unit tests;
-context tests independently validate the real counter. Regular tests need no network.
+Use `arkb index --help`, `arkb query --help`, and `arkb status --help` for all options.
+The same commands are available through `python -m arkb.cli`.
+Regular CLI tests use Qdrant Local and replace Ollama/tokenizer boundaries, so
+no running services or network are required.
 
 ## Read notes
 
-`obsidian_rag.loaders.load_notes` accepts a directory as a `pathlib.Path` and returns
+`arkb.indexing.loaders.load_notes` accepts a directory as a `pathlib.Path` and returns
 notes with `title`, `content`, and `source` fields. It reads UTF-8 `.md` files
 directly inside that directory in filename order.
 
@@ -156,17 +167,17 @@ the caller.
 Run the tests with:
 
 ```sh
-uv run --locked pytest -q
+uv run --locked python -m pytest -q
 ```
 
 ## Count tokens
 
-`obsidian_rag.tokenization` provides local token counts for Ollama's
+`arkb.tokenization` provides local token counts for Ollama's
 `qwen3-embedding:0.6b`. The recursive CLI path loads this tokenizer once per
 invocation and reuses it for all chunk counts.
 
 ```python
-from obsidian_rag.tokenization import count_tokens, load_tokenizer
+from arkb.tokenization import count_tokens, load_tokenizer
 
 tokenizer = load_tokenizer()  # Download the tokenizer if needed, then reuse it.
 title = "Permanent Notes"
@@ -217,7 +228,7 @@ OBSIDIAN_RAG_RUN_MODEL_TESTS=1 .venv/bin/python -B -m pytest \
 
 ## Split notes into chunks
 
-`obsidian_rag.chunking` exposes `chunk_notes` and `whole_note_chunks`. Both return
+`arkb.indexing.chunking` exposes `chunk_notes` and `whole_note_chunks`. Both return
 immutable `Chunk` objects with `content`, `title`, `source`, `chunk_index`,
 `start_char`, and `end_char`. Positions are Python character offsets into the
 loaded `Note.content`, with an exclusive end; the loader has already removed the
@@ -227,9 +238,9 @@ title line and outer whitespace, so these are not raw-file line numbers.
 from functools import partial
 from pathlib import Path
 
-from obsidian_rag.chunking import chunk_notes, whole_note_chunks
-from obsidian_rag.loaders import load_notes
-from obsidian_rag.tokenization import count_tokens, load_tokenizer
+from arkb.indexing.chunking import chunk_notes, whole_note_chunks
+from arkb.indexing.loaders import load_notes
+from arkb.tokenization import count_tokens, load_tokenizer
 
 notes = load_notes(Path("example_notes"))
 tokenizer = load_tokenizer()
@@ -263,7 +274,7 @@ OBSIDIAN_RAG_RUN_MODEL_TESTS=1 .venv/bin/python -B -m pytest \
 
 ## Prepare embedding inputs
 
-`obsidian_rag.embeddings` owns the text formats used by the CLI:
+`arkb.embeddings` owns the text formats used by the CLI:
 
 - `prepare_document(chunk)` returns `title + "\n\n" + content` using the versioned
   `DOCUMENT_TEMPLATE = "title-body-v1"`. Pass `EmbeddingSpec.document_template`
@@ -285,12 +296,12 @@ instruction is rejected. Use the exact prepared document text for both
 `EmbeddingSpec.embedding_key(text)` and `embed_texts([text], ...)`.
 
 ```python
-from obsidian_rag.chunking import whole_note_chunks
-from obsidian_rag.embeddings import (
+from arkb.indexing.chunking import whole_note_chunks
+from arkb.embeddings import (
     prepare_document, prepare_query, validate_input_tokens,
 )
-from obsidian_rag.loaders import Note
-from obsidian_rag.tokenization import load_tokenizer
+from arkb.indexing.loaders import Note
+from arkb.tokenization import load_tokenizer
 
 note = Note(title="Permanent Notes", content="Develop one idea.", source="idea.md")
 chunk = whole_note_chunks([note])[0]
@@ -327,13 +338,13 @@ with `OBSIDIAN_RAG_RUN_MODEL_TESTS=1` and the cached tokenizer/local model.
 
 ## Generate embeddings
 
-`obsidian_rag.embeddings.embed_texts` converts a list of texts into a NumPy matrix
+`arkb.embeddings.embed_texts` converts a list of texts into a NumPy matrix
 with one vector per input, preserving order. Supply an Ollama client to select the
 server and timeout. The default model is `qwen3-embedding:0.6b`.
 
 ```python
 from ollama import Client
-from obsidian_rag.embeddings import embed_texts
+from arkb.embeddings import embed_texts
 
 client = Client(host="http://127.0.0.1:11434", timeout=60, trust_env=False)
 vectors = embed_texts(
@@ -352,63 +363,20 @@ to the caller.
 The automated embedding tests mock the Ollama client and require no running
 model. The example above makes a real request to the local Ollama service.
 
-## Retrieve chunks
-
-`obsidian_rag.retrieval.retrieve` ranks chunks by cosine similarity and returns
-`SearchResult` objects containing the original `chunk` and a numeric `score`.
-Each row of the chunk matrix must correspond to the chunk at the same index. Pass
-a single query vector with the same dimension, using the same embedding model
-for chunks and queries.
-
-```python
-from pathlib import Path
-
-from ollama import Client
-
-from functools import partial
-
-from obsidian_rag.chunking import chunk_notes
-from obsidian_rag.embeddings import prepare_document, prepare_query
-from obsidian_rag.tokenization import count_tokens, load_tokenizer
-from obsidian_rag.embeddings import embed_texts
-from obsidian_rag.loaders import load_notes
-from obsidian_rag.retrieval import retrieve
-
-client = Client(host="http://127.0.0.1:11434", timeout=60, trust_env=False)
-notes = load_notes(Path("example_notes"))
-tokenizer = load_tokenizer()
-chunks = chunk_notes(notes, count_tokens=partial(count_tokens, tokenizer=tokenizer))
-chunk_vectors = embed_texts(
-    [prepare_document(chunk) for chunk in chunks],
-    client=client,
-)
-question = "When should temporary notes be processed and deleted?"
-query = prepare_query(question)
-query_vector = embed_texts([query], client=client)[0]
-
-for result in retrieve(chunks, chunk_vectors, query_vector, top_k=2):
-    print(f"{result.score:.4f} {result.chunk.source}: {result.chunk.title}")
-```
-
-The query includes a task instruction in the format recommended by the
-[Qwen3 Embedding model card](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B).
-Note text is embedded without that instruction. `embed_texts` passes its inputs
-to the model unchanged, so the caller prepares the query text.
-
-`top_k` defaults to 2 and must be a positive integer. Results are sorted by
-score from highest to lowest; ties preserve input order. If fewer chunks are
-available, all are returned. An empty collection with a zero-row matrix returns
-an empty list. Incompatible shapes, non-finite values, zero vectors, and
-non-finite vector norms raise `ValueError`. Input vectors are left unchanged.
-
-Retrieval tests use small, fixed vectors and require no model or network access.
-The example above calls Ollama. A similarity score ranks relevance; it is not a
-probability or proof that a note contains an answer. Answer generation must still
-check whether the retrieved text supports a response.
+`embed_texts` accepts `batch_size` (default 32), optional complete-input
+`token_counts` with `max_batch_tokens`, and an expected `dimensions`, `dtype`,
+and `normalization`. These are validated before requests; vector dimensions
+must remain consistent across batches. `normalization="l2"` verifies unit vectors
+without silently transforming them. Defaults preserve the original float64 values.
+`max_retries` defaults to zero; explicit retries cover only transient transport
+errors and HTTP 429/500/502/503/504 with capped exponential backoff.
+Use `iter_embedding_batches` to save each successful batch before requesting the
+next; failed batches never appear as successful results. Both APIs disable
+truncation. Batch token limits supplement per-input context validation.
 
 ## Build context and generate an answer
 
-`context.py` owns the full context pipeline. `build_context` preserves source
+`context/builder.py` owns the full context pipeline. `build_context` preserves source
 identity, drops blank and duplicate hits, merges overlapping spans within the
 same snapshot/document revision, and tries whole candidate chunks in retrieval
 priority order. Each trial merges overlap before counting the complete messages.
@@ -417,16 +385,14 @@ candidates are still tried. It never expands to a live note or truncates text.
 This greedy policy is deterministic; it does not claim globally optimal evidence
 selection or automatically infer which facts a question requires.
 
-Persistent `SearchResult` objects retain their `ChunkRecord` and `index_version`.
-The legacy CLI binds its in-memory hits to the exact loaded corpus. Direct
-`retrieve` callers without records retain explicitly unknown provenance: exact
-identical chunks can be deduplicated, but unversioned overlaps are not merged.
+`SearchResult` requires a matching `ChunkRecord` and a nonblank `index_version`.
+Citation origins also require complete source identities.
 Conflicting overlap within one declared revision raises an error.
 
 ```python
 from ollama import Client
-from obsidian_rag.context import ContextConfig, build_context, load_generation_counter
-from obsidian_rag.generation import generate_cited_answer
+from arkb.context import ContextConfig, build_context
+from arkb.generation import generate_cited_answer, load_generation_counter
 
 with Client(host="http://127.0.0.1:11434", timeout=180, trust_env=False) as client:
     counter = load_generation_counter(client=client)  # tokenizer cached after first use
@@ -439,18 +405,20 @@ with Client(host="http://127.0.0.1:11434", timeout=180, trust_env=False) as clie
 ```
 
 `BuiltContext` contains immutable message strings, evidence blocks, original hit
-identities/scores, a source-filename citation map, processing decisions and token
-accounting. `messages` returns a fresh API payload. Citation-map values in
-`to_dict()` are zero-based indices into `evidence_blocks`; decision ranks address
-the original candidate list. A `merged` event describes consolidation, while the
-representative's later `selected` or `budget` event describes the block's outcome.
-Structured contexts additionally expose `citation_sources`, numbered `S1`, `S2`,
-etc. in final evidence order, and a `context_id` fingerprint binding the messages
-and source identities. IDs are local to one context. Every budget trial includes
+identities/scores, processing decisions and token accounting. `messages` returns
+a fresh API payload. Python callers use `evidence_blocks` for evidence processing;
+`to_dict()` exposes one evidence registry, `citation_sources`, containing text,
+source positions and every contributing origin. It omits the redundant
+`evidence_blocks` and `citation_map` JSON fields.
+Decision ranks address the original candidate list. A `merged` event describes
+consolidation, while the representative's later `selected` or `budget` event
+describes the block's outcome. Sources are numbered `S1`, `S2`, etc. in final
+evidence order. A `context_id` fingerprint binds the messages and source identities.
+IDs are local to one context. Every budget trial includes
 the citation protocol and IDs. Only evidence actually sent to the model may be
 cited; merged blocks retain all contributing chunk identities.
 
-`citation.py` contains immutable answer/source contracts and pure parsing,
+`context/citation.py` contains immutable answer/source contracts and pure parsing,
 validation and rendering functions. Generation uses Ollama JSON Schema output:
 `status`, `claims` (`text` and `source_ids`), and `missing_information`. Unknown IDs,
 missing references, conflicting answer states, duplicate fields and model-written
@@ -492,27 +460,28 @@ bound. Revalidate adapters when model or serving templates change.
 Generation sends the built messages unchanged and applies matching `num_ctx`
 and `num_predict`. When Ollama supplies its actual prompt count, generation
 rejects a budget overflow or a mismatch with an exact counter instead of returning
-an answer from potentially truncated input. The legacy
-`generate_answer(question, results, client=...)` API builds the same budgeted
-context automatically; it also accepts `config` and `counter`. For backward
-compatibility, this string-input API and `build_context` default to the legacy
-protocol. Use `generate_cited_answer` for structured output, or pass a structured
-context to `generate_answer` to obtain its rendered string.
+an answer from potentially truncated input. `generate_cited_answer(context,
+client=...)` is the only generation entry point. It requires a `BuiltContext`;
+model selection and token budgeting happen when building that context. Use
+`result.text` for Markdown and `result.to_dict()` for JSON. Validation is reused
+across these output forms. `build_context` defaults to structured citations.
+
+Without a budget, `build_context` returns prepared evidence for inspection.
+Generation requires a budget whenever evidence is present.
 
 An empty evidence set returns an insufficient-information message without
 calling the generation model. If the fixed question/system prompt cannot fit,
 or all evidence is excluded by the budget, generation raises
 `ContextBudgetError`. `--show-context` exposes `budget_exhausted` as a diagnostic
-status. Both CLI question modes now default to structured citations. Select
-`--citation-mode legacy` only when comparing the historical filename prompt.
+status. The query command defaults to structured citations.
 Answer factuality, completeness and citation support still require evaluation.
 
-Both CLI question modes accept the context options listed above:
+The query command accepts the context options listed above:
 
 ```sh
-uv run --locked obsidian-rag query "What does chunking preserve?" --offline --show-context
-uv run --locked obsidian-rag query "What does chunking preserve?" --offline --answer-json
-uv run --locked obsidian-rag query "What does chunking preserve?" --offline \
+uv run --locked arkb query "What does chunking preserve?" --offline --show-context
+uv run --locked arkb query "What does chunking preserve?" --offline --answer-json
+uv run --locked arkb query "What does chunking preserve?" --offline \
   --context-window 8192 --max-output-tokens 1024 --context-safety-margin 128
 ```
 
@@ -559,28 +528,16 @@ does not download them.
 
 ```text
 example_notes/       Markdown documents
-src/obsidian_rag/    Python package
-tests/              Automated tests
-pyproject.toml      Project metadata and dependencies
-uv.lock             Resolved dependency versions
+src/arkb/            Python package
+tests/               Automated tests
+benchmarks/          Indexing measurement script and recorded results
+pyproject.toml       Project metadata and dependencies
+uv.lock              Resolved dependency versions
 ```
 
 The sample documents can be shared with the repository. Virtual environments,
 caches, local `config.toml`, and local `.env` files are excluded from Git. Keep
 machine-specific paths and credentials in ignored local files.
-
-## Bounded embedding execution
-
-`embed_texts` accepts `batch_size` (default 32), optional complete-input
-`token_counts` with `max_batch_tokens`, and an expected `dimensions`, `dtype`,
-and `normalization`. These are validated before requests; vector dimensions
-must remain consistent across batches. `normalization="l2"` verifies unit vectors
-without silently transforming them. Defaults preserve the original float64 values.
-`max_retries` defaults to zero; explicit retries cover only transient transport
-errors and HTTP 429/500/502/503/504 with capped exponential backoff.
-Use `iter_embedding_batches` to save each successful batch before requesting the
-next; failed batches never appear as successful results. Both APIs disable
-truncation. Batch token limits supplement per-input context validation.
 
 ## Persistent snapshots
 
@@ -596,59 +553,38 @@ SQLite files belong in a local runtime directory, never the retrieval corpus.
 
 ## Vector search
 
-`retrieval.search_numpy` and `retrieval.search_qdrant` return `schema.VectorHit`:
-a stable chunk ID and a cosine score (larger is better). Both filter by source
-before top-k selection. NumPy searches the validated SQLite snapshot directly,
-with exact cosine ranking and input-order ties. It does not maintain a second
-mutable copy of the snapshot. Qdrant supports exact and ANN queries; callers open
-and validate its collection with `retrieval.check_qdrant_collection` before use.
-`retrieval.search_index` handles this validation for application queries.
-
-## Build an index snapshot
-
-`indexing.build_index` accepts a complete list of loaded notes, a resolved
-`EmbeddingSpec`, vault ID, matching tokenizer, active context limit, and Ollama
-client. It validates inputs, chunks notes, caches successful embedding batches,
-validates the candidate snapshot, prepares Qdrant when selected, then publishes.
-The report includes the published manifest and counts of unique embedded/cached
-inputs. Duplicate text occurrences share vectors but retain separate chunk IDs.
-A later batch failure leaves previous published snapshots available and earlier
-successful batches reusable. Model artifact discovery belongs to the caller;
-changing the declared model revision changes cache identity.
+`retrieval.search_qdrant` returns `schema.VectorHit`: a stable chunk ID and a
+cosine score (larger is better). Source filtering happens before top-k selection.
+Qdrant supports exact and ANN queries; callers open and validate the collection
+with `arkb.storage.check_qdrant_collection` before direct searches.
+`retrieval.search_index` handles validation and resolves hits to snapshot evidence
+for application queries. No SQLite/NumPy search fallback is available.
 
 `retrieval.search_index` queries a captured READY snapshot and embeds only the
 question. Supply the actual model spec and tokenizer; mismatches fail before
 model calls. The saved query instruction and context limit are reused. Explicit
 `index_version` pins a request across concurrent publication. Returned chunks
 come from the snapshot, not potentially edited source files; unknown vector hits
-and invalid scores are rejected. The original `retrieve` remains the exact
-in-memory reference function.
+and invalid scores are rejected. Supply the Qdrant client explicitly.
 
-## Persistent CLI commands
+## Build an index snapshot
 
-```sh
-uv run --locked obsidian-rag index --notes-dir example_notes --offline
-uv run --locked obsidian-rag query "How should I write permanent notes?" --offline
-uv run --locked obsidian-rag query "How should I write permanent notes?" --offline --json
-uv run --locked obsidian-rag status
-```
+`indexing.build_index` accepts a complete list of loaded notes, a resolved
+`EmbeddingSpec`, vault ID, matching tokenizer, active context limit, and Ollama
+client, plus an explicit `qdrant_client` and `qdrant_config=QdrantConfig(...)`
+from `arkb.indexing`. It validates inputs, chunks notes, caches
+successful embedding batches, verifies the SQLite and Qdrant candidates, then publishes.
+`QdrantConfig` owns the endpoint, HNSW settings, readiness timeout, defaults and
+validation. The CLI uses the same configuration. For direct collection operations,
+pass it as `QdrantIndex(..., config=config)`; `wait_ready(expected_count=...)` uses
+that configuration. The builder writes `kind='qdrant'` itself. Existing saved
+metadata with omitted default settings still reuses its published snapshot.
 
-The default database is `.obsidian-rag/index.sqlite` (Git-ignored); use `--db`
-and `--vault-id` consistently across commands. `index` prints a JSON build report.
-`query --json` prints retrieved chunks without generation; `--source` filters by
-exact source path. `status` reads saved manifests without loading a tokenizer or
-contacting Ollama. Queries use a pinned snapshot even if the source notes change.
-Each command opens/closes its own database connection.
-
-Persistent commands currently validate the Qwen 0.6b tokenizer/model pairing.
-The CLI reads the installed model digest and dimensions rather than inventing a
-revision. `index --context-length` defaults to 8192, cannot exceed the model's
-advertised limit, and is explicitly sent as `num_ctx` for document and query
-embedding requests. `--batch-size`, `--max-batch-tokens`, and `--max-retries` control
-embedding work. `--query-instruction ''` saves a raw-query configuration.
-A missing index or mismatched model/tokenizer produces an error instead of
-silently rebuilding on a query. The original `obsidian-rag "question"` invocation
-remains an ephemeral baseline; use `query` to reuse a persistent index.
+The report includes the published manifest and counts of unique embedded/cached
+inputs. Duplicate text occurrences share vectors but retain separate chunk IDs.
+A later batch failure leaves previous published snapshots available and earlier
+successful batches reusable. Model artifact discovery belongs to the caller;
+changing the declared model revision changes cache identity.
 
 ## Incremental updates and recovery
 
@@ -666,7 +602,7 @@ batches remain reusable. Locks are released by the OS when a process exits.
 The CLI verifies the flat Markdown scope is stable while reading and binds each
 vault to its source directory, so a different or failed scan cannot silently
 replace its corpus. An intentionally emptied directory publishes an empty index.
-Historical snapshots are retained; deletion of the active snapshot is rejected.
+Historical snapshots are retained. The storage API does not expose snapshot deletion.
 
 ## Qdrant backend
 
@@ -677,24 +613,18 @@ and vault; opening incompatible collections fails without changing their data.
 Payload indexes for vault, embedding spec and source are created before ingestion.
 Chunk SHA-256 IDs map deterministically to UUID point IDs; full identities stay in
 payload and are verified on retrieval. Qdrant stores cosine vectors as float32,
-so allow small score-rounding differences from the NumPy float64 reference.
-`create=True` never recreates an existing collection. Writes/deletes wait for
-completion. Text remains in SQLite, and this collection handler never runs an embedding model.
+so snapshot verification allows small rounding differences from cached float64 vectors.
+`create=True` never recreates an existing collection. Point writes wait for
+completion. Failed-candidate cleanup removes only owned collections. Text remains
+in SQLite, and this collection handler never runs an embedding model.
 
 Regular backend tests use Qdrant Local for API behavior only. Real server tests
 are enabled with `OBSIDIAN_RAG_QDRANT_URL=http://127.0.0.1:6333`; they create and
 remove uniquely named test collections. Qdrant Server/client 1.19 are the validated
 pair; ANN and payload-index performance are not inferred from Local Mode tests.
 
-## Publish Qdrant indexes
-
-Run a local server separately (for example the validated `qdrant/qdrant:v1.19.0`
-Docker image), then select the backend explicitly:
-
-```sh
-uv run --locked obsidian-rag index --backend qdrant --qdrant-url http://127.0.0.1:6333 --offline
-uv run --locked obsidian-rag query "What does chunking preserve?" --offline --json
-```
+Run Qdrant Server separately, for example with the validated
+`qdrant/qdrant:v1.19.0` Docker image.
 
 The endpoint and collection are saved with the snapshot; queries open that exact
 collection and fetch only the returned source records from SQLite. Set
@@ -717,10 +647,10 @@ queries and rollback workflows; they are not automatically deleted. Record
 metadata includes observed point/index counts. Changing only index parameters
 rebuilds the search projection without recomputing compatible embeddings.
 
-## Evaluate retrieval backends
+## Evaluate retrieval and evidence
 
-`evaluation.compare_retrieval` runs the same query vectors against a NumPy exact
-reference and supplied backends. It reports neighbor Recall@k separately from
+`evaluation.compare_retrieval` compares Qdrant exact and ANN modes on the same
+query vectors, using a supplied Qdrant search callable. Exact mode is the reference. It reports neighbor Recall@k separately from
 source-group recall and union coverage of labeled sections. Section anchors must
 use `body_start_char`/`body_end_char` in loaded `Note.content`; raw-file offsets
 are rejected. Empty reference sets produce an undefined recall, not a perfect
@@ -728,16 +658,16 @@ score. Exact ties and float32 rounding can change rank order, so raw IDs/scores
 are retained. No generated-answer accuracy is inferred from these metrics.
 
 ```sh
-uv run --locked python -m obsidian_rag.evaluation \
+uv run --locked python -m arkb.evaluation \
   --db .obsidian-rag/index.sqlite --cases path/to/cases.jsonl \
   --output path/to/new-evaluation --offline --top-k 2
 ```
 
 The runner captures an active snapshot, verifies the actual embedding model and
-Qdrant data, embeds each question once, and compares NumPy exact, Qdrant exact,
-and Qdrant ANN when the snapshot uses Qdrant. It writes frozen cases, raw results,
+Qdrant data, embeds each question once, and compares Qdrant exact and ANN. It writes frozen cases, raw results,
 metrics, source/configuration hashes and runtime metadata into a new directory;
-existing evaluation directories are never overwritten. Search timing includes
+existing evaluation directories are never overwritten. Source hashes cover all Python
+modules recursively, keyed by their paths relative to the package root. Search timing includes
 backend I/O but excludes embedding and snapshot load. It reports stored vector
 bytes and SQLite file sizes, not total process or server memory. Build reports
 include `build_seconds` measured inside the writer lock (source scan excluded).
@@ -747,26 +677,27 @@ For a controlled HNSW experiment on a small corpus, rebuild with
 threshold affects the query planner; simply requesting ANN does not prove the
 server used a graph for a small collection. No large-scale latency claim should
 be made from the bundled small corpus. Keep evaluation outputs outside note
-folders. Real end-to-end tests use `OBSIDIAN_RAG_RUN_MODEL_TESTS=1` and optionally
+folders. Real end-to-end lifecycle tests require both `OBSIDIAN_RAG_RUN_MODEL_TESTS=1` and
 `OBSIDIAN_RAG_QDRANT_URL`; they check separate-process queries and incremental
 edits/deletes against real services while cleaning their test collections.
 
 
-Add `--context` to the evaluation command to compare three policies on each
-identical NumPy candidate list: historical unbounded `raw`, `raw_budgeted`, and
-processed `built`. The latter two use the same configurable generation budget.
+Add `--context` to evaluate the production context builder on each frozen Qdrant
+exact candidate list. `evaluation.evaluate_context` reports the packed evidence
+under the configured generation budget. Coverage retention compares the packed
+evidence with the original hits, without rendering historical prompt variants.
 `context_results.jsonl` retains final messages and provenance; `metrics.json`
 includes input tokens, block counts, duplicate source-span fractions, section
 coverage/retention and build time. These are context metrics, not answer scores.
 
 ```sh
-uv run --locked python -m obsidian_rag.evaluation \
+uv run --locked python -m arkb.evaluation \
   --db .obsidian-rag/index.sqlite --cases path/to/cases.jsonl \
   --output path/to/new-context-evaluation --offline --top-k 2 --context \
   --context-window 8192 --max-output-tokens 1024
 ```
 
-Add `--citations` to generate structured answers once on the same frozen NumPy
+Add `--citations` to generate structured answers once on the same frozen Qdrant exact
 hits. `citation_results.jsonl` includes final messages, response schemas, source
 registries, raw model output, validation failures, token usage and generation
 time. Existing output directories are rejected. This can be combined with
@@ -781,3 +712,12 @@ Support is judged against the cited sources jointly. The supported-claim rate
 uses reviewed claims only and reports review coverage separately. Zero
 denominators and absent semantic reviews remain null, never perfect scores.
 Summaries include failed cases and each metric's number of defined cases.
+
+For indexing costs, run the following with a new output path:
+
+```sh
+uv run --locked python -B benchmarks/profile_indexing.py --output /tmp/indexing-overhead-new.json
+```
+
+The [measurement report](benchmarks/indexing-overhead.md) records the baseline,
+method and limits; its timings exclude real model inference and Qdrant Server.

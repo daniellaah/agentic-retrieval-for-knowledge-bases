@@ -3,11 +3,11 @@ from functools import partial
 import numpy as np
 import pytest
 
-from obsidian_rag.chunking import Chunk, whole_note_chunks
-from obsidian_rag.evaluation import compare_retrieval, evidence_statistics, recall_at_k
-from obsidian_rag.loaders import Note
-from obsidian_rag.retrieval import search_numpy
-from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
+from arkb.indexing.chunking import Chunk, whole_note_chunks
+from arkb.evaluation import compare_retrieval, evidence_statistics, recall_at_k
+from arkb.indexing.loaders import Note
+from arkb.retrieval import search_qdrant
+from arkb.schema import ChunkRecord, EmbeddingSpec
 
 
 def test_neighbor_recall_counts_unique_exact_neighbors_and_handles_no_reference():
@@ -32,29 +32,31 @@ def test_section_coverage_uses_union_and_not_just_file_hits():
         evidence_statistics(chunks, {'evidence_anchors': [{'source': 'a.md', 'start_char': 0, 'end_char': 12}]})
 
 
-def test_comparison_separates_neighbor_recall_from_evidence_coverage():
+def test_comparison_separates_neighbor_recall_from_evidence_coverage(qdrant):
     spec = EmbeddingSpec(model='test', model_revision='fixed', dimensions=2, document_template='title-body-v1')
     notes = [Note(title='T', content='evidence', source=f'{i}.md') for i in range(2)]
     records = [ChunkRecord.from_note(whole_note_chunks([n])[0], note=n, vault_id='v') for n in notes]
     vectors = np.eye(2)
-    alternate = partial(search_numpy, records, vectors[::-1], spec=spec, vault_id='v')
+    from arkb.indexing import QdrantIndex
+    index = QdrantIndex(qdrant, 'evaluation', spec, vault_id='v', create=True)
+    index.upsert(records, vectors)
+    search = partial(search_qdrant, qdrant, 'evaluation', spec=spec, vault_id='v')
     cases = [{'id': 'q1', 'question': 'Question?', 'required_source_groups': [['1.md']],
               'evidence_anchors': [{'source': '1.md', 'body_start_char': 0, 'body_end_char': 8}]}]
-    result = compare_retrieval(records, vectors, [[1, 0]], cases, spec=spec, vault_id='v', top_k=1,
-                               backends={'different': (alternate, False)})
-    assert result['summary']['numpy_exact']['neighbor_recall_at_k'] == 1
-    assert result['summary']['numpy_exact']['section_coverage'] == 0
-    assert result['summary']['different']['neighbor_recall_at_k'] == 0
-    assert result['summary']['different']['section_coverage'] == 1
+    result = compare_retrieval(records, vectors, [[1, 0]], cases, spec=spec, search=search, top_k=1)
+    assert result['summary']['qdrant_exact']['neighbor_recall_at_k'] == 1
+    assert result['summary']['qdrant_exact']['section_coverage'] == 0
+    assert result['summary']['qdrant_ann']['neighbor_recall_at_k'] == 1
+    assert result['summary']['qdrant_ann']['section_coverage'] == 0
     assert result['settings']['vector_bytes'] == vectors.nbytes
     with pytest.raises(ValueError, match='unique'):
-        compare_retrieval(records, vectors, [[1, 0], [1, 0]], cases * 2, spec=spec, vault_id='v')
+        compare_retrieval(records, vectors, [[1, 0], [1, 0]], cases * 2, spec=spec, search=search)
 
 
-def test_context_comparison_isolates_processing_from_budget_and_measures_span_union():
-    from obsidian_rag.context import ContextConfig, GenerationCounter, build_context
-    from obsidian_rag.evaluation import compare_contexts
-    from obsidian_rag.retrieval import SearchResult
+def test_context_evaluation_measures_packed_span_union_and_coverage_retention():
+    from arkb.context import ContextConfig, GenerationCounter, build_context
+    from arkb.evaluation import evaluate_context
+    from arkb.retrieval import SearchResult
     note = Note('Title', 'x' * 300, 'a.md')
     hits = []
     for index, (start, end) in enumerate([(0, 200), (150, 300)]):
@@ -66,34 +68,31 @@ def test_context_comparison_isolates_processing_from_budget_and_measures_span_un
     config = ContextConfig(limit + 20, 20, 0)
     case = {'required_source_groups': [['a.md']],
             'evidence_anchors': [{'source': 'a.md', 'body_start_char': 0, 'body_end_char': 300}]}
-    modes = compare_contexts('Q?', hits, case, config=config, counter=counter)
-    raw, budgeted, built = [modes[name]['metrics'] for name in ('raw', 'raw_budgeted', 'built')]
-    assert raw['body_characters'] == 350
-    assert raw['duplicate_span_fraction'] == pytest.approx(50 / 350)
-    assert raw['section_coverage'] == 1 and not raw['fits_budget']
-    assert budgeted['section_coverage'] == pytest.approx(2 / 3)
+    result = evaluate_context('Q?', hits, case, config=config, counter=counter)
+    built = result['metrics']
     assert built['section_coverage'] == built['section_coverage_retention'] == 1
     assert built['duplicate_span_fraction'] == 0
     assert built['fits_budget'] and built['prompt_tokens'] == limit
     assert built['body_characters'] == 300 and built['block_count'] == 1
-    assert modes['built']['context']['citation_map'] == {'a.md': [0]}
-    with pytest.raises(ValueError, match='snapshot-identified'):
-        compare_contexts('Q?', [SearchResult(hits[0].chunk, .5)], case, config=config, counter=counter)
+    assert [(s['source_id'], s['source'], s['content']) for s in result['context']['citation_sources']] == [('S1', 'a.md', note.content)]
+    from dataclasses import replace
+    with pytest.raises(ValueError, match='one snapshot'):
+        evaluate_context('Q?', [hits[0], replace(hits[1], index_version='other')], case, config=config, counter=counter)
 
 
 def citation_fixture():
-    from obsidian_rag.context import ContextConfig, GenerationCounter, build_context
-    from obsidian_rag.retrieval import SearchResult
+    from arkb.context import ContextConfig, GenerationCounter, build_context
+    from arkb.retrieval import SearchResult
     note = Note('Title', 'Only small datasets were faster.', 'a.md')
     chunk = whole_note_chunks([note])[0]
     counter = GenerationCounter('test', 'chars', lambda m: 10 + sum(len(x['content']) for x in m))
-    return build_context('Which datasets were faster?', [SearchResult(chunk, .9)],
+    return build_context('Which datasets were faster?', [SearchResult(chunk, .9, ChunkRecord.from_note(chunk, note=note, vault_id='v'), 'snapshot')],
                           config=ContextConfig(), counter=counter, citation_mode='structured')
 
 
 def test_citation_metrics_separate_valid_links_from_wrong_claims_and_missing_facts():
     import json
-    from obsidian_rag.evaluation import citation_statistics
+    from arkb.evaluation import citation_statistics
     raw = json.dumps({'status': 'answered', 'claims': [
         {'text': 'Every dataset was faster.', 'source_ids': ['S1']},
         {'text': 'It was also cheaper.', 'source_ids': []}], 'missing_information': []})
@@ -114,7 +113,7 @@ def test_citation_metrics_separate_valid_links_from_wrong_claims_and_missing_fac
 
 def test_citation_metrics_keep_undefined_denominators_and_partial_review_visible():
     import json
-    from obsidian_rag.evaluation import citation_statistics
+    from arkb.evaluation import citation_statistics
     sources = citation_fixture().citation_sources
     abstain = json.dumps({'status': 'insufficient_evidence', 'claims': [], 'missing_information': ['No evidence.']})
     metrics = citation_statistics(abstain, sources)
@@ -131,7 +130,7 @@ def test_citation_metrics_keep_undefined_denominators_and_partial_review_visible
 def test_citation_evaluation_retains_failed_raw_output_and_counts_failures():
     from unittest.mock import Mock
     from ollama import Client, ChatResponse, Message
-    from obsidian_rag.evaluation import evaluate_citation_context, summarize_citations
+    from arkb.evaluation import evaluate_citation_context, summarize_citations
     client = Mock(spec=Client)
     client.chat.return_value = ChatResponse(message=Message(role='assistant', content='{'), done_reason='length')
     row = evaluate_citation_context(citation_fixture(), client=client)
@@ -146,11 +145,88 @@ def test_citation_evaluation_retains_failed_raw_output_and_counts_failures():
 
 def test_citation_case_records_prompt_budget_failure_without_calling_model():
     from unittest.mock import Mock
-    from obsidian_rag.context import ContextConfig
-    from obsidian_rag.evaluation import evaluate_citation_case
+    from arkb.context import ContextConfig
+    from arkb.evaluation import evaluate_citation_case
     context = citation_fixture()
     client = Mock()
     row = evaluate_citation_case('Question?', list(context.evidence_blocks[0].origins),
                                  config=ContextConfig(30, 10, 0), counter=context.counter, client=client)
     assert row['error']['code'] == 'context_budget' and row['context'] is None
     client.chat.assert_not_called()
+
+
+def test_runner_hashes_nested_sources_and_preserves_snapshot_and_artifacts(tmp_path, monkeypatch, capsys, qdrant, qdrant_config):
+    import hashlib
+    import json
+    from unittest.mock import MagicMock
+
+    from ollama import Client, ChatResponse, EmbedResponse, Message
+    from tokenizers import Tokenizer, models, pre_tokenizers
+
+    import arkb.evaluation as evaluation
+    from arkb.context import GenerationCounter
+    from arkb.indexing import build_index
+    from arkb.storage import SQLiteStorage
+
+    # Identical basenames in different packages must retain distinct identities.
+    package_dir = tmp_path / 'src' / 'arkb'
+    sources = {
+        '__init__.py': b'"""Package."""\n',
+        'evaluation.py': b'"""Evaluation."""\n',
+        'indexing/__init__.py': b'"""Indexing."""\n',
+        'retrieval/__init__.py': b'"""Retrieval."""\n',
+        'retrieval/semantic.py': b'"""Semantic search."""\n',
+        'context/builder.py': b'"""Context construction."""\n',
+    }
+    for name, data in sources.items():
+        path = package_dir / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    (package_dir / 'unrelated.txt').write_text('Not Python source.')
+    monkeypatch.setattr(evaluation, '__file__', str(package_dir / 'evaluation.py'))
+
+    tokenizer = Tokenizer(models.WordLevel({'[UNK]': 0}, unk_token='[UNK]'))
+    tokenizer.pre_tokenizer = pre_tokenizers.WhitespaceSplit()
+    spec = EmbeddingSpec(model='test', model_revision='fixed', dimensions=2,
+                         document_template='title-body-v1')
+    client = MagicMock(spec=Client)
+    client.__enter__.return_value = client
+    client.embed.side_effect = lambda **kw: EmbedResponse(embeddings=[[1., 0.] for _ in kw['input']])
+    client.chat.return_value = ChatResponse(message=Message(role='assistant', content=json.dumps({
+        'status': 'answered', 'claims': [{'text': 'A fact.', 'source_ids': ['S1']}],
+        'missing_information': [],
+    })))
+    db = tmp_path / 'index.sqlite'
+    with SQLiteStorage(db) as storage:
+        build_index(storage, [Note('Title', 'A fact.', 'a.md')], spec=spec, vault_id='default',
+                    client=client, tokenizer=tokenizer, max_input_tokens=100, chunking='none',
+                    qdrant_client=qdrant, qdrant_config=qdrant_config)
+    monkeypatch.setattr('arkb.storage.connect_qdrant', lambda *a: qdrant)
+    before = db.read_bytes()
+    client.embed.reset_mock()
+    monkeypatch.setattr('ollama.Client', lambda **kw: client)
+    monkeypatch.setattr('arkb.embeddings.resolve_embedding_spec', lambda *a, **kw: spec)
+    monkeypatch.setattr('arkb.tokenization.load_tokenizer', lambda **kw: tokenizer)
+    counter = GenerationCounter('test-generation', 'test-count',
+                                 lambda messages: 10 + sum(len(m['content']) for m in messages))
+    monkeypatch.setattr('arkb.generation.load_generation_counter', lambda **kw: counter)
+    cases = tmp_path / 'cases.jsonl'
+    cases.write_text(json.dumps({'id': 'fact', 'question': 'What is stated?'}) + '\n')
+    output = tmp_path / 'evaluation'
+    args = ['--db', str(db), '--cases', str(cases), '--output', str(output),
+            '--offline', '--context', '--citations']
+
+    assert evaluation.main(args) == 0
+    capsys.readouterr()
+    metadata = json.loads((output / 'run_metadata.json').read_text())
+    assert metadata['source_hashes'] == {name: hashlib.sha256(data).hexdigest() for name, data in sources.items()}
+    row = json.loads((output / 'citation_results.jsonl').read_text())
+    assert row['success'] and row['context']['citation_sources'][0]['content'] == 'A fact.'
+    assert json.loads((output / 'metrics.json').read_text())['citations']['summary']['success_count'] == 1
+    client.embed.assert_called_once()
+    assert db.read_bytes() == before
+    artifacts = {p.name: p.read_bytes() for p in output.iterdir()}
+    with pytest.raises(SystemExit) as error:
+        evaluation.main(args)
+    assert error.value.code == 2
+    assert {p.name: p.read_bytes() for p in output.iterdir()} == artifacts

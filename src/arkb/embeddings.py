@@ -10,9 +10,8 @@ from numpy.typing import NDArray
 from ollama import Client, ResponseError
 from tokenizers import Tokenizer
 
-from obsidian_rag.chunking import Chunk
-from obsidian_rag.schema import EmbeddingSpec
-from obsidian_rag.tokenization import count_tokens
+from arkb.schema import Chunk, EmbeddingSpec
+from arkb.tokenization import count_tokens
 
 
 DOCUMENT_TEMPLATE = "title-body-v1"

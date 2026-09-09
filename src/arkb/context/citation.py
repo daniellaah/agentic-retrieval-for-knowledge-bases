@@ -35,22 +35,18 @@ class CitationOrigin:
     start_char: int
     end_char: int
     score: float
-    chunk_id: str | None = None
-    document_id: str | None = None
-    document_revision: str | None = None
-    vault_id: str | None = None
-    index_version: str | None = None
+    chunk_id: str
+    document_id: str
+    document_revision: str
+    vault_id: str
+    index_version: str
 
     def __post_init__(self):
         _span(self.start_char, self.end_char)
         if type(self.score) not in (int, float) or not math.isfinite(self.score) or not -1 <= self.score <= 1:
             raise ValueError('Origin score must be a finite cosine score.')
-        identity = (self.chunk_id, self.document_id, self.document_revision, self.vault_id)
-        if any(v is not None for v in identity):
-            for value in identity:
-                _text(value, 'Origin identity')
-        if self.index_version is not None:
-            _text(self.index_version, 'index_version')
+        for value in (self.chunk_id, self.document_id, self.document_revision, self.vault_id, self.index_version):
+            _text(value, 'Origin identity')
 
 
 @dataclass(frozen=True)
@@ -81,7 +77,7 @@ class CitationSource:
                 raise ValueError('Origin must lie within source span.')
         if len(self.origins) > 1:
             keys = {(o.vault_id, o.document_id, o.document_revision, o.index_version) for o in self.origins}
-            if len(keys) != 1 or self.origins[0].document_revision is None:
+            if len(keys) != 1:
                 raise ValueError('Merged sources require one known document revision and snapshot.')
 
 
@@ -320,11 +316,8 @@ def validate_citations(answer: CitedAnswer, sources: Sequence[CitationSource], *
     return CitationValidation(tuple(issues), tuple(resolved))
 
 
-def used_citation_sources(answer: CitedAnswer, sources: Sequence[CitationSource]) -> tuple[CitationSource, ...]:
-    """Order by first use, preserving each claim's joint-reference order."""
-    validation = validate_citations(answer, sources)
-    if not validation.references_valid:
-        raise ValueError('Cannot render invalid citations: ' + ', '.join(i.code for i in validation.issues))
+def _used_citation_sources(answer, sources):
+    """Order validated sources by first use, preserving joint-reference order."""
     registry = _registry(sources)
     ids = dict.fromkeys(source_id for claim in answer.claims for source_id in claim.source_ids)
     return tuple(registry[source_id] for source_id in ids)
@@ -344,8 +337,14 @@ def render_cited_answer(answer: CitedAnswer, sources: Sequence[CitationSource]) 
     Display numbers are first-use order, distinct from request-local source IDs.
     Full source identities and verbatim evidence are available in structured data.
     """
-    used = used_citation_sources(answer, sources)
-    quotes = validate_citations(answer, sources).quotes
+    return _render_cited_answer(answer, sources, validate_citations(answer, sources))
+
+
+def _render_cited_answer(answer, sources, validation):
+    if not validation.references_valid:
+        raise ValueError('Cannot render invalid citations: ' + ', '.join(i.code for i in validation.issues))
+    used = _used_citation_sources(answer, sources)
+    quotes = validation.quotes
     numbers = {s.source_id: i for i, s in enumerate(used, 1)}
     paragraphs = []
     for i, claim in enumerate(answer.claims):
@@ -361,7 +360,7 @@ def render_cited_answer(answer: CitedAnswer, sources: Sequence[CitationSource]) 
         for s in used:
             origin = s.origins[0]
             identity = (f'revision {_display_text(origin.document_revision)}, '
-                        f'index {_display_text(origin.index_version or "unknown")}') if origin.document_revision else 'unversioned'
+                        f'index {_display_text(origin.index_version)}')
             lines.append(f'[{numbers[s.source_id]}] {_display_text(s.source)} — {_display_text(s.title)}; '
                          f'body chars [{s.start_char}, {s.end_char}); {identity}')
             if not any(q.source_id == s.source_id for q in quotes):

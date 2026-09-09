@@ -4,9 +4,9 @@ from functools import partial
 import pytest
 from tokenizers import Tokenizer, models
 
-from obsidian_rag.chunking import chunk_notes, whole_note_chunks
-from obsidian_rag.loaders import Note
-from obsidian_rag.tokenization import count_tokens
+from arkb.indexing.chunking import chunk_notes, whole_note_chunks
+from arkb.indexing.loaders import Note
+from arkb.tokenization import count_tokens
 
 
 def test_whole_note_chunks_preserves_each_note_and_its_origin() -> None:

@@ -12,11 +12,11 @@ import pytest
 from qdrant_client import QdrantClient
 from tokenizers import Tokenizer, models, pre_tokenizers
 
-from obsidian_rag.indexing import build_index, QdrantIndex
-from obsidian_rag.loaders import Note
-from obsidian_rag.retrieval import search_index
-from obsidian_rag.schema import EmbeddingSpec
-from obsidian_rag.storage import SQLiteStorage
+from arkb.indexing import build_index, QdrantConfig, QdrantIndex
+from arkb.indexing.loaders import Note
+from arkb.retrieval import search_index
+from arkb.schema import EmbeddingSpec
+from arkb.storage import SQLiteStorage
 
 
 pytestmark = pytest.mark.skipif(not os.environ.get('OBSIDIAN_RAG_QDRANT_URL'),
@@ -39,8 +39,7 @@ def test_qdrant_publication_hnsw_and_failure_recovery(tmp_path, monkeypatch):
     with SQLiteStorage(tmp_path / 'db') as storage, closing(QdrantClient(url=url, timeout=15, trust_env=False)) as client:
         options = dict(spec=spec, vault_id=vault, client=ollama, tokenizer=tokenizer, max_input_tokens=100,
                        chunking='none', qdrant_client=client,
-                       backend={'kind': 'qdrant', 'url': url, 'indexing_threshold': 1, 'full_scan_threshold': 10, 'require_hnsw': True,
-                                'index_timeout': 30})
+                       qdrant_config=QdrantConfig(url=url, indexing_threshold=1, full_scan_threshold=10, require_hnsw=True))
         try:
             first = build_index(storage, notes, **options)
             metadata = storage.build_metadata(first.manifest.index_version)['backend']

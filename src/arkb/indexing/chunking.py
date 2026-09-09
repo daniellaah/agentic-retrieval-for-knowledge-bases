@@ -2,10 +2,9 @@
 
 from collections import deque
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
 import re
 
-from obsidian_rag.loaders import Note
+from arkb.schema import Chunk, Note
 
 
 _SEPARATORS = tuple(re.compile(pattern) for pattern in (
@@ -14,18 +13,6 @@ _SEPARATORS = tuple(re.compile(pattern) for pattern in (
     r"[。！？]+[ \t]*|[.!?]+(?:[ \t]+|(?=$))",
     r"[ \t]+",
 ))
-
-
-@dataclass(frozen=True)
-class Chunk:
-    """A verbatim slice of Note.content; end_char is exclusive."""
-
-    content: str
-    title: str
-    source: str
-    chunk_index: int
-    start_char: int
-    end_char: int
 
 
 def whole_note_chunks(notes: Sequence[Note]) -> list[Chunk]:

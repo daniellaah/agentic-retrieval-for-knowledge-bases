@@ -9,18 +9,19 @@ import numpy as np
 import pytest
 from qdrant_client import QdrantClient
 
-from obsidian_rag.chunking import whole_note_chunks
-from obsidian_rag.indexing import QdrantIndex
-from obsidian_rag.loaders import Note
-from obsidian_rag.retrieval import check_qdrant_collection, search_qdrant
-from obsidian_rag.schema import ChunkRecord, EmbeddingSpec
+from arkb.indexing.chunking import whole_note_chunks
+from arkb.indexing import QdrantIndex
+from arkb.indexing.loaders import Note
+from arkb.storage import check_qdrant_collection
+from arkb.retrieval import search_qdrant
+from arkb.schema import ChunkRecord, EmbeddingSpec
 
 
 pytestmark = pytest.mark.skipif(not os.environ.get('OBSIDIAN_RAG_QDRANT_URL'),
                                reason='Set OBSIDIAN_RAG_QDRANT_URL to a test Qdrant Server.')
 
 
-def test_server_persistence_filters_scores_and_deletes():
+def test_server_persistence_filters_and_scores():
     name = 'obsidian_rag_test_' + uuid4().hex
     spec = EmbeddingSpec(model='test', model_revision='fixed', dimensions=2,
                          document_template='title-body-v1', normalization='none')
@@ -42,8 +43,8 @@ def test_server_persistence_filters_scores_and_deletes():
                 assert [h.chunk_id for h in hits] == [r.chunk_id for r in records]
                 np.testing.assert_allclose([h.score for h in hits], [1, .6, 0], atol=1e-6)
                 assert search([1, 0], top_k=1, source='2.md')[0].chunk_id == records[2].chunk_id
-                reopened.delete([records[0].chunk_id])
-                assert reopened.count() == 2
+                assert reopened.count() == 3
+                assert search([1, 0], top_k=1, source='missing.md') == []
         finally:
             if client.collection_exists(name):
                 client.delete_collection(name)

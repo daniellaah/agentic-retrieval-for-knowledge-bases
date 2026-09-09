@@ -1,4 +1,4 @@
-"""Immutable indexing records and deterministic, versioned SHA-256 identities.
+"""Shared immutable records and deterministic, versioned SHA-256 identities.
 
 This module describes data; it does not call models, store vectors, or publish
 indexes. Sources are canonical vault-relative POSIX paths. A rename changes a
@@ -13,8 +13,26 @@ import re
 from typing import Literal
 from uuid import NAMESPACE_URL, uuid5
 
-from obsidian_rag.chunking import Chunk
-from obsidian_rag.loaders import Note
+
+@dataclass(frozen=True)
+class Note:
+    """A Markdown note with a title, body, and source filename."""
+
+    title: str
+    content: str
+    source: str
+
+
+@dataclass(frozen=True)
+class Chunk:
+    """A verbatim slice of Note.content; end_char is exclusive."""
+
+    content: str
+    title: str
+    source: str
+    chunk_index: int
+    start_char: int
+    end_char: int
 
 
 SCHEMA_VERSION = 1
@@ -157,6 +175,22 @@ class ChunkRecord:
 
 
 @dataclass(frozen=True)
+class SearchResult:
+    """A cosine hit tied to a document revision in an immutable snapshot."""
+
+    chunk: Chunk
+    score: float
+    record: ChunkRecord
+    index_version: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.record, ChunkRecord) or self.record.chunk != self.chunk:
+            raise ValueError('Search result chunk must match its source record.')
+        if not isinstance(self.index_version, str) or not self.index_version.strip():
+            raise ValueError('index_version must be nonblank.')
+
+
+@dataclass(frozen=True)
 class IndexManifest:
     """Describe one build, its configuration, and intended snapshot counts.
 
@@ -210,6 +244,7 @@ class IndexManifest:
 
 
 def _digest(kind: str, data: dict) -> str:
+    # This persisted namespace is independent of the Python package name.
     payload = json.dumps(data, sort_keys=True, ensure_ascii=False,
                          separators=(",", ":"), allow_nan=False)
     return hashlib.sha256(
@@ -261,6 +296,7 @@ def validate_records(records: Sequence[ChunkRecord], *, vault_id: str) -> None:
 def point_id(chunk_id: str) -> str:
     if not isinstance(chunk_id, str) or re.fullmatch('[0-9a-f]{64}', chunk_id) is None:
         raise ValueError('Expected a SHA-256 chunk ID.')
+    # Preserve the UUID mapping used by existing Qdrant collections.
     return str(uuid5(NAMESPACE_URL, 'obsidian-rag/chunk/' + chunk_id))
 
 

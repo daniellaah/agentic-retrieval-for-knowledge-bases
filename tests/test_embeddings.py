@@ -6,8 +6,8 @@ from ollama import Client, EmbedResponse, ResponseError
 import pytest
 from tokenizers import Tokenizer, models, processors
 
-from obsidian_rag.chunking import Chunk, whole_note_chunks
-from obsidian_rag.embeddings import (
+from arkb.indexing.chunking import Chunk, whole_note_chunks
+from arkb.embeddings import (
     embed_texts,
     DEFAULT_QUERY_INSTRUCTION,
     DOCUMENT_TEMPLATE,
@@ -15,8 +15,8 @@ from obsidian_rag.embeddings import (
     prepare_query,
     validate_input_tokens,
 )
-from obsidian_rag.loaders import Note
-from obsidian_rag.schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
+from arkb.indexing.loaders import Note
+from arkb.schema import ChunkRecord, EmbeddingSpec, IndexManifest, fingerprint_config
 
 
 @pytest.fixture
@@ -151,7 +151,7 @@ def test_invalid_plan_fails_before_first_batch(client: Mock, options) -> None:
 
 
 def test_successful_batches_can_be_checkpointed_before_a_later_failure(client: Mock) -> None:
-    from obsidian_rag.embeddings import iter_embedding_batches
+    from arkb.embeddings import iter_embedding_batches
     client.embed.side_effect = [EmbedResponse(embeddings=[[1, 0]]), ConnectionError("failed")]
     batches = iter_embedding_batches(["a", "b"], client=client, batch_size=1)
     start, matrix = next(batches)
@@ -171,7 +171,7 @@ def test_dimension_change_between_batches_is_rejected(client: Mock) -> None:
 @pytest.mark.parametrize("status", [429, 500, 502, 503, 504])
 def test_transient_errors_are_retried_with_bounded_backoff(client: Mock, monkeypatch, status) -> None:
     sleep = Mock()
-    monkeypatch.setattr("obsidian_rag.embeddings.time.sleep", sleep)
+    monkeypatch.setattr("arkb.embeddings.time.sleep", sleep)
     client.embed.side_effect = [ResponseError("busy", status_code=status),
                                EmbedResponse(embeddings=[[1, 0]])]
     embed_texts(["a"], client=client, max_retries=2)

@@ -1,16 +1,8 @@
 """Read Markdown notes from a directory."""
 
-from dataclasses import dataclass
 from pathlib import Path
 
-
-@dataclass(frozen=True)
-class Note:
-    """A Markdown note with a title, body, and source filename."""
-
-    title: str
-    content: str
-    source: str
+from arkb.schema import Note
 
 
 def load_notes(directory: Path) -> list[Note]:

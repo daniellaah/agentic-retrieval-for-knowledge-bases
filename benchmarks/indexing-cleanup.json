@@ -1,0 +1,1199 @@
+{
+  "created_at": "2026-09-09T01:25:13.979187+00:00",
+  "environment": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "python": "3.13.5",
+    "sqlite": "3.47.1",
+    "numpy": "2.5.2",
+    "qdrant_client": "1.19.0"
+  },
+  "settings": {
+    "dimensions": 1024,
+    "repeats": 3,
+    "seed": 7,
+    "batch_size": 32,
+    "chunking": "none",
+    "unique_input_fraction": 1.0,
+    "qdrant": "Local :memory:",
+    "embedding": "precomputed; no model inference"
+  },
+  "source_hashes": {
+    "__init__.py": "7c59091739862daa280f33a33d9f707eb28234472949efc32fe76beaf5d54a9b",
+    "cli.py": "bb77bf0614a6c4286c3c80c3e320e1b76dcbf10515e575e94c0af0ec677fa157",
+    "context/__init__.py": "81f3c6427dbb35c72b3db1c906514edff6d283bd958b0d924641758fb5748a5b",
+    "context/builder.py": "c0e8fdfff7469a5f3d5515b805ff6311ed485f7d2225d97f90a761650c3b8627",
+    "context/citation.py": "dd263d22dd6d0f6bb4300966951e9b7aaa23747dfbf0f2c0b2f17dc223ac2eed",
+    "embeddings.py": "547b94b4d2e67b00b76f3a4386cad4b72d1651d328e6be558780ecf541f7f290",
+    "evaluation.py": "857f0de9d3a5b41b10ea7841b28fe02bfc0f57fe5e18b1399533a34b9126d18c",
+    "generation.py": "33738f5c9b7c4177fb0c8b9a48738ebec5ccf296626c20c044386705c81f5456",
+    "indexing/__init__.py": "129fba27942a4818b687ea9504612050c124e8f07c62611872ccddd3dcb27ff6",
+    "indexing/chunking.py": "54ef6cef2e82dca7cc64314c689805727f705f4a2e0434ce418d27e46f54bec9",
+    "indexing/index.py": "11d04203a5515ddcd41459eaa402c6f0c2712d811aab92e6e0ab48743874877f",
+    "indexing/loaders.py": "aa7c75d05403ecb4f708aface711f7a91125919e192d649b664abf90ba655fee",
+    "retrieval/__init__.py": "c9fd80f8c104fe5c1132e36d69f2dab499d5f0586debf8df69b3835675b94826",
+    "retrieval/semantic.py": "5b8c2e5775ea8099ca6298365c91c7a9d3c89f54e031788a0664e3b999c81b3e",
+    "schema.py": "11b3278d13a5fb0e3580a7c3b0bfddbfad44cef0fc30b3911f9132083c47865a",
+    "storage.py": "9e528c952128a40252026f2a8267641d3da8b0ec999aabd797d81b3c21529b68",
+    "tokenization.py": "c321a83ae3d12b7ff963a25f51d7aecccc7209ed7987c8af94fdf569b2a7bb77"
+  },
+  "limits": [
+    "API build time excludes file scanning, vector creation, setup and imports.",
+    "This isolates local indexing work; it does not measure real model or Qdrant Server latency.",
+    "Profile times include instrumentation overhead; use unprofiled medians for wall time.",
+    "Inclusive method times overlap. SQL timings cover execute, not later row fetching.",
+    "No batching, memoization, skipped checks or storage changes are applied."
+  ],
+  "results": [
+    {
+      "chunks": 256,
+      "phases": {
+        "cold": {
+          "unprofiled_runs": [
+            {
+              "wall_seconds": 0.17393287492450327,
+              "build_seconds": 0.17383987491484731,
+              "embedded_inputs": 256,
+              "cached_inputs": 0,
+              "embedding_calls": 8,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            },
+            {
+              "wall_seconds": 0.18171233392786235,
+              "build_seconds": 0.18159291695337743,
+              "embedded_inputs": 256,
+              "cached_inputs": 0,
+              "embedding_calls": 8,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            },
+            {
+              "wall_seconds": 0.17312983400188386,
+              "build_seconds": 0.17302516696508974,
+              "embedded_inputs": 256,
+              "cached_inputs": 0,
+              "embedding_calls": 8,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            }
+          ],
+          "median_seconds": 0.17393287492450327,
+          "min_seconds": 0.17312983400188386,
+          "max_seconds": 0.18171233392786235,
+          "profiled": {
+            "wall_seconds": 0.17832554096821696,
+            "build_seconds": 0.17823129205498844,
+            "embedded_inputs": 256,
+            "cached_inputs": 0,
+            "embedding_calls": 8,
+            "sqlite_settings": {
+              "journal_mode": "wal",
+              "synchronous": 2,
+              "wal_autocheckpoint": 1000
+            },
+            "timings": {
+              "sql.select_active_indexes": {
+                "calls": 1,
+                "inclusive_seconds": 0.00014379096683114767,
+                "exclusive_seconds": 0.00014379096683114767
+              },
+              "sql.select_builds": {
+                "calls": 264,
+                "inclusive_seconds": 0.0003517543664202094,
+                "exclusive_seconds": 0.0003517543664202094
+              },
+              "sql.begin": {
+                "calls": 267,
+                "inclusive_seconds": 0.0006208749255165458,
+                "exclusive_seconds": 0.0006208749255165458
+              },
+              "sql.insert_builds": {
+                "calls": 1,
+                "inclusive_seconds": 1.1165975593030453e-05,
+                "exclusive_seconds": 1.1165975593030453e-05
+              },
+              "sql.commit": {
+                "calls": 267,
+                "inclusive_seconds": 0.01887082785833627,
+                "exclusive_seconds": 0.01887082785833627
+              },
+              "QdrantIndex.check_configuration": {
+                "calls": 2,
+                "inclusive_seconds": 5.5040931329131126e-05,
+                "exclusive_seconds": 5.5040931329131126e-05
+              },
+              "sql.select_embeddings": {
+                "calls": 1280,
+                "inclusive_seconds": 0.0039093728410080075,
+                "exclusive_seconds": 0.0039093728410080075
+              },
+              "SQLiteStorage.get_embedding": {
+                "calls": 1024,
+                "inclusive_seconds": 0.027673541218973696,
+                "exclusive_seconds": 0.024092706968076527
+              },
+              "sql.insert_embeddings": {
+                "calls": 256,
+                "inclusive_seconds": 0.0008224695920944214,
+                "exclusive_seconds": 0.0008224695920944214
+              },
+              "SQLiteStorage.put_embeddings": {
+                "calls": 8,
+                "inclusive_seconds": 0.008617458865046501,
+                "exclusive_seconds": 0.004048907780088484
+              },
+              "SQLiteStorage.get_manifest": {
+                "calls": 262,
+                "inclusive_seconds": 0.00205620308406651,
+                "exclusive_seconds": 0.0017189477803185582
+              },
+              "sql.insert_snapshot_chunks": {
+                "calls": 256,
+                "inclusive_seconds": 0.001086175674572587,
+                "exclusive_seconds": 0.001086175674572587
+              },
+              "SQLiteStorage.add_chunk": {
+                "calls": 256,
+                "inclusive_seconds": 0.03381445549894124,
+                "exclusive_seconds": 0.006434176582843065
+              },
+              "sql.select_snapshot_chunks": {
+                "calls": 2,
+                "inclusive_seconds": 2.8082984499633312e-05,
+                "exclusive_seconds": 2.8082984499633312e-05
+              },
+              "SQLiteStorage.snapshot_records": {
+                "calls": 2,
+                "inclusive_seconds": 0.00912395806517452,
+                "exclusive_seconds": 0.009079916984774172
+              },
+              "SQLiteStorage.load_snapshot": {
+                "calls": 2,
+                "inclusive_seconds": 0.026447624899446964,
+                "exclusive_seconds": 0.0008372091688215733
+              },
+              "QdrantIndex.upsert": {
+                "calls": 1,
+                "inclusive_seconds": 0.06467166694346815,
+                "exclusive_seconds": 0.06467166694346815
+              },
+              "QdrantIndex.count": {
+                "calls": 2,
+                "inclusive_seconds": 2.0709005184471607e-05,
+                "exclusive_seconds": 2.0709005184471607e-05
+              },
+              "QdrantIndex.verify_snapshot": {
+                "calls": 1,
+                "inclusive_seconds": 0.021614375058561563,
+                "exclusive_seconds": 0.02159900008700788
+              },
+              "QdrantIndex.wait_ready": {
+                "calls": 1,
+                "inclusive_seconds": 4.533305764198303e-05,
+                "exclusive_seconds": 7.0410314947366714e-06
+              },
+              "sql.update": {
+                "calls": 2,
+                "inclusive_seconds": 4.63749747723341e-05,
+                "exclusive_seconds": 4.63749747723341e-05
+              },
+              "sql.insert_active_indexes": {
+                "calls": 1,
+                "inclusive_seconds": 2.3333006538450718e-05,
+                "exclusive_seconds": 2.3333006538450718e-05
+              },
+              "SQLiteStorage.publish": {
+                "calls": 1,
+                "inclusive_seconds": 0.013178291963413358,
+                "exclusive_seconds": 4.458392504602671e-05
+              },
+              "build_index": {
+                "calls": 1,
+                "inclusive_seconds": 0.17832787497900426,
+                "exclusive_seconds": 0.019803744624368846
+              }
+            },
+            "call_edges": {
+              "<root> -> build_index": 1,
+              "build_index -> sql.select_active_indexes": 1,
+              "build_index -> sql.select_builds": 2,
+              "build_index -> sql.begin": 2,
+              "build_index -> sql.insert_builds": 1,
+              "build_index -> sql.commit": 2,
+              "build_index -> QdrantIndex.check_configuration": 1,
+              "build_index -> SQLiteStorage.get_embedding": 256,
+              "SQLiteStorage.get_embedding -> sql.select_embeddings": 1024,
+              "build_index -> SQLiteStorage.put_embeddings": 8,
+              "SQLiteStorage.put_embeddings -> sql.begin": 8,
+              "SQLiteStorage.put_embeddings -> sql.select_embeddings": 256,
+              "SQLiteStorage.put_embeddings -> sql.insert_embeddings": 256,
+              "SQLiteStorage.put_embeddings -> sql.commit": 8,
+              "build_index -> SQLiteStorage.add_chunk": 256,
+              "SQLiteStorage.add_chunk -> sql.begin": 256,
+              "SQLiteStorage.add_chunk -> SQLiteStorage.get_manifest": 256,
+              "SQLiteStorage.get_manifest -> sql.select_builds": 262,
+              "SQLiteStorage.add_chunk -> SQLiteStorage.get_embedding": 256,
+              "SQLiteStorage.add_chunk -> sql.insert_snapshot_chunks": 256,
+              "SQLiteStorage.add_chunk -> sql.commit": 256,
+              "build_index -> SQLiteStorage.load_snapshot": 1,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.get_manifest": 2,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.snapshot_records": 2,
+              "SQLiteStorage.snapshot_records -> SQLiteStorage.get_manifest": 2,
+              "SQLiteStorage.snapshot_records -> sql.select_snapshot_chunks": 2,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.get_embedding": 512,
+              "build_index -> QdrantIndex.upsert": 1,
+              "build_index -> QdrantIndex.verify_snapshot": 1,
+              "QdrantIndex.verify_snapshot -> QdrantIndex.count": 1,
+              "build_index -> QdrantIndex.wait_ready": 1,
+              "QdrantIndex.wait_ready -> QdrantIndex.check_configuration": 1,
+              "QdrantIndex.wait_ready -> QdrantIndex.count": 1,
+              "build_index -> SQLiteStorage.get_manifest": 1,
+              "build_index -> sql.update": 1,
+              "build_index -> SQLiteStorage.publish": 1,
+              "SQLiteStorage.publish -> sql.begin": 1,
+              "SQLiteStorage.publish -> SQLiteStorage.get_manifest": 1,
+              "SQLiteStorage.publish -> SQLiteStorage.load_snapshot": 1,
+              "SQLiteStorage.publish -> sql.update": 1,
+              "SQLiteStorage.publish -> sql.insert_active_indexes": 1,
+              "SQLiteStorage.publish -> sql.commit": 1
+            }
+          }
+        },
+        "cached_rebuild": {
+          "unprofiled_runs": [
+            {
+              "wall_seconds": 0.1688087920192629,
+              "build_seconds": 0.16867537493817508,
+              "embedded_inputs": 0,
+              "cached_inputs": 256,
+              "embedding_calls": 0,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            },
+            {
+              "wall_seconds": 0.16964833298698068,
+              "build_seconds": 0.16951587505172938,
+              "embedded_inputs": 0,
+              "cached_inputs": 256,
+              "embedding_calls": 0,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            },
+            {
+              "wall_seconds": 0.17098162497859448,
+              "build_seconds": 0.1708544580033049,
+              "embedded_inputs": 0,
+              "cached_inputs": 256,
+              "embedding_calls": 0,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            }
+          ],
+          "median_seconds": 0.16964833298698068,
+          "min_seconds": 0.1688087920192629,
+          "max_seconds": 0.17098162497859448,
+          "profiled": {
+            "wall_seconds": 0.17181858292315155,
+            "build_seconds": 0.17168337490875274,
+            "embedded_inputs": 0,
+            "cached_inputs": 256,
+            "embedding_calls": 0,
+            "sqlite_settings": {
+              "journal_mode": "wal",
+              "synchronous": 2,
+              "wal_autocheckpoint": 1000
+            },
+            "timings": {
+              "sql.select_active_indexes": {
+                "calls": 1,
+                "inclusive_seconds": 5.209003575146198e-06,
+                "exclusive_seconds": 5.209003575146198e-06
+              },
+              "sql.select_builds": {
+                "calls": 268,
+                "inclusive_seconds": 0.0003910920349881053,
+                "exclusive_seconds": 0.0003910920349881053
+              },
+              "SQLiteStorage.get_manifest": {
+                "calls": 264,
+                "inclusive_seconds": 0.002203451469540596,
+                "exclusive_seconds": 0.0018383593996986747
+              },
+              "sql.select_snapshot_chunks": {
+                "calls": 3,
+                "inclusive_seconds": 1.2750038877129555e-05,
+                "exclusive_seconds": 1.2750038877129555e-05
+              },
+              "SQLiteStorage.snapshot_records": {
+                "calls": 3,
+                "inclusive_seconds": 0.013604165986180305,
+                "exclusive_seconds": 0.013565957895480096
+              },
+              "sql.begin": {
+                "calls": 259,
+                "inclusive_seconds": 0.0006451338995248079,
+                "exclusive_seconds": 0.0006451338995248079
+              },
+              "sql.insert_builds": {
+                "calls": 1,
+                "inclusive_seconds": 3.833090886473656e-06,
+                "exclusive_seconds": 3.833090886473656e-06
+              },
+              "sql.commit": {
+                "calls": 259,
+                "inclusive_seconds": 0.012125968933105469,
+                "exclusive_seconds": 0.012125968933105469
+              },
+              "QdrantIndex.check_configuration": {
+                "calls": 2,
+                "inclusive_seconds": 6.329105235636234e-05,
+                "exclusive_seconds": 6.329105235636234e-05
+              },
+              "sql.select_embeddings": {
+                "calls": 1024,
+                "inclusive_seconds": 0.004041789681650698,
+                "exclusive_seconds": 0.004041789681650698
+              },
+              "SQLiteStorage.get_embedding": {
+                "calls": 1024,
+                "inclusive_seconds": 0.03372239938471466,
+                "exclusive_seconds": 0.029680609703063965
+              },
+              "sql.insert_snapshot_chunks": {
+                "calls": 256,
+                "inclusive_seconds": 0.0012092897668480873,
+                "exclusive_seconds": 0.0012092897668480873
+              },
+              "SQLiteStorage.add_chunk": {
+                "calls": 256,
+                "inclusive_seconds": 0.030885736690834165,
+                "exclusive_seconds": 0.006526270881295204
+              },
+              "SQLiteStorage.load_snapshot": {
+                "calls": 2,
+                "inclusive_seconds": 0.026633874978870153,
+                "exclusive_seconds": 0.0008470254251733422
+              },
+              "QdrantIndex.upsert": {
+                "calls": 1,
+                "inclusive_seconds": 0.06441683298908174,
+                "exclusive_seconds": 0.06441683298908174
+              },
+              "QdrantIndex.count": {
+                "calls": 2,
+                "inclusive_seconds": 2.191704697906971e-05,
+                "exclusive_seconds": 2.191704697906971e-05
+              },
+              "QdrantIndex.verify_snapshot": {
+                "calls": 1,
+                "inclusive_seconds": 0.021585125010460615,
+                "exclusive_seconds": 0.021569957956671715
+              },
+              "QdrantIndex.wait_ready": {
+                "calls": 1,
+                "inclusive_seconds": 5.433289334177971e-05,
+                "exclusive_seconds": 7.707858458161354e-06
+              },
+              "sql.update": {
+                "calls": 2,
+                "inclusive_seconds": 1.1499971151351929e-05,
+                "exclusive_seconds": 1.1499971151351929e-05
+              },
+              "sql.insert_active_indexes": {
+                "calls": 1,
+                "inclusive_seconds": 9.874929673969746e-06,
+                "exclusive_seconds": 9.874929673969746e-06
+              },
+              "SQLiteStorage.publish": {
+                "calls": 1,
+                "inclusive_seconds": 0.01349658309482038,
+                "exclusive_seconds": 4.3959240429103374e-05
+              },
+              "build_index": {
+                "calls": 1,
+                "inclusive_seconds": 0.17182074999436736,
+                "exclusive_seconds": 0.014782419195398688
+              }
+            },
+            "call_edges": {
+              "<root> -> build_index": 1,
+              "build_index -> sql.select_active_indexes": 1,
+              "build_index -> SQLiteStorage.get_manifest": 2,
+              "SQLiteStorage.get_manifest -> sql.select_builds": 264,
+              "build_index -> sql.select_builds": 4,
+              "build_index -> SQLiteStorage.snapshot_records": 1,
+              "SQLiteStorage.snapshot_records -> SQLiteStorage.get_manifest": 3,
+              "SQLiteStorage.snapshot_records -> sql.select_snapshot_chunks": 3,
+              "build_index -> sql.begin": 2,
+              "build_index -> sql.insert_builds": 1,
+              "build_index -> sql.commit": 2,
+              "build_index -> QdrantIndex.check_configuration": 1,
+              "build_index -> SQLiteStorage.get_embedding": 256,
+              "SQLiteStorage.get_embedding -> sql.select_embeddings": 1024,
+              "build_index -> SQLiteStorage.add_chunk": 256,
+              "SQLiteStorage.add_chunk -> sql.begin": 256,
+              "SQLiteStorage.add_chunk -> SQLiteStorage.get_manifest": 256,
+              "SQLiteStorage.add_chunk -> SQLiteStorage.get_embedding": 256,
+              "SQLiteStorage.add_chunk -> sql.insert_snapshot_chunks": 256,
+              "SQLiteStorage.add_chunk -> sql.commit": 256,
+              "build_index -> SQLiteStorage.load_snapshot": 1,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.get_manifest": 2,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.snapshot_records": 2,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.get_embedding": 512,
+              "build_index -> QdrantIndex.upsert": 1,
+              "build_index -> QdrantIndex.verify_snapshot": 1,
+              "QdrantIndex.verify_snapshot -> QdrantIndex.count": 1,
+              "build_index -> QdrantIndex.wait_ready": 1,
+              "QdrantIndex.wait_ready -> QdrantIndex.check_configuration": 1,
+              "QdrantIndex.wait_ready -> QdrantIndex.count": 1,
+              "build_index -> sql.update": 1,
+              "build_index -> SQLiteStorage.publish": 1,
+              "SQLiteStorage.publish -> sql.begin": 1,
+              "SQLiteStorage.publish -> SQLiteStorage.get_manifest": 1,
+              "SQLiteStorage.publish -> SQLiteStorage.load_snapshot": 1,
+              "SQLiteStorage.publish -> sql.update": 1,
+              "SQLiteStorage.publish -> sql.insert_active_indexes": 1,
+              "SQLiteStorage.publish -> sql.commit": 1
+            }
+          }
+        },
+        "unchanged": {
+          "unprofiled_runs": [
+            {
+              "wall_seconds": 0.05002095806412399,
+              "build_seconds": 0.04987549991346896,
+              "embedded_inputs": 0,
+              "cached_inputs": 256,
+              "embedding_calls": 0,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            },
+            {
+              "wall_seconds": 0.049529500072821975,
+              "build_seconds": 0.04939145804382861,
+              "embedded_inputs": 0,
+              "cached_inputs": 256,
+              "embedding_calls": 0,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            },
+            {
+              "wall_seconds": 0.048980957944877446,
+              "build_seconds": 0.048831666936166584,
+              "embedded_inputs": 0,
+              "cached_inputs": 256,
+              "embedding_calls": 0,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            }
+          ],
+          "median_seconds": 0.049529500072821975,
+          "min_seconds": 0.048980957944877446,
+          "max_seconds": 0.05002095806412399,
+          "profiled": {
+            "wall_seconds": 0.0496179589536041,
+            "build_seconds": 0.049497000058181584,
+            "embedded_inputs": 0,
+            "cached_inputs": 256,
+            "embedding_calls": 0,
+            "sqlite_settings": {
+              "journal_mode": "wal",
+              "synchronous": 2,
+              "wal_autocheckpoint": 1000
+            },
+            "timings": {
+              "sql.select_active_indexes": {
+                "calls": 1,
+                "inclusive_seconds": 4.708999767899513e-06,
+                "exclusive_seconds": 4.708999767899513e-06
+              },
+              "sql.select_builds": {
+                "calls": 8,
+                "inclusive_seconds": 2.0998995751142502e-05,
+                "exclusive_seconds": 2.0998995751142502e-05
+              },
+              "SQLiteStorage.get_manifest": {
+                "calls": 3,
+                "inclusive_seconds": 3.245903644710779e-05,
+                "exclusive_seconds": 2.545909956097603e-05
+              },
+              "sql.select_snapshot_chunks": {
+                "calls": 1,
+                "inclusive_seconds": 3.6249402910470963e-06,
+                "exclusive_seconds": 3.6249402910470963e-06
+              },
+              "SQLiteStorage.snapshot_records": {
+                "calls": 1,
+                "inclusive_seconds": 0.004516958026215434,
+                "exclusive_seconds": 0.0045046660816296935
+              },
+              "sql.select_embeddings": {
+                "calls": 256,
+                "inclusive_seconds": 0.0011170009383931756,
+                "exclusive_seconds": 0.0011170009383931756
+              },
+              "SQLiteStorage.get_embedding": {
+                "calls": 256,
+                "inclusive_seconds": 0.008621337357908487,
+                "exclusive_seconds": 0.007504336419515312
+              },
+              "SQLiteStorage.load_snapshot": {
+                "calls": 1,
+                "inclusive_seconds": 0.013570500072091818,
+                "exclusive_seconds": 0.0004219956463202834
+              },
+              "QdrantIndex.check_configuration": {
+                "calls": 2,
+                "inclusive_seconds": 5.933281499892473e-05,
+                "exclusive_seconds": 5.933281499892473e-05
+              },
+              "QdrantIndex.count": {
+                "calls": 2,
+                "inclusive_seconds": 1.2792996130883694e-05,
+                "exclusive_seconds": 1.2792996130883694e-05
+              },
+              "QdrantIndex.verify_snapshot": {
+                "calls": 1,
+                "inclusive_seconds": 0.021791375009343028,
+                "exclusive_seconds": 0.02178529102820903
+              },
+              "QdrantIndex.wait_ready": {
+                "calls": 1,
+                "inclusive_seconds": 4.80839516967535e-05,
+                "exclusive_seconds": 7.709022611379623e-06
+              },
+              "build_index": {
+                "calls": 1,
+                "inclusive_seconds": 0.049620250007137656,
+                "exclusive_seconds": 0.014152333023957908
+              }
+            },
+            "call_edges": {
+              "<root> -> build_index": 1,
+              "build_index -> sql.select_active_indexes": 1,
+              "build_index -> SQLiteStorage.get_manifest": 1,
+              "SQLiteStorage.get_manifest -> sql.select_builds": 3,
+              "build_index -> sql.select_builds": 5,
+              "build_index -> SQLiteStorage.load_snapshot": 1,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.get_manifest": 1,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.snapshot_records": 1,
+              "SQLiteStorage.snapshot_records -> SQLiteStorage.get_manifest": 1,
+              "SQLiteStorage.snapshot_records -> sql.select_snapshot_chunks": 1,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.get_embedding": 256,
+              "SQLiteStorage.get_embedding -> sql.select_embeddings": 256,
+              "build_index -> QdrantIndex.check_configuration": 1,
+              "build_index -> QdrantIndex.verify_snapshot": 1,
+              "QdrantIndex.verify_snapshot -> QdrantIndex.count": 1,
+              "build_index -> QdrantIndex.wait_ready": 1,
+              "QdrantIndex.wait_ready -> QdrantIndex.check_configuration": 1,
+              "QdrantIndex.wait_ready -> QdrantIndex.count": 1
+            }
+          }
+        }
+      }
+    },
+    {
+      "chunks": 2048,
+      "phases": {
+        "cold": {
+          "unprofiled_runs": [
+            {
+              "wall_seconds": 1.471592125017196,
+              "build_seconds": 1.4714809169527143,
+              "embedded_inputs": 2048,
+              "cached_inputs": 0,
+              "embedding_calls": 64,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            },
+            {
+              "wall_seconds": 1.395568042062223,
+              "build_seconds": 1.395450875046663,
+              "embedded_inputs": 2048,
+              "cached_inputs": 0,
+              "embedding_calls": 64,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            },
+            {
+              "wall_seconds": 1.3767175419488922,
+              "build_seconds": 1.376599624985829,
+              "embedded_inputs": 2048,
+              "cached_inputs": 0,
+              "embedding_calls": 64,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            }
+          ],
+          "median_seconds": 1.395568042062223,
+          "min_seconds": 1.3767175419488922,
+          "max_seconds": 1.471592125017196,
+          "profiled": {
+            "wall_seconds": 1.4212775831110775,
+            "build_seconds": 1.4211745000211522,
+            "embedded_inputs": 2048,
+            "cached_inputs": 0,
+            "embedding_calls": 64,
+            "sqlite_settings": {
+              "journal_mode": "wal",
+              "synchronous": 2,
+              "wal_autocheckpoint": 1000
+            },
+            "timings": {
+              "sql.select_active_indexes": {
+                "calls": 1,
+                "inclusive_seconds": 0.0002109999768435955,
+                "exclusive_seconds": 0.0002109999768435955
+              },
+              "sql.select_builds": {
+                "calls": 2056,
+                "inclusive_seconds": 0.0024721500230953097,
+                "exclusive_seconds": 0.0024721500230953097
+              },
+              "sql.begin": {
+                "calls": 2115,
+                "inclusive_seconds": 0.0046664082910865545,
+                "exclusive_seconds": 0.0046664082910865545
+              },
+              "sql.insert_builds": {
+                "calls": 1,
+                "inclusive_seconds": 1.3167038559913635e-05,
+                "exclusive_seconds": 1.3167038559913635e-05
+              },
+              "sql.commit": {
+                "calls": 2115,
+                "inclusive_seconds": 0.14390230411663651,
+                "exclusive_seconds": 0.14390230411663651
+              },
+              "QdrantIndex.check_configuration": {
+                "calls": 2,
+                "inclusive_seconds": 8.816609624773264e-05,
+                "exclusive_seconds": 8.816609624773264e-05
+              },
+              "sql.select_embeddings": {
+                "calls": 10240,
+                "inclusive_seconds": 0.033854132634587586,
+                "exclusive_seconds": 0.033854132634587586
+              },
+              "SQLiteStorage.get_embedding": {
+                "calls": 8192,
+                "inclusive_seconds": 0.22117630671709776,
+                "exclusive_seconds": 0.1901884631952271
+              },
+              "sql.insert_embeddings": {
+                "calls": 2048,
+                "inclusive_seconds": 0.006743968464434147,
+                "exclusive_seconds": 0.006743968464434147
+              },
+              "SQLiteStorage.put_embeddings": {
+                "calls": 64,
+                "inclusive_seconds": 0.08721833245363086,
+                "exclusive_seconds": 0.03267061442602426
+              },
+              "SQLiteStorage.get_manifest": {
+                "calls": 2054,
+                "inclusive_seconds": 0.01502465782687068,
+                "exclusive_seconds": 0.012568716774694622
+              },
+              "sql.insert_snapshot_chunks": {
+                "calls": 2048,
+                "inclusive_seconds": 0.009397573885507882,
+                "exclusive_seconds": 0.009397573885507882
+              },
+              "SQLiteStorage.add_chunk": {
+                "calls": 2048,
+                "inclusive_seconds": 0.24441747169476002,
+                "exclusive_seconds": 0.0496670933207497
+              },
+              "sql.select_snapshot_chunks": {
+                "calls": 2,
+                "inclusive_seconds": 5.666702054440975e-05,
+                "exclusive_seconds": 5.666702054440975e-05
+              },
+              "SQLiteStorage.snapshot_records": {
+                "calls": 2,
+                "inclusive_seconds": 0.07330737495794892,
+                "exclusive_seconds": 0.07323470804840326
+              },
+              "SQLiteStorage.load_snapshot": {
+                "calls": 2,
+                "inclusive_seconds": 0.21440375002566725,
+                "exclusive_seconds": 0.007156055071391165
+              },
+              "QdrantIndex.upsert": {
+                "calls": 1,
+                "inclusive_seconds": 0.5275960409780964,
+                "exclusive_seconds": 0.5275960409780964
+              },
+              "QdrantIndex.count": {
+                "calls": 2,
+                "inclusive_seconds": 3.5208999179303646e-05,
+                "exclusive_seconds": 3.5208999179303646e-05
+              },
+              "QdrantIndex.verify_snapshot": {
+                "calls": 1,
+                "inclusive_seconds": 0.17161412490531802,
+                "exclusive_seconds": 0.17158695787657052
+              },
+              "QdrantIndex.wait_ready": {
+                "calls": 1,
+                "inclusive_seconds": 6.554205901920795e-05,
+                "exclusive_seconds": 8.709030225872993e-06
+              },
+              "sql.update": {
+                "calls": 2,
+                "inclusive_seconds": 6.141606718301773e-05,
+                "exclusive_seconds": 6.141606718301773e-05
+              },
+              "sql.insert_active_indexes": {
+                "calls": 1,
+                "inclusive_seconds": 2.4333014152944088e-05,
+                "exclusive_seconds": 2.4333014152944088e-05
+              },
+              "SQLiteStorage.publish": {
+                "calls": 1,
+                "inclusive_seconds": 0.10607108299154788,
+                "exclusive_seconds": 0.00021787697914987803
+              },
+              "build_index": {
+                "calls": 1,
+                "inclusive_seconds": 1.4212802919792011,
+                "exclusive_seconds": 0.15485856065060943
+              }
+            },
+            "call_edges": {
+              "<root> -> build_index": 1,
+              "build_index -> sql.select_active_indexes": 1,
+              "build_index -> sql.select_builds": 2,
+              "build_index -> sql.begin": 2,
+              "build_index -> sql.insert_builds": 1,
+              "build_index -> sql.commit": 2,
+              "build_index -> QdrantIndex.check_configuration": 1,
+              "build_index -> SQLiteStorage.get_embedding": 2048,
+              "SQLiteStorage.get_embedding -> sql.select_embeddings": 8192,
+              "build_index -> SQLiteStorage.put_embeddings": 64,
+              "SQLiteStorage.put_embeddings -> sql.begin": 64,
+              "SQLiteStorage.put_embeddings -> sql.select_embeddings": 2048,
+              "SQLiteStorage.put_embeddings -> sql.insert_embeddings": 2048,
+              "SQLiteStorage.put_embeddings -> sql.commit": 64,
+              "build_index -> SQLiteStorage.add_chunk": 2048,
+              "SQLiteStorage.add_chunk -> sql.begin": 2048,
+              "SQLiteStorage.add_chunk -> SQLiteStorage.get_manifest": 2048,
+              "SQLiteStorage.get_manifest -> sql.select_builds": 2054,
+              "SQLiteStorage.add_chunk -> SQLiteStorage.get_embedding": 2048,
+              "SQLiteStorage.add_chunk -> sql.insert_snapshot_chunks": 2048,
+              "SQLiteStorage.add_chunk -> sql.commit": 2048,
+              "build_index -> SQLiteStorage.load_snapshot": 1,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.get_manifest": 2,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.snapshot_records": 2,
+              "SQLiteStorage.snapshot_records -> SQLiteStorage.get_manifest": 2,
+              "SQLiteStorage.snapshot_records -> sql.select_snapshot_chunks": 2,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.get_embedding": 4096,
+              "build_index -> QdrantIndex.upsert": 1,
+              "build_index -> QdrantIndex.verify_snapshot": 1,
+              "QdrantIndex.verify_snapshot -> QdrantIndex.count": 1,
+              "build_index -> QdrantIndex.wait_ready": 1,
+              "QdrantIndex.wait_ready -> QdrantIndex.check_configuration": 1,
+              "QdrantIndex.wait_ready -> QdrantIndex.count": 1,
+              "build_index -> SQLiteStorage.get_manifest": 1,
+              "build_index -> sql.update": 1,
+              "build_index -> SQLiteStorage.publish": 1,
+              "SQLiteStorage.publish -> sql.begin": 1,
+              "SQLiteStorage.publish -> SQLiteStorage.get_manifest": 1,
+              "SQLiteStorage.publish -> SQLiteStorage.load_snapshot": 1,
+              "SQLiteStorage.publish -> sql.update": 1,
+              "SQLiteStorage.publish -> sql.insert_active_indexes": 1,
+              "SQLiteStorage.publish -> sql.commit": 1
+            }
+          }
+        },
+        "cached_rebuild": {
+          "unprofiled_runs": [
+            {
+              "wall_seconds": 1.3821389999939129,
+              "build_seconds": 1.3819391248980537,
+              "embedded_inputs": 0,
+              "cached_inputs": 2048,
+              "embedding_calls": 0,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            },
+            {
+              "wall_seconds": 1.3681754580466077,
+              "build_seconds": 1.3680100420024246,
+              "embedded_inputs": 0,
+              "cached_inputs": 2048,
+              "embedding_calls": 0,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            },
+            {
+              "wall_seconds": 1.340474541997537,
+              "build_seconds": 1.3403158750152215,
+              "embedded_inputs": 0,
+              "cached_inputs": 2048,
+              "embedding_calls": 0,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            }
+          ],
+          "median_seconds": 1.3681754580466077,
+          "min_seconds": 1.340474541997537,
+          "max_seconds": 1.3821389999939129,
+          "profiled": {
+            "wall_seconds": 1.4035717920633033,
+            "build_seconds": 1.403430875041522,
+            "embedded_inputs": 0,
+            "cached_inputs": 2048,
+            "embedding_calls": 0,
+            "sqlite_settings": {
+              "journal_mode": "wal",
+              "synchronous": 2,
+              "wal_autocheckpoint": 1000
+            },
+            "timings": {
+              "sql.select_active_indexes": {
+                "calls": 1,
+                "inclusive_seconds": 1.025001984089613e-05,
+                "exclusive_seconds": 1.025001984089613e-05
+              },
+              "sql.select_builds": {
+                "calls": 2060,
+                "inclusive_seconds": 0.0025070675183087587,
+                "exclusive_seconds": 0.0025070675183087587
+              },
+              "SQLiteStorage.get_manifest": {
+                "calls": 2056,
+                "inclusive_seconds": 0.015101628960110247,
+                "exclusive_seconds": 0.01262922934256494
+              },
+              "sql.select_snapshot_chunks": {
+                "calls": 3,
+                "inclusive_seconds": 3.004097379744053e-05,
+                "exclusive_seconds": 3.004097379744053e-05
+              },
+              "SQLiteStorage.snapshot_records": {
+                "calls": 3,
+                "inclusive_seconds": 0.12858054204843938,
+                "exclusive_seconds": 0.12852350005414337
+              },
+              "sql.begin": {
+                "calls": 2051,
+                "inclusive_seconds": 0.004494538763538003,
+                "exclusive_seconds": 0.004494538763538003
+              },
+              "sql.insert_builds": {
+                "calls": 1,
+                "inclusive_seconds": 1.7666956409811974e-05,
+                "exclusive_seconds": 1.7666956409811974e-05
+              },
+              "sql.commit": {
+                "calls": 2051,
+                "inclusive_seconds": 0.09670627757441252,
+                "exclusive_seconds": 0.09670627757441252
+              },
+              "QdrantIndex.check_configuration": {
+                "calls": 2,
+                "inclusive_seconds": 0.00010116607882082462,
+                "exclusive_seconds": 0.00010116607882082462
+              },
+              "sql.select_embeddings": {
+                "calls": 8192,
+                "inclusive_seconds": 0.037853208486922085,
+                "exclusive_seconds": 0.037853208486922085
+              },
+              "SQLiteStorage.get_embedding": {
+                "calls": 8192,
+                "inclusive_seconds": 0.27308386377990246,
+                "exclusive_seconds": 0.23523065529298037
+              },
+              "sql.insert_snapshot_chunks": {
+                "calls": 2048,
+                "inclusive_seconds": 0.010125355562195182,
+                "exclusive_seconds": 0.010125355562195182
+              },
+              "SQLiteStorage.add_chunk": {
+                "calls": 2048,
+                "inclusive_seconds": 0.24342538288328797,
+                "exclusive_seconds": 0.04944728338159621
+              },
+              "SQLiteStorage.load_snapshot": {
+                "calls": 2,
+                "inclusive_seconds": 0.2168617929564789,
+                "exclusive_seconds": 0.007135771098546684
+              },
+              "QdrantIndex.upsert": {
+                "calls": 1,
+                "inclusive_seconds": 0.5330379999941215,
+                "exclusive_seconds": 0.5330379999941215
+              },
+              "QdrantIndex.count": {
+                "calls": 2,
+                "inclusive_seconds": 3.591692075133324e-05,
+                "exclusive_seconds": 3.591692075133324e-05
+              },
+              "QdrantIndex.verify_snapshot": {
+                "calls": 1,
+                "inclusive_seconds": 0.170848291949369,
+                "exclusive_seconds": 0.17082050000317395
+              },
+              "QdrantIndex.wait_ready": {
+                "calls": 1,
+                "inclusive_seconds": 6.508396472781897e-05,
+                "exclusive_seconds": 8.042901754379272e-06
+              },
+              "sql.update": {
+                "calls": 2,
+                "inclusive_seconds": 1.979200169444084e-05,
+                "exclusive_seconds": 1.979200169444084e-05
+              },
+              "sql.insert_active_indexes": {
+                "calls": 1,
+                "inclusive_seconds": 9.999959729611874e-06,
+                "exclusive_seconds": 9.999959729611874e-06
+              },
+              "SQLiteStorage.publish": {
+                "calls": 1,
+                "inclusive_seconds": 0.10697541700210422,
+                "exclusive_seconds": 0.00021933193784207106
+              },
+              "build_index": {
+                "calls": 1,
+                "inclusive_seconds": 1.4035745830042288,
+                "exclusive_seconds": 0.1146109881810844
+              }
+            },
+            "call_edges": {
+              "<root> -> build_index": 1,
+              "build_index -> sql.select_active_indexes": 1,
+              "build_index -> SQLiteStorage.get_manifest": 2,
+              "SQLiteStorage.get_manifest -> sql.select_builds": 2056,
+              "build_index -> sql.select_builds": 4,
+              "build_index -> SQLiteStorage.snapshot_records": 1,
+              "SQLiteStorage.snapshot_records -> SQLiteStorage.get_manifest": 3,
+              "SQLiteStorage.snapshot_records -> sql.select_snapshot_chunks": 3,
+              "build_index -> sql.begin": 2,
+              "build_index -> sql.insert_builds": 1,
+              "build_index -> sql.commit": 2,
+              "build_index -> QdrantIndex.check_configuration": 1,
+              "build_index -> SQLiteStorage.get_embedding": 2048,
+              "SQLiteStorage.get_embedding -> sql.select_embeddings": 8192,
+              "build_index -> SQLiteStorage.add_chunk": 2048,
+              "SQLiteStorage.add_chunk -> sql.begin": 2048,
+              "SQLiteStorage.add_chunk -> SQLiteStorage.get_manifest": 2048,
+              "SQLiteStorage.add_chunk -> SQLiteStorage.get_embedding": 2048,
+              "SQLiteStorage.add_chunk -> sql.insert_snapshot_chunks": 2048,
+              "SQLiteStorage.add_chunk -> sql.commit": 2048,
+              "build_index -> SQLiteStorage.load_snapshot": 1,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.get_manifest": 2,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.snapshot_records": 2,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.get_embedding": 4096,
+              "build_index -> QdrantIndex.upsert": 1,
+              "build_index -> QdrantIndex.verify_snapshot": 1,
+              "QdrantIndex.verify_snapshot -> QdrantIndex.count": 1,
+              "build_index -> QdrantIndex.wait_ready": 1,
+              "QdrantIndex.wait_ready -> QdrantIndex.check_configuration": 1,
+              "QdrantIndex.wait_ready -> QdrantIndex.count": 1,
+              "build_index -> sql.update": 1,
+              "build_index -> SQLiteStorage.publish": 1,
+              "SQLiteStorage.publish -> sql.begin": 1,
+              "SQLiteStorage.publish -> SQLiteStorage.get_manifest": 1,
+              "SQLiteStorage.publish -> SQLiteStorage.load_snapshot": 1,
+              "SQLiteStorage.publish -> sql.update": 1,
+              "SQLiteStorage.publish -> sql.insert_active_indexes": 1,
+              "SQLiteStorage.publish -> sql.commit": 1
+            }
+          }
+        },
+        "unchanged": {
+          "unprofiled_runs": [
+            {
+              "wall_seconds": 0.39015350001864135,
+              "build_seconds": 0.3899860829114914,
+              "embedded_inputs": 0,
+              "cached_inputs": 2048,
+              "embedding_calls": 0,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            },
+            {
+              "wall_seconds": 0.3875614999560639,
+              "build_seconds": 0.387394875055179,
+              "embedded_inputs": 0,
+              "cached_inputs": 2048,
+              "embedding_calls": 0,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            },
+            {
+              "wall_seconds": 0.3852590419119224,
+              "build_seconds": 0.38509900006465614,
+              "embedded_inputs": 0,
+              "cached_inputs": 2048,
+              "embedding_calls": 0,
+              "sqlite_settings": {
+                "journal_mode": "wal",
+                "synchronous": 2,
+                "wal_autocheckpoint": 1000
+              }
+            }
+          ],
+          "median_seconds": 0.3875614999560639,
+          "min_seconds": 0.3852590419119224,
+          "max_seconds": 0.39015350001864135,
+          "profiled": {
+            "wall_seconds": 0.40054112498182803,
+            "build_seconds": 0.4003832080634311,
+            "embedded_inputs": 0,
+            "cached_inputs": 2048,
+            "embedding_calls": 0,
+            "sqlite_settings": {
+              "journal_mode": "wal",
+              "synchronous": 2,
+              "wal_autocheckpoint": 1000
+            },
+            "timings": {
+              "sql.select_active_indexes": {
+                "calls": 1,
+                "inclusive_seconds": 2.8082984499633312e-05,
+                "exclusive_seconds": 2.8082984499633312e-05
+              },
+              "sql.select_builds": {
+                "calls": 8,
+                "inclusive_seconds": 2.8333975933492184e-05,
+                "exclusive_seconds": 2.8333975933492184e-05
+              },
+              "SQLiteStorage.get_manifest": {
+                "calls": 3,
+                "inclusive_seconds": 5.5292039178311825e-05,
+                "exclusive_seconds": 4.370801616460085e-05
+              },
+              "sql.select_snapshot_chunks": {
+                "calls": 1,
+                "inclusive_seconds": 1.795799471437931e-05,
+                "exclusive_seconds": 1.795799471437931e-05
+              },
+              "SQLiteStorage.snapshot_records": {
+                "calls": 1,
+                "inclusive_seconds": 0.03737625002395362,
+                "exclusive_seconds": 0.03734850010368973
+              },
+              "sql.select_embeddings": {
+                "calls": 2048,
+                "inclusive_seconds": 0.010458747274242342,
+                "exclusive_seconds": 0.010458747274242342
+              },
+              "SQLiteStorage.get_embedding": {
+                "calls": 2048,
+                "inclusive_seconds": 0.07082644733600318,
+                "exclusive_seconds": 0.06036770006176084
+              },
+              "SQLiteStorage.load_snapshot": {
+                "calls": 1,
+                "inclusive_seconds": 0.11185541597660631,
+                "exclusive_seconds": 0.0036384265404194593
+              },
+              "QdrantIndex.check_configuration": {
+                "calls": 2,
+                "inclusive_seconds": 0.00011324998922646046,
+                "exclusive_seconds": 0.00011324998922646046
+              },
+              "QdrantIndex.count": {
+                "calls": 2,
+                "inclusive_seconds": 1.691700890660286e-05,
+                "exclusive_seconds": 1.691700890660286e-05
+              },
+              "QdrantIndex.verify_snapshot": {
+                "calls": 1,
+                "inclusive_seconds": 0.1718000409891829,
+                "exclusive_seconds": 0.1717917489586398
+              },
+              "QdrantIndex.wait_ready": {
+                "calls": 1,
+                "inclusive_seconds": 7.270905189216137e-05,
+                "exclusive_seconds": 9.709037840366364e-06
+              },
+              "build_index": {
+                "calls": 1,
+                "inclusive_seconds": 0.40054370800498873,
+                "exclusive_seconds": 0.11668062605895102
+              }
+            },
+            "call_edges": {
+              "<root> -> build_index": 1,
+              "build_index -> sql.select_active_indexes": 1,
+              "build_index -> SQLiteStorage.get_manifest": 1,
+              "SQLiteStorage.get_manifest -> sql.select_builds": 3,
+              "build_index -> sql.select_builds": 5,
+              "build_index -> SQLiteStorage.load_snapshot": 1,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.get_manifest": 1,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.snapshot_records": 1,
+              "SQLiteStorage.snapshot_records -> SQLiteStorage.get_manifest": 1,
+              "SQLiteStorage.snapshot_records -> sql.select_snapshot_chunks": 1,
+              "SQLiteStorage.load_snapshot -> SQLiteStorage.get_embedding": 2048,
+              "SQLiteStorage.get_embedding -> sql.select_embeddings": 2048,
+              "build_index -> QdrantIndex.check_configuration": 1,
+              "build_index -> QdrantIndex.verify_snapshot": 1,
+              "QdrantIndex.verify_snapshot -> QdrantIndex.count": 1,
+              "build_index -> QdrantIndex.wait_ready": 1,
+              "QdrantIndex.wait_ready -> QdrantIndex.check_configuration": 1,
+              "QdrantIndex.wait_ready -> QdrantIndex.count": 1
+            }
+          }
+        }
+      }
+    }
+  ]
+}

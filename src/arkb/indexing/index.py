@@ -1,7 +1,7 @@
 """Build complete, validated index candidates and atomically publish them."""
 
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass, fields, replace
 from functools import partial, wraps
 import math
 from time import perf_counter
@@ -11,8 +11,8 @@ from ollama import Client
 from qdrant_client import QdrantClient, models
 from tokenizers import Tokenizer
 
-from obsidian_rag.chunking import chunk_notes, whole_note_chunks
-from obsidian_rag.embeddings import (
+from arkb.indexing.chunking import chunk_notes, whole_note_chunks
+from arkb.embeddings import (
     DEFAULT_QUERY_INSTRUCTION,
     prepare_document,
     prepare_query,
@@ -20,19 +20,59 @@ from obsidian_rag.embeddings import (
     iter_embedding_batches,
     validate_vectors,
 )
-from obsidian_rag.loaders import Note
-from obsidian_rag.retrieval import check_qdrant_collection
-from obsidian_rag.schema import (
+from arkb.schema import (
     ChunkRecord,
     EmbeddingSpec,
     IndexManifest,
+    Note,
     fingerprint_config,
     point_id,
     validate_records,
     qdrant_identity,
 )
-from obsidian_rag.storage import SQLiteStorage
-from obsidian_rag.tokenization import count_tokens, tokenizer_fingerprint
+from arkb.storage import SQLiteStorage, check_qdrant_collection, require_qdrant_backend
+from arkb.tokenization import count_tokens, tokenizer_fingerprint
+
+
+@dataclass(frozen=True)
+class QdrantConfig:
+    """Endpoint and build settings; defaults also decode existing snapshots.
+
+    The caller supplies a client connected to this endpoint. Credentials belong
+    to that client, never to the persisted configuration.
+    """
+
+    url: str = 'http://127.0.0.1:6333'
+    hnsw_m: int = 16
+    ef_construct: int = 100
+    indexing_threshold: int = 10000
+    full_scan_threshold: int = 10000
+    index_timeout: float = 30
+    require_hnsw: bool = False
+
+    def __post_init__(self):
+        if not isinstance(self.url, str) or not self.url.strip():
+            raise ValueError('Qdrant url must be nonblank.')
+        for name, minimum in (('hnsw_m', 2), ('ef_construct', 1),
+                              ('indexing_threshold', 0), ('full_scan_threshold', 10)):
+            value = getattr(self, name)
+            if type(value) is not int or value < minimum:
+                raise ValueError(f'{name} must be an integer >= {minimum}.')
+        if (type(self.index_timeout) not in (int, float)
+                or not math.isfinite(self.index_timeout) or self.index_timeout <= 0):
+            raise ValueError('Index readiness timeout must be positive and finite.')
+        if type(self.require_hnsw) is not bool:
+            raise ValueError('require_hnsw must be boolean.')
+        if self.require_hnsw and self.indexing_threshold == 0:
+            raise ValueError('require_hnsw needs a positive indexing_threshold.')
+
+    def to_metadata(self) -> dict:
+        return {'kind': 'qdrant', **asdict(self)}
+
+    @classmethod
+    def from_metadata(cls, metadata: dict) -> 'QdrantConfig':
+        require_qdrant_backend(metadata)
+        return cls(**{field.name: metadata[field.name] for field in fields(cls) if field.name in metadata})
 
 
 @dataclass(frozen=True)
@@ -64,7 +104,7 @@ def build_index(
     chunking: str = 'recursive', chunk_size: int = 512, chunk_overlap: int = 64,
     query_instruction: str = DEFAULT_QUERY_INSTRUCTION, index_version: str | None = None,
     batch_size: int = 32, max_batch_tokens: int | None = None, max_retries: int = 0,
-    backend: dict | None = None,
+    qdrant_config: QdrantConfig,
     force: bool = False, source_scope: str | None = None, qdrant_client=None,
 ) -> BuildReport:
     """Preflight inputs, reuse cached vectors, checkpoint batches, then publish.
@@ -72,8 +112,8 @@ def build_index(
     The caller resolves the model artifact and supplies its matching tokenizer
     and active input limit. Sources must be unique within a complete vault scan.
     Source errors and input validation happen before creating a candidate. Every
-    successful embedding batch is durable even if a later batch fails. NumPy reads
-    the validated SQLite snapshot directly; Qdrant receives a separate candidate
+    successful embedding batch is durable even if a later batch fails.
+    Qdrant receives a separate candidate
     collection that must be verified before publication.
     """
     notes = list(notes)
@@ -106,49 +146,42 @@ def build_index(
         chunking_fingerprint=fingerprint_config(chunk_config), document_count=len(notes),
         chunk_count=len(records), query_instruction=query_instruction,
     )
-    metadata = dict(backend or {'kind': 'numpy'})
-    if metadata['kind'] not in ('numpy', 'qdrant'):
-        raise ValueError('Unsupported vector-store backend.')
-    if metadata['kind'] == 'qdrant' and qdrant_client is None:
+    if not isinstance(qdrant_config, QdrantConfig):
+        raise ValueError('Qdrant indexing requires a QdrantConfig.')
+    metadata = qdrant_config.to_metadata()
+    if qdrant_client is None:
         raise ValueError('Qdrant indexing requires an explicit client.')
     metadata['input'] = {'max_tokens': max_input_tokens, 'tokenizer': token_identity}
     if source_scope is not None:
         metadata['source_scope'] = source_scope
     corpus = fingerprint_config({'notes': [asdict(n) for n in notes]})
     active = storage.active_manifest(vault_id)
-    old_records = []
     if active is not None:
         previous = storage.build_metadata(active.index_version)
         old_scope = previous['backend'].get('source_scope')
         if old_scope is not None and old_scope != source_scope:
             raise ValueError('Source scope differs from this vault; use a separate vault ID.')
-        old_records = storage.snapshot_records(active.index_version)
     storage.recover_builds(vault_id)
-    if metadata['kind'] == 'qdrant':
-        cleanup_failed_qdrant(storage, vault_id=vault_id, client=qdrant_client, url=metadata['url'])
+    _cleanup_failed_qdrant(storage, vault_id=vault_id, client=qdrant_client, url=metadata['url'])
     unique_count = len(set(texts))
     if (active is not None and not force and index_version is None
             and previous['corpus_fingerprint'] == corpus and _backend_settings(previous['backend']) == _backend_settings(metadata)
             and active.configuration_fingerprint == manifest.configuration_fingerprint):
         _, prior_records, prior_vectors = storage.load_snapshot(active.index_version)
-        if metadata['kind'] == 'qdrant':
-            remote = _qdrant_index(qdrant_client, previous['backend'], active, create=False)
-            remote.verify_snapshot(prior_records, prior_vectors)
-            remote.wait_ready(expected_count=active.chunk_count,
-                              timeout=metadata.get('index_timeout', 30),
-                              require_hnsw=metadata.get('require_hnsw', False))
+        remote = _qdrant_index(qdrant_client, previous['backend'], active, create=False)
+        remote.verify_snapshot(prior_records, prior_vectors)
+        remote.wait_ready(expected_count=active.chunk_count)
         return BuildReport(active, 0, unique_count, reused_index=True)
+    old_records = storage.snapshot_records(active.index_version) if active is not None else []
     old = {r.chunk.source: r.document_revision for r in old_records}
     new = {r.chunk.source: r.document_revision for r in records}
     added = len(new.keys() - old.keys())
     modified = sum(old[source] != new[source] for source in new.keys() & old.keys())
     deleted = len(old.keys() - new.keys())
-    if metadata['kind'] == 'qdrant':
-        metadata['collection'] = 'obsidian_rag_' + fingerprint_config({'version': manifest.index_version, 'vault': vault_id})[:32]
+    metadata['collection'] = 'obsidian_rag_' + fingerprint_config({'version': manifest.index_version, 'vault': vault_id})[:32]
     storage.create_build(manifest, corpus_fingerprint=corpus, backend=metadata)
     try:
-        if metadata['kind'] == 'qdrant':
-            remote = _qdrant_index(qdrant_client, metadata, manifest, create=True)
+        remote = _qdrant_index(qdrant_client, metadata, manifest, create=True)
         unique = dict(zip(texts, counts))
         missing = [text for text in unique if storage.get_embedding(spec, text) is None]
         for start, vectors in iter_embedding_batches(
@@ -163,14 +196,11 @@ def build_index(
         _, loaded, vectors = storage.load_snapshot(manifest.index_version)
         if len(loaded) != len(records):
             raise ValueError('Candidate snapshot count does not match source records.')
-        if metadata['kind'] == 'qdrant':
-            if loaded:
-                remote.upsert(loaded, vectors)
-            remote.verify_snapshot(loaded, vectors)
-            metadata['index_stats'] = remote.wait_ready(
-                expected_count=len(records), timeout=metadata.get('index_timeout', 30),
-                require_hnsw=metadata.get('require_hnsw', False))
-            storage.set_backend(manifest.index_version, metadata)
+        if loaded:
+            remote.upsert(loaded, vectors)
+        remote.verify_snapshot(loaded, vectors)
+        metadata['index_stats'] = remote.wait_ready(expected_count=len(records))
+        storage.set_backend(manifest.index_version, metadata)
         ready = storage.publish(manifest.index_version)
         return BuildReport(ready, len(missing), len(unique) - len(missing),
                            added_documents=added, modified_documents=modified, deleted_documents=deleted)
@@ -180,18 +210,20 @@ def build_index(
 
 
 def _backend_settings(metadata: dict) -> dict:
-    return {key: value for key, value in metadata.items() if key not in ('collection', 'index_stats')}
+    settings = {key: value for key, value in metadata.items() if key not in ('collection', 'index_stats')}
+    if metadata.get('kind') == 'qdrant':
+        # Old Python builds omitted defaults; equal settings must still be a no-op.
+        settings.update(QdrantConfig.from_metadata(metadata).to_metadata())
+    return settings
 
 
 def _qdrant_index(client, metadata: dict, manifest: IndexManifest, *, create: bool):
     return QdrantIndex(client, metadata['collection'], manifest.embedding_spec,
                        vault_id=manifest.vault_id, create=create,
-                       hnsw_m=metadata.get('hnsw_m', 16), ef_construct=metadata.get('ef_construct', 100),
-                       indexing_threshold=metadata.get('indexing_threshold', 10000),
-                       full_scan_threshold=metadata.get('full_scan_threshold', 10000))
+                       config=QdrantConfig.from_metadata(metadata))
 
 
-def cleanup_failed_qdrant(storage: SQLiteStorage, *, vault_id: str, client, url: str) -> int:
+def _cleanup_failed_qdrant(storage: SQLiteStorage, *, vault_id: str, client, url: str) -> int:
     """Under the writer lock, remove only owned failed candidates on this server.
 
     Historical READY collections are retained for rollback and in-flight readers.
@@ -219,24 +251,23 @@ class QdrantIndex:
     """
 
     def __init__(self, client: QdrantClient, collection: str, spec: EmbeddingSpec, *,
-                 vault_id: str, create: bool = False, hnsw_m: int = 16,
-                 ef_construct: int = 100, indexing_threshold: int = 10000, full_scan_threshold: int = 10000):
+                 vault_id: str, create: bool = False, config: QdrantConfig = QdrantConfig()):
         if not isinstance(collection, str) or not collection.strip():
             raise ValueError('collection must be nonblank.')
         if not isinstance(vault_id, str) or not vault_id.strip():
             raise ValueError('vault_id must be nonblank.')
-        for name, value, minimum in (('hnsw_m', hnsw_m, 2), ('ef_construct', ef_construct, 1),
-                                     ('indexing_threshold', indexing_threshold, 0), ('full_scan_threshold', full_scan_threshold, 10)):
-            if type(value) is not int or value < minimum:
-                raise ValueError(f'{name} must be an integer >= {minimum}.')
+        if not isinstance(config, QdrantConfig):
+            raise ValueError('QdrantIndex requires a QdrantConfig.')
+        self.config = config
         self.client, self.collection, self.spec, self.vault_id = client, collection, spec, vault_id
         self.identity = qdrant_identity(spec, vault_id)
         if create:
             client.create_collection(
                 collection_name=collection,
                 vectors_config=models.VectorParams(size=spec.dimensions, distance=models.Distance.COSINE),
-                hnsw_config=models.HnswConfigDiff(m=hnsw_m, ef_construct=ef_construct, full_scan_threshold=full_scan_threshold),
-                optimizers_config=models.OptimizersConfigDiff(indexing_threshold=indexing_threshold),
+                hnsw_config=models.HnswConfigDiff(m=config.hnsw_m, ef_construct=config.ef_construct,
+                                                    full_scan_threshold=config.full_scan_threshold),
+                optimizers_config=models.OptimizersConfigDiff(indexing_threshold=config.indexing_threshold),
                 metadata=self.identity,
             )
             for field in ('vault_id', 'embedding_spec', 'source'):
@@ -259,12 +290,6 @@ class QdrantIndex:
         }) for record, vector in zip(records, matrix)]
         for start in range(0, len(points), 128):
             self.client.upsert(collection_name=self.collection, points=points[start:start + 128], wait=True)
-
-    def delete(self, chunk_ids: Sequence[str]) -> None:
-        ids = [point_id(chunk_id) for chunk_id in chunk_ids]
-        if ids:
-            self.client.delete(collection_name=self.collection,
-                               points_selector=models.PointIdsList(points=ids), wait=True)
 
     def count(self) -> int:
         return self.client.count(collection_name=self.collection, exact=True).count
@@ -295,20 +320,17 @@ class QdrantIndex:
                 if actual.shape != target.shape or not np.allclose(actual, target, atol=1e-6, rtol=1e-5):
                     raise ValueError('Qdrant snapshot vector differs from cached vector.')
 
-    def wait_ready(self, *, expected_count: int, timeout: float = 30,
-                   require_hnsw: bool = False) -> dict:
+    def wait_ready(self, *, expected_count: int) -> dict:
         """Distinguish query-ready small collections from fully built HNSW indexes."""
         import time
-        if not math.isfinite(timeout) or timeout <= 0:
-            raise ValueError('Index readiness timeout must be positive and finite.')
-        deadline = time.monotonic() + timeout
+        deadline = time.monotonic() + self.config.index_timeout
         while True:
             info = self.check_configuration()
             if info.optimizer_status != 'ok' or info.status == models.CollectionStatus.RED:
                 raise ValueError(f'Qdrant optimizer failed: {info.optimizer_status}.')
             indexed = info.indexed_vectors_count or 0
             if (info.status == models.CollectionStatus.GREEN and self.count() == expected_count
-                    and (not require_hnsw or indexed >= expected_count)):
+                    and (not self.config.require_hnsw or indexed >= expected_count)):
                 return {'points': expected_count, 'indexed_vectors': indexed, 'status': 'green'}
             remaining = deadline - time.monotonic()
             if remaining <= 0:

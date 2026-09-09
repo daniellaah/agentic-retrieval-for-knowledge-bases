@@ -3,23 +3,23 @@ import json
 
 import pytest
 
-from obsidian_rag.citation import (
+from arkb.context.citation import (
     CitationOrigin, CitationSource, CitationValidation, Claim, CitedAnswer,
     CitationParseError, citation_json_schema, parse_cited_answer, validate_citations,
-    render_cited_answer, used_citation_sources,
+    render_cited_answer,
     CitationQuote,
 )
 
 
 def source(source_id='S1', *, content='A fact.', start=0):
     return CitationSource(source_id, 'a.md', 'Title', content, start, start + len(content),
-                          (CitationOrigin(start, start + len(content), .8),))
+                          (CitationOrigin(start, start + len(content), .8, 'chunk', 'doc', 'rev', 'vault', 'v1'),))
 
 
-def test_contract_preserves_unicode_coordinates_and_unknown_legacy_identity():
+def test_contract_preserves_unicode_coordinates_and_snapshot_identity():
     s = source(content='条件 e\u0301 🧠', start=7)
     assert s.end_char == 7 + len(s.content)
-    assert s.origins[0].document_revision is None
+    assert s.origins[0].document_revision == 'rev'
     with pytest.raises(FrozenInstanceError):
         s.content = 'changed'
     with pytest.raises(ValueError, match='length'):
@@ -29,7 +29,7 @@ def test_contract_preserves_unicode_coordinates_and_unknown_legacy_identity():
 @pytest.mark.parametrize('changes', [
     {'source_id': '1'}, {'source_id': 'S0'}, {'source_id': True},
     {'origins': []}, {'origins': ()}, {'content': ' '}, {'start_char': True},
-    {'origins': (CitationOrigin(30, 40, .2),)},
+    {'origins': (CitationOrigin(30, 40, .2, 'chunk', 'doc', 'rev', 'vault', 'v1'),)},
 ])
 def test_source_rejects_unusable_identity_or_span(changes):
     with pytest.raises(ValueError):
@@ -41,7 +41,7 @@ def test_merged_source_requires_known_matching_versions():
     b = replace(a, start_char=2, end_char=7, chunk_id='chunk-b')
     merged = replace(source(content='abcdefg'), origins=(a, b))
     assert len(merged.origins) == 2
-    for bad in (replace(b, document_revision='other'), CitationOrigin(2, 7, .7)):
+    for bad in (replace(b, document_revision='other'), replace(b, index_version='v2')):
         with pytest.raises(ValueError, match='one known'):
             replace(merged, origins=(a, bad))
 
@@ -133,9 +133,8 @@ def test_rendering_numbers_first_use_and_excludes_unused_sources():
     assert rendered.count('[1] b.md') == 1
     assert rendered.count('[2] a.md') == 1
     assert 'unused.md' not in rendered
-    assert 'body chars [0, 7); unversioned' in rendered
+    assert 'body chars [0, 7); revision rev, index v1' in rendered
     assert 'file://' not in rendered
-    assert [s.source_id for s in used_citation_sources(answer, sources)] == ['S2', 'S1']
 
 
 def test_renderer_keeps_evidence_and_prose_from_forging_links_or_terminal_controls():
@@ -211,3 +210,9 @@ def test_quotes_are_optional_by_default_and_required_only_when_requested():
                             'quotes': [{'source_id': 'S1', 'text': 'A', 'start_char': 0}]}])
     with pytest.raises(CitationParseError):
         parse_cited_answer(raw)
+
+
+@pytest.mark.parametrize('field', ['chunk_id', 'document_id', 'document_revision', 'vault_id', 'index_version'])
+def test_citation_origin_requires_complete_provenance(field):
+    with pytest.raises(ValueError, match='Origin identity'):
+        replace(source().origins[0], **{field: None})

@@ -8,15 +8,15 @@ import pytest
 from qdrant_client import QdrantClient
 from tokenizers import Tokenizer, models, pre_tokenizers, processors
 
-from obsidian_rag.chunking import whole_note_chunks
-from obsidian_rag.indexing import build_index, QdrantIndex
-from obsidian_rag.loaders import Note
-from obsidian_rag.schema import EmbeddingSpec, ChunkRecord
-from obsidian_rag.storage import SQLiteStorage
+from arkb.indexing.chunking import whole_note_chunks
+from arkb.indexing import build_index, QdrantConfig, QdrantIndex
+from arkb.indexing.loaders import Note
+from arkb.schema import EmbeddingSpec, ChunkRecord
+from arkb.storage import SQLiteStorage
 
 
 @pytest.fixture
-def setup(tmp_path):
+def setup(tmp_path, qdrant, qdrant_config):
     tokenizer = Tokenizer(models.WordLevel({'[UNK]': 0, '[END]': 1}, unk_token='[UNK]'))
     tokenizer.pre_tokenizer = pre_tokenizers.WhitespaceSplit()
     tokenizer.post_processor = processors.TemplateProcessing(single='$A [END]', special_tokens=[('[END]', 1)])
@@ -25,7 +25,7 @@ def setup(tmp_path):
     spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2, document_template='title-body-v1')
     with SQLiteStorage(tmp_path / 'index.sqlite') as storage:
         yield storage, dict(spec=spec, vault_id='vault', client=client, tokenizer=tokenizer,
-                            max_input_tokens=100, chunking='none')
+                            max_input_tokens=100, chunking='none', qdrant_client=qdrant, qdrant_config=qdrant_config)
 
 
 def test_complete_build_preserves_duplicate_occurrences_and_reuses_cache(setup):
@@ -39,6 +39,33 @@ def test_complete_build_preserves_duplicate_occurrences_and_reuses_cache(setup):
     assert again.embedded_inputs == 0 and again.cached_inputs == 1
     assert options['client'].embed.call_count == 1
     assert storage.active_manifest('vault').index_version == 'second'
+
+
+@pytest.mark.parametrize('corruption,message', [
+    ('record', 'snapshot record'), ('cache', 'checksum'), ('qdrant', 'payload'),
+])
+def test_unchanged_build_still_rejects_corrupt_snapshot(setup, corruption, message):
+    from arkb.schema import point_id
+
+    storage, options = setup
+    notes = [Note(title='A', content='first', source='a.md')]
+    first = build_index(storage, notes, **options)
+    version = first.manifest.index_version
+    if corruption == 'record':
+        storage.connection.execute('UPDATE snapshot_chunks SET ordinal=1 WHERE version=?', (version,))
+    elif corruption == 'cache':
+        storage.connection.execute("UPDATE embeddings SET checksum='corrupt'")
+    else:
+        collection = storage.build_metadata(version)['backend']['collection']
+        record = storage.snapshot_records(version)[0]
+        options['qdrant_client'].set_payload(collection, payload={'source': 'wrong.md'},
+                                              points=[point_id(record.chunk_id)])
+    options['client'].embed.reset_mock()
+    with pytest.raises(ValueError, match=message):
+        build_index(storage, notes, **options)
+    options['client'].embed.assert_not_called()
+    assert storage.active_manifest('vault') == first.manifest
+    assert storage.list_builds('vault') == [first.manifest]
 
 
 def test_failure_keeps_previous_snapshot_and_successful_embedding_batches(setup):
@@ -111,7 +138,7 @@ def test_forced_rebuild_uses_cache_and_recovers_interrupted_candidates(setup):
     notes = [Note(title='A', content='first', source='a.md')]
     first = build_index(storage, notes, **options)
     pending = replace(first.manifest, index_version='interrupted', status='building')
-    storage.create_build(pending, corpus_fingerprint='pending')
+    storage.create_build(pending, corpus_fingerprint='pending', backend={'kind': 'qdrant'})
     rebuilt = build_index(storage, notes, **options, force=True)
     assert not rebuilt.reused_index and rebuilt.embedded_inputs == 0
     assert rebuilt.manifest.index_version != first.manifest.index_version
@@ -182,7 +209,7 @@ def test_invalid_vectors_and_foreign_vault_fail_before_upsert(qdrant_data):
 
 
 def test_snapshot_verification_detects_payload_and_vector_corruption(qdrant_data):
-    from obsidian_rag.schema import point_id
+    from arkb.schema import point_id
     spec, records = qdrant_data
     with closing(QdrantClient(':memory:')) as client:
         store = create_qdrant_index(client, spec)
@@ -200,8 +227,10 @@ def test_hnsw_readiness_timeout_does_not_claim_a_flat_index_is_built(qdrant_data
         store = create_qdrant_index(client, spec)
         store.upsert(records[:1], [[1, 0]])
         assert store.wait_ready(expected_count=1)['points'] == 1
+        strict = QdrantIndex(client, 'test', spec, vault_id='vault',
+                              config=QdrantConfig(index_timeout=.01, require_hnsw=True))
         with pytest.raises(ValueError, match='Timed out'):
-            store.wait_ready(expected_count=1, timeout=.01, require_hnsw=True)
+            strict.wait_ready(expected_count=1)
 
 
 def test_invalid_full_scan_threshold_fails_before_contacting_server(qdrant_data):
@@ -209,4 +238,73 @@ def test_invalid_full_scan_threshold_fails_before_contacting_server(qdrant_data)
     for threshold in (0, 9, -1, True):
         with pytest.raises(ValueError, match='full_scan_threshold'):
             QdrantIndex(None, 'test', spec, vault_id='vault', create=True,
-                             full_scan_threshold=threshold)
+                             config=QdrantConfig(full_scan_threshold=threshold))
+
+
+def test_retired_snapshot_rebuild_reuses_cache_and_switches_only_after_success(setup, monkeypatch):
+    import json
+    storage, options = setup
+    notes = [Note('Title', 'Cached source text', 'a.md')]
+    original = build_index(storage, notes, **options)
+    version = original.manifest.index_version
+    metadata = storage.build_metadata(version)['backend']
+    metadata = {k: v for k, v in metadata.items() if k not in ('collection', 'url', 'index_stats')}
+    metadata['kind'] = 'numpy'
+    storage.connection.execute('UPDATE builds SET backend=? WHERE version=?', (json.dumps(metadata), version))
+    storage.connection.commit()
+    options['client'].embed.reset_mock()
+    with monkeypatch.context() as patch:
+        patch.setattr(QdrantIndex, 'upsert', Mock(side_effect=ConnectionError('Qdrant unavailable')))
+        with pytest.raises(ConnectionError):
+            build_index(storage, notes, **options)
+    assert storage.active_manifest('vault').index_version == version
+    assert storage.build_metadata(version)['backend']['kind'] == 'numpy'
+    rebuilt = build_index(storage, notes, **options)
+    assert rebuilt.embedded_inputs == 0 and rebuilt.cached_inputs == 1
+    assert not rebuilt.reused_index
+    assert storage.active_manifest('vault') == rebuilt.manifest
+    assert storage.build_metadata(rebuilt.manifest.index_version)['backend']['kind'] == 'qdrant'
+    assert storage.snapshot_records(version) == storage.snapshot_records(rebuilt.manifest.index_version)
+    options['client'].embed.assert_not_called()
+
+
+def test_old_metadata_with_omitted_defaults_reuses_the_published_snapshot(setup):
+    import json
+    storage, options = setup
+    notes = [Note('Title', 'Existing source', 'a.md')]
+    first = build_index(storage, notes, **options)
+    version = first.manifest.index_version
+    metadata = storage.build_metadata(version)['backend']
+    for field in ('hnsw_m', 'ef_construct', 'indexing_threshold', 'full_scan_threshold', 'index_timeout', 'require_hnsw'):
+        metadata.pop(field)
+    storage.connection.execute('UPDATE builds SET backend=? WHERE version=?', (json.dumps(metadata), version))
+    storage.connection.commit()
+    options['client'].embed.reset_mock()
+    reopened = build_index(storage, notes, **options)
+    assert reopened.reused_index and reopened.manifest == first.manifest
+    assert storage.build_metadata(version)['backend'] == metadata
+    options['client'].embed.assert_not_called()
+
+
+def test_qdrant_config_roundtrips_saved_settings_and_ignores_snapshot_fields():
+    config = QdrantConfig(url='http://localhost:6333', hnsw_m=8, ef_construct=50,
+                          indexing_threshold=1, full_scan_threshold=10, index_timeout=2.5, require_hnsw=True)
+    assert QdrantConfig.from_metadata({**config.to_metadata(), 'collection': 'saved', 'index_stats': {}}) == config
+    assert QdrantConfig.from_metadata({'kind': 'qdrant', 'url': QdrantConfig.url}) == QdrantConfig()
+    with pytest.raises(ValueError, match='retired backend'):
+        QdrantConfig.from_metadata({'kind': 'numpy'})
+
+
+@pytest.mark.parametrize('changes', [
+    {'hnsw_m': True}, {'hnsw_m': 1}, {'ef_construct': 0}, {'indexing_threshold': -1},
+    {'full_scan_threshold': 9}, {'index_timeout': float('nan')}, {'index_timeout': float('inf')},
+    {'index_timeout': 0}, {'index_timeout': True}, {'require_hnsw': 1},
+    {'require_hnsw': True, 'indexing_threshold': 0}, {'url': ''},
+])
+def test_invalid_qdrant_config_fails_before_any_collection_operation(qdrant_data, changes):
+    spec, _ = qdrant_data
+    client = Mock(spec=QdrantClient)
+    with pytest.raises(ValueError):
+        QdrantIndex(client, 'test', spec, vault_id='vault', create=True, config=QdrantConfig(**changes))
+    client.create_collection.assert_not_called()
+    client.get_collection.assert_not_called()
