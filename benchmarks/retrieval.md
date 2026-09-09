@@ -40,3 +40,13 @@ is combined with standard `(k1+1)*tf / (tf+k1*(1-b+b*dl/avgdl))` saturation.
 Defaults are k1=1.2 and b=0.75. Source filtering precedes top-K while corpus
 statistics stay fixed. Scores are higher-is-better and meaningful only within
 the same corpus/tokenizer/settings; they are not cosine similarities.
+
+`arkb.retrieval.rrf` accepts named ranked lists (or a sequence of lists) and
+returns a tuple of shared results. It implements the [RRF paper's rank sum](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf),
+`sum(1/(k+rank))`, with one-based positions and default k=60. Within-list
+duplicates vote only once at their first position; later entries retain their
+original ranks. Equal scores sort by `SearchResult.identity`. Identity scopes
+chunks to documents, falls back to located spans, then whole sources. Conflicting
+text, spans, or known snapshot/revision metadata for one identity are errors.
+`metadata.fusion.contributions` records each list, rank, method, raw score/type
+and input metadata. Fused scores are tagged `rrf`; input scores are never summed.
