@@ -2,7 +2,11 @@
 
 from dataclasses import dataclass
 from math import isfinite
+from pathlib import Path
 from typing import Literal, get_args
+
+from arkb.agent.state import AgentTrace
+from arkb.config import DEFAULT_AGENT_THINK, DEFAULT_DB, DEFAULT_GENERATION_MODEL, DEFAULT_NOTES_DIR, RuntimeConfig
 
 
 TaskType = Literal['exact_lookup', 'semantic_discovery', 'direct_read',
@@ -112,3 +116,55 @@ class AgentEvalResult:
     unnecessary_retrieval: bool | None
     stop_reason: str | None
     failure_reasons: tuple[str, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class AgentEvalConfig:
+    dataset_path: Path = Path('evaluation/data/agent_v1.jsonl')
+    output_dir: Path | None = None
+    model: str = DEFAULT_GENERATION_MODEL
+    max_turns: int = 8
+    num_trials: int = 1
+    db: Path = DEFAULT_DB
+    notes_dir: Path = DEFAULT_NOTES_DIR
+    vault_id: str = 'default'
+    think: bool = DEFAULT_AGENT_THINK
+    runtime_config: RuntimeConfig = RuntimeConfig()
+
+    def __post_init__(self):
+        for name in ('dataset_path', 'output_dir', 'db', 'notes_dir'):
+            value = getattr(self, name)
+            if name == 'output_dir' and value is None:
+                continue
+            if not isinstance(value, (str, Path)) or not str(value).strip():
+                raise ValueError(f'{name} must be a nonblank path.')
+            object.__setattr__(self, name, Path(value))
+        for name in ('max_turns', 'num_trials'):
+            value = getattr(self, name)
+            if type(value) is not int or value < 1:
+                raise ValueError(f'{name} must be a positive integer.')
+        for name in ('model', 'vault_id'):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f'{name} must be a nonblank string.')
+        if type(self.think) is not bool:
+            raise ValueError('think must be boolean.')
+        if not isinstance(self.runtime_config, RuntimeConfig):
+            raise ValueError('runtime_config must be a RuntimeConfig.')
+
+
+@dataclass(frozen=True, kw_only=True)
+class AgentEvalTrial:
+    case: AgentEvalCase
+    trial: int
+    trace: AgentTrace | None
+    metrics: AgentEvalResult
+    runtime_metadata: dict
+    error: dict[str, str] | None = None
+
+
+@dataclass(frozen=True, kw_only=True)
+class AgentEvalRun:
+    output_dir: Path
+    results: tuple[AgentEvalTrial, ...]
+    summary: dict

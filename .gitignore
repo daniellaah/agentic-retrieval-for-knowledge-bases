@@ -32,3 +32,6 @@ htmlcov/
 
 # Local index state
 .obsidian-rag/
+
+# Local agent evaluation runs (versioned input lives in evaluation/data/)
+/evaluation/results/

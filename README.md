@@ -20,7 +20,7 @@ packs that evidence into context and produces validated citations.
 | `generation/` | `models.py`: context/citation contracts; `context.py`: evidence packing and budgets; `citations.py`: parsing, validation and rendering; `generate.py`: answer generation and generation token counting |
 | `agent/` | `tools.py`: thin `match`, `search`, `read` adapters and provider-independent tool definitions; `state.py`: conversation and turn count; `loop.py`: bounded model/tool orchestration |
 | `interfaces/` | `cli.py`: argument parsing, Runtime calls and output formatting; `mcp.py`: protocol placeholder |
-| `evaluation/` | `datasets.py`: experiment inputs and fingerprints; `metrics.py`: ranking, coverage and citation metrics; `retrieval.py`: relevance, ANN and frozen-candidate experiments; `generation.py`: context and citation experiments |
+| `evaluation/` | `datasets.py`: experiment inputs and fingerprints; `models.py`: agent evaluation contracts; `agent.py`: deterministic agent metrics; `agent_runner.py`: runtime trials and reports; `metrics.py`: ranking, coverage and citation metrics; `retrieval.py`: relevance, ANN and frozen-candidate experiments; `generation.py`: context and citation experiments |
 | `runtime.py` | Lazy client/tokenizer creation, resource reuse and closure, snapshot-bound retrieval composition and `match`/`search`/`ask`/`index`/`status` entry points |
 | `config.py` | Explicit runtime/retrieval settings and application defaults; no I/O |
 
@@ -519,7 +519,9 @@ files are diagnostic artifacts and need reindexing before further vector queries
 
 The Agent Runtime is exposed through the Python API and `arkb ask`. MCP,
 streaming, agent context-budget optimization, agent citation validation,
-conversation persistence, and agent evaluation are not implemented. Fixed-pipeline
+and conversation persistence are not implemented. [Agent Evaluation v1](evaluation/README.md)
+provides a curated 40-case dataset, deterministic behavior metrics, and a runner
+through the existing Runtime. Fixed-pipeline
 generation retains its existing budgeting and citation validation APIs. Live `match`/`read` versus indexed `search` retain the eventual
 consistency described above; callers must align the tools' directory/vault with
 their prepared engine.
