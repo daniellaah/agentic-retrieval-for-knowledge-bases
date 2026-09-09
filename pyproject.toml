@@ -32,3 +32,6 @@ build-backend = "uv_build"
 
 [tool.uv]
 cache-dir = ".uv-cache"
+
+[tool.pytest.ini_options]
+markers = ["integration: requires explicitly enabled model or external-service checks"]

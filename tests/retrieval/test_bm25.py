@@ -87,7 +87,7 @@ def test_sqlite_baseline_uses_published_semantic_chunks_without_models_or_vector
     client.embed.assert_not_called()
     assert path.read_bytes() == before
     import json
-    from arkb.retrieval_evaluation import main
+    from arkb.evaluation.retrieval import baseline_main as main
     cases = tmp_path / 'cases.jsonl'
     cases.write_text(json.dumps({'id': 'identifier', 'question': 'identifier', 'relevance': {'a.md': 1}}))
     output = tmp_path / 'report.json'

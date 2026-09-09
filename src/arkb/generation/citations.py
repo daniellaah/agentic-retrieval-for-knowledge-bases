@@ -5,36 +5,15 @@ to the loaded Note.content snapshot, never raw Markdown bytes or line numbers.
 Structural validity must never be presented as semantic evidence support.
 """
 
-from dataclasses import asdict, dataclass
 from collections.abc import Sequence
 import html
 import json
-import math
 import re
 import unicodedata
-from arkb.generation.models import _text, _source_id, _span, CitationOrigin, CitationSource, CitationQuote, Claim, CitedAnswer, CitationIssue, ResolvedQuote, CitationValidation
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+from arkb.generation.models import (
+    _text, _source_id, CitationSource, CitationQuote, Claim, CitedAnswer, CitationIssue,
+    ResolvedQuote, CitationValidation,
+)
 
 
 class CitationParseError(ValueError):

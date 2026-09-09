@@ -12,7 +12,9 @@ import sys
 from httpx import HTTPError
 from ollama import ResponseError
 
-from arkb.config import RuntimeConfig, RetrievalConfig, DEFAULT_EMBEDDING_MODEL, DEFAULT_GENERATION_MODEL
+from arkb.config import (
+    RuntimeConfig, RetrievalConfig, DEFAULT_EMBEDDING_MODEL, DEFAULT_GENERATION_MODEL,
+)
 from arkb.runtime import Runtime
 from arkb.knowledge.embeddings import resolve_embedding_spec
 from arkb.knowledge.models import QdrantConfig

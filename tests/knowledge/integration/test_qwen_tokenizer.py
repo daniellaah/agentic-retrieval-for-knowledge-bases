@@ -13,6 +13,7 @@ pytestmark = pytest.mark.skipif(
     os.environ.get("OBSIDIAN_RAG_RUN_MODEL_TESTS") != "1",
     reason="Set OBSIDIAN_RAG_RUN_MODEL_TESTS=1 with Qwen cached and Ollama running.",
 )
+pytestmark = [pytest.mark.integration, pytestmark]
 
 
 @pytest.fixture(scope="module")

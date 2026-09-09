@@ -25,7 +25,7 @@ from arkb.knowledge.documents import scan_notes
 from arkb.retrieval import BM25Retriever, HybridRetriever, RerankedRetriever, Reranker
 from arkb.retrieval.rerank import CrossEncoderScorer
 from arkb.runtime import SnapshotSemanticRetriever
-from arkb.retrieval_evaluation import evaluate_retrievers, evaluate_reranker
+from arkb.evaluation.retrieval import evaluate_retrievers, evaluate_reranker
 from arkb.knowledge.sqlite import SQLiteStorage
 from arkb.knowledge.embeddings import load_tokenizer
 

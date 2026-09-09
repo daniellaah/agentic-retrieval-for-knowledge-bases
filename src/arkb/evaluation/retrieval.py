@@ -1,12 +1,13 @@
-"""Reproducible retrieval comparisons; section coverage is not answer accuracy."""
+"""Relevance baselines and exact/ANN comparisons on pinned knowledge snapshots."""
 
 import argparse
-from contextlib import ExitStack, closing
+from collections.abc import Sequence
 from dataclasses import asdict
 from datetime import datetime, timezone
 from functools import partial
 import hashlib
 import json
+import math
 from pathlib import Path
 import platform
 import subprocess
@@ -14,47 +15,83 @@ from time import perf_counter
 
 import numpy as np
 
+from arkb.config import RuntimeConfig, RetrievalConfig, DEFAULT_GENERATION_MODEL
 from arkb.knowledge.embeddings import validate_vectors
+from arkb.runtime import Runtime
+from arkb.evaluation.datasets import load_cases, source_hashes, corpus_manifest
+from arkb.evaluation.metrics import (
+    ranking_metrics, recall_at_k, evidence_statistics, summarize_citations,
+)
 
+def evaluate_retrievers(retrievers, cases: Sequence[dict], *, top_k: int = 10,
+                        relevance_key: str = 'source') -> dict:
+    """Compare fixed configurations on identical questions and judgments.
 
-def recall_at_k(reference: list[str], candidate: list[str], k: int) -> float | None:
-    """Set recall against exact neighbors; no reference neighbors means undefined."""
-    if type(k) is not int or k <= 0:
-        raise ValueError('k must be positive.')
-    if len(set(reference)) != len(reference) or len(set(candidate)) != len(candidate):
-        raise ValueError('Neighbor lists must not contain duplicate IDs.')
-    expected = set(reference[:k])
-    return len(expected & set(candidate[:k])) / len(expected) if expected else None
-
-def evidence_statistics(chunks, case: dict) -> dict:
-    """Measure source groups and union coverage of labeled Note.content spans.
-
-    Labels must explicitly use body_start_char/body_end_char. Overlap is counted
-    once; raw Markdown coordinates are never silently substituted. These are
-    section-character metrics, not necessary-fact recall or generated-answer scores.
+    For document labels, repeated document hits collapse in first-occurrence
+    order after retrieval; raw chunk rankings remain in the report. MRR is thus
+    bounded by the retrieved top_k chunks. Latency includes query embedding and
+    all retrieval stages, excluding construction/model loading. Mode order rotates.
     """
-    sources = {chunk.source for chunk in chunks}
-    groups = case.get('required_source_groups', [])
-    if not isinstance(groups, list) or any(not isinstance(g, list) or not g or
-                                          any(not isinstance(s, str) or not s for s in g) for g in groups):
-        raise ValueError('Expected nonempty source groups.')
-    fractions = []
-    for anchor in case.get('evidence_anchors', []):
-        start, end = anchor.get('body_start_char'), anchor.get('body_end_char')
-        if type(start) is not int or type(end) is not int or not 0 <= start < end:
-            raise ValueError('Evidence requires valid body coordinates, with an exclusive end.')
-        intervals = sorted((max(start, c.start_char), min(end, c.end_char)) for c in chunks
-                           if c.source == anchor['source'] and c.start_char < end and c.end_char > start)
-        covered, cursor = 0, start
-        for left, right in intervals:
-            covered += max(0, right - max(cursor, left))
-            cursor = max(cursor, right)
-        fractions.append(covered / (end - start))
-    return {
-        'source_group_recall': sum(any(s in sources for s in g) for g in groups) / len(groups) if groups else None,
-        'section_coverage': float(np.mean(fractions)) if fractions else None,
-        'all_sections_complete': all(f == 1 for f in fractions) if fractions else None,
-    }
+    from dataclasses import asdict
+    from time import perf_counter
+    from arkb.retrieval.models import SearchResponse, validate_request
+    if relevance_key not in ('source', 'source_id', 'chunk_id'):
+        raise ValueError('relevance_key must be source, source_id, or chunk_id.')
+    if not retrievers or not cases or len({case['id'] for case in cases}) != len(cases):
+        raise ValueError('Evaluation requires retrievers and cases with unique IDs.')
+    for case in cases:
+        validate_request(case['question'], top_k, case.get('filters'))
+        ranking_metrics(case['relevance'], [], k=top_k)
+    names = list(retrievers)
+    rows = []
+    for i, case in enumerate(cases):
+        row = {'id': case['id'], 'question': case['question'], 'modes': {}}
+        for name in names[i % len(names):] + names[:i % len(names)]:
+            started = perf_counter()
+            response = retrievers[name].search(case['question'], top_k=top_k, filters=case.get('filters'))
+            latency = (perf_counter() - started) * 1000
+            if (not isinstance(response, SearchResponse) or response.query != case['question']
+                    or len(response.results) > top_k
+                    or len({hit.identity for hit in response.results}) != len(response.results)):
+                raise ValueError('Retriever returned an invalid ranking for evaluation.')
+            ids = list(dict.fromkeys(getattr(hit, relevance_key) for hit in response.results))
+            metrics = ranking_metrics(case['relevance'], ids, k=top_k)
+            row['modes'][name] = {'response': asdict(response), 'metrics': metrics, 'latency_ms': latency}
+        rows.append(row)
+    summary = {}
+    for name in names:
+        entries = [row['modes'][name] for row in rows]
+        summary[name] = {'mean_latency_ms': sum(r['latency_ms'] for r in entries) / len(entries)}
+        for metric in ('recall_at_k', 'mrr', 'ndcg_at_k'):
+            values = [r['metrics'][metric] for r in entries if r['metrics'][metric] is not None]
+            summary[name][metric] = sum(values) / len(values) if values else None
+            summary[name][metric + '_defined_cases'] = len(values)
+    return {'settings': {'top_k': top_k, 'relevance_key': relevance_key,
+                         'mrr_depth': top_k, 'latency': 'query embedding and search; excludes setup'},
+            'summary': summary, 'results': rows}
+
+
+def evaluate_reranker(reranker, query, candidates, relevance, *, top_k=10,
+                      relevance_key='source') -> dict:
+    """Score one frozen candidate set, retaining input/output and rank movement."""
+    from dataclasses import asdict
+    from time import perf_counter
+    if relevance_key not in ('source', 'source_id', 'chunk_id'):
+        raise ValueError('Invalid relevance key.')
+    candidates = tuple(candidates)
+    def metrics(hits):
+        ids = list(dict.fromkeys(getattr(hit, relevance_key) for hit in hits))
+        return ranking_metrics(relevance, ids, k=top_k)
+    before = metrics(candidates[:top_k])
+    started = perf_counter()
+    results = reranker.rerank(query, candidates, top_k=top_k)
+    latency = (perf_counter() - started) * 1000
+    ranks = {hit.identity: i for i, hit in enumerate(candidates, 1)}
+    return {'query': query, 'before': before, 'after': metrics(results), 'latency_ms': latency,
+            'candidates': [asdict(hit) for hit in candidates], 'results': [asdict(hit) for hit in results],
+            'rank_changes': [{'identity': list(hit.identity), 'before': ranks[hit.identity], 'after': i}
+                             for i, hit in enumerate(results, 1)]}
+
 
 def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spec,
                       search, top_k: int = 2) -> dict:
@@ -124,154 +161,104 @@ def compare_retrieval(records, vectors, query_vectors, cases: list[dict], *, spe
             'summary': summary, 'results': results}
 
 
-def evaluate_context(question, results, case, *, config, counter) -> dict:
-    """Measure packed evidence against the original, snapshot-identified hits."""
-    from arkb.generation.context import build_context
+def baseline_main(argv=None) -> int:
+    """Run explicit retrieval configurations against one pinned production snapshot."""
+    import argparse
+    from dataclasses import asdict
+    import hashlib
+    import json
+    from pathlib import Path
+    import platform
+    from arkb.knowledge.sqlite import SQLiteStorage
 
-    if len({(h.metadata['index_version'], h.metadata['vault_id']) for h in results}) > 1:
-        raise ValueError('Context evaluation requires one snapshot and vault.')
-    started = perf_counter()
-    context = build_context(question, results, config=config, counter=counter)
-    elapsed = (perf_counter() - started) * 1000
-    blocks = context.evidence_blocks
-    groups = {}
-    for block in blocks:
-        hit = block.origins[0]
-        key = (hit.metadata['index_version'], hit.source_id, hit.metadata['document_revision'])
-        groups.setdefault(key, []).append((block.start_char, block.end_char))
-    unique_chars = 0
-    for intervals in groups.values():
-        cursor = 0
-        for start, end in sorted(intervals):
-            unique_chars += max(0, end - max(cursor, start))
-            cursor = max(cursor, end)
-    chars = sum(len(b.content) for b in blocks)
-    result = {
-        'context': context.to_dict(),
-        'metrics': {'prompt_tokens': context.prompt_tokens, 'block_count': len(blocks),
-                    'body_characters': chars, 'unique_span_characters': unique_chars,
-                    'duplicate_span_fraction': (chars - unique_chars) / chars if chars else 0.0,
-                    'fits_budget': context.prompt_tokens <= config.input_budget,
-                    'build_ms': elapsed, **evidence_statistics(blocks, case)},
-    }
-    reference = evidence_statistics(results, case)['section_coverage']
-    coverage = result['metrics']['section_coverage']
-    result['metrics']['section_coverage_retention'] = coverage / reference if reference else None
-    return result
-
-
-def citation_statistics(raw_response, sources, *, review: dict | None = None, require_quotes=False) -> dict:
-    """Reference membership and coverage, separately from supplied human/judge labels.
-
-    Every model claim is treated as requiring evidence. This does not detect
-    omitted answer facts or multiple facts hidden in one claim. Support labels
-    judge the cited sources jointly; the rate uses reviewed claims only and is
-    always accompanied by review coverage. No labels means no semantic score.
-    """
-    from arkb.generation.citations import CitationParseError, parse_cited_answer, validate_citations
-    metrics = {'structure_valid': False, 'references_valid': False, 'claim_count': None,
-               'reference_count': None, 'valid_reference_count': None,
-               'citation_id_validity': None, 'claim_reference_coverage': None,
-               'support_review_coverage': None, 'supported_claim_rate': None,
-               'answer_correct': None, 'answer_complete': None, 'issues': []}
-    try:
-        answer = parse_cited_answer(raw_response)
-    except CitationParseError:
-        metrics['issues'] = [{'code': 'invalid_structure'}]
-        return metrics
-    validation = validate_citations(answer, sources, require_quotes=require_quotes)
-    known = {s.source_id for s in sources}
-    references = [s for c in answer.claims for s in c.source_ids]
-    valid = sum(s in known for s in references)
-    count = len(answer.claims)
-    metrics.update(structure_valid=True, references_valid=validation.references_valid,
-                   claim_count=count, reference_count=len(references), valid_reference_count=valid,
-                   citation_id_validity=valid / len(references) if references else None,
-                   claim_reference_coverage=sum(any(s in known for s in c.source_ids) for c in answer.claims) / count if count else None,
-                   issues=validation.to_dict()['issues'])
-    if review is not None:
-        labels = review.get('claim_support')
-        if (not isinstance(review.get('reviewer'), str) or not review['reviewer'].strip()
-                or not isinstance(labels, list) or len(labels) != count
-                or any(label not in (None, 'supported', 'partial', 'contradicted', 'insufficient') for label in labels)):
-            raise ValueError('Review requires an identified reviewer and one support label per claim.')
-        # A supplied semantic score cannot bless missing or out-of-context references.
-        for claim, label in zip(answer.claims, labels):
-            if label == 'supported' and (not claim.source_ids or any(s not in known for s in claim.source_ids)):
-                raise ValueError('A supported claim must have valid source references.')
-        reviewed = [label for label in labels if label is not None]
-        metrics['support_review_coverage'] = len(reviewed) / count if count else None
-        metrics['supported_claim_rate'] = reviewed.count('supported') / len(reviewed) if reviewed else None
-        for key in ('answer_correct', 'answer_complete'):
-            value = review.get(key)
-            if value is not None and type(value) is not bool:
-                raise ValueError(f'{key} review must be boolean or null.')
-            metrics[key] = value
-    return metrics
-
-
-def evaluate_citation_context(context, *, client) -> dict:
-    """Run one frozen context once, preserving failures as well as successes."""
-    from httpx import HTTPError
-    from ollama import ResponseError
-    from arkb.generation.citations import citation_json_schema
-    from arkb.generation.generate import CitedGenerationError, generate_cited_answer
-    context.verify_citation_mapping()
-    sources = context.citation_sources
-    require_quotes = context.citation_mode == 'quoted'
-    row = {'context': context.to_dict(), 'response_schema': citation_json_schema([s.source_id for s in sources], include_quotes=require_quotes),
-           'success': False, 'result': None, 'raw_response': None, 'error': None}
-    started = perf_counter()
-    try:
-        result = generate_cited_answer(context, client=client)
-        payload = result.to_dict()
-        payload.pop('raw_response')
-        row.update(success=True, result=payload, raw_response=result.raw_response)
-        # No-evidence short circuit has no model response; evaluate the application result.
-        metric_input = result.raw_response if result.raw_response is not None else json.dumps(result.answer.to_dict())
-    except (CitedGenerationError, ValueError, OSError, HTTPError, ResponseError) as error:
-        row['raw_response'] = getattr(error, 'raw_response', None)
-        row['error'] = {'code': getattr(error, 'code', type(error).__name__), 'message': str(error)}
-        row['error']['token_usage'] = getattr(error, 'token_usage', None)
-        metric_input = row['raw_response']
-    row['generation_ms'] = (perf_counter() - started) * 1000
-    row['metrics'] = citation_statistics(metric_input, sources, require_quotes=require_quotes)
-    return row
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--db', type=Path, default=Path('.obsidian-rag/index.sqlite'))
+    parser.add_argument('--vault-id', default='default')
+    parser.add_argument('--index-version')
+    parser.add_argument('--cases', type=Path, required=True)
+    parser.add_argument('--output', type=Path, required=True, help='New JSON file; never overwritten.')
+    parser.add_argument('--modes', nargs='+', choices=('semantic', 'bm25', 'hybrid', 'hybrid_reranked'), default=['semantic', 'bm25', 'hybrid'])
+    parser.add_argument('--candidate-k', type=int, default=20)
+    parser.add_argument('--rerank-candidates', type=int, default=20)
+    parser.add_argument('--reranker-cache')
+    parser.add_argument('--reranker-model', default=RetrievalConfig.reranker_model)
+    parser.add_argument('--reranker-revision', default=RetrievalConfig.reranker_revision)
+    parser.add_argument('--reranker-max-length', type=int, default=512)
+    parser.add_argument('--rrf-k', type=float, default=60)
+    parser.add_argument('--top-k', type=int, default=10)
+    parser.add_argument('--relevance-key', choices=('source', 'source_id', 'chunk_id'), default='source')
+    parser.add_argument('--host', default=RuntimeConfig.host)
+    parser.add_argument('--qdrant-url')
+    parser.add_argument('--timeout', type=float, default=RuntimeConfig.timeout)
+    parser.add_argument('--offline', action='store_true')
+    parser.add_argument('--tokenizer-cache', type=Path)
+    parser.add_argument('--bm25-k1', type=float, default=1.2)
+    parser.add_argument('--bm25-b', type=float, default=.75)
+    args = parser.parse_args(argv)
+    if args.output.exists():
+        parser.error('--output already exists')
+    if not math.isfinite(args.timeout) or args.timeout <= 0:
+        parser.error('--timeout must be positive and finite')
+    raw, cases = load_cases(args.cases)
+    from arkb.retrieval.models import validate_request
+    from arkb.retrieval.fusion import rrf
+    if not cases or len({case['id'] for case in cases}) != len(cases):
+        parser.error('Cases must be nonempty with unique IDs')
+    for case in cases:
+        validate_request(case['question'], args.top_k, case.get('filters'))
+        ranking_metrics(case['relevance'], [], k=args.top_k)
+    if set(args.modes) & {'hybrid', 'hybrid_reranked'}:
+        validate_request('configuration', args.candidate_k, None)
+        rrf([], k=args.rrf_k)
+        if args.top_k > args.candidate_k:
+            parser.error('top-k cannot exceed hybrid candidate-k')
+    if 'hybrid_reranked' in args.modes and not args.top_k <= args.rerank_candidates <= args.candidate_k:
+        parser.error('Require top-k <= rerank-candidates <= candidate-k')
+    runtime_config = RuntimeConfig(host=args.host, timeout=args.timeout, offline=args.offline,
+                                   tokenizer_cache=args.tokenizer_cache, qdrant_url=args.qdrant_url)
+    retrieval_config = RetrievalConfig(candidate_k=args.candidate_k, rrf_k=args.rrf_k,
+        rerank_candidates=args.rerank_candidates, reranker_model=args.reranker_model,
+        reranker_revision=args.reranker_revision, reranker_max_length=args.reranker_max_length,
+        reranker_cache=args.reranker_cache, bm25_k1=args.bm25_k1, bm25_b=args.bm25_b)
+    with Runtime(runtime_config) as runtime, SQLiteStorage(args.db, read_only=True) as storage:
+        manifest = storage.get_manifest(args.index_version) if args.index_version else storage.active_manifest(args.vault_id)
+        if manifest is None or manifest.status != 'ready' or manifest.vault_id != args.vault_id:
+            raise ValueError('Evaluation requires a ready snapshot in the requested vault.')
+        records = storage.snapshot_records(manifest.index_version)
+        known = {getattr(r.chunk, 'source') if args.relevance_key == 'source' else
+                 r.document_id if args.relevance_key == 'source_id' else r.chunk_id for r in records}
+        for case in cases:
+            if set(case['relevance']) - known:
+                raise ValueError('Relevance labels refer to evidence outside the pinned snapshot.')
+        engine = runtime.retrieval_engine(storage, manifest, modes=args.modes,
+            settings=retrieval_config, exact=True, records=records)
+        retrievers = {'semantic': engine.semantic, 'bm25': engine.bm25}
+        if set(args.modes) & {'hybrid', 'hybrid_reranked'}:
+            from arkb.retrieval.hybrid import HybridRetriever
+            retrievers['hybrid'] = HybridRetriever(engine.bm25, engine.semantic,
+                                                  candidate_k=args.candidate_k, rrf_k=args.rrf_k)
+        if 'hybrid_reranked' in args.modes:
+            from arkb.retrieval.rerank import RerankedRetriever
+            retrievers['hybrid_reranked'] = RerankedRetriever(retrievers['hybrid'], engine.reranker,
+                                                           candidate_k=args.rerank_candidates)
+        retrievers = {name: retrievers[name] for name in dict.fromkeys(args.modes)}
+        report = evaluate_retrievers(retrievers, cases, top_k=args.top_k, relevance_key=args.relevance_key)
+        package = Path(__file__).resolve().parent.parent
+        report['run'] = {'manifest': asdict(manifest), 'cases': cases,
+                         'cases_sha256': hashlib.sha256(raw).hexdigest(),
+                         'python': platform.python_version(),
+                         'configuration': {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
+                         'source_hashes': source_hashes(package)}
+    with args.output.open('x') as output:
+        json.dump(report, output, ensure_ascii=False, indent=2)
+        output.write('\n')
+    print(json.dumps(report['summary'], indent=2))
+    return 0
 
 
-def evaluate_citation_case(question, results, *, config, counter, client) -> dict:
-    """Retain per-question budget failures instead of aborting a batch evaluation."""
-    from arkb.generation.context import ContextBudgetError, build_context
-    try:
-        context = build_context(question, results, config=config, counter=counter, citation_mode='structured')
-    except ContextBudgetError as error:
-        return {'context': None, 'response_schema': None, 'success': False, 'result': None,
-                'raw_response': None, 'generation_ms': 0,
-                'error': {'code': 'context_budget', 'message': str(error)},
-                'metrics': citation_statistics(None, [])}
-    return evaluate_citation_context(context, client=client)
-
-
-def summarize_citations(rows) -> dict:
-    """Macro rates on defined cases, with failures/counts reported alongside."""
-    if not rows:
-        raise ValueError('Citation summary requires at least one case.')
-    summary = {'case_count': len(rows), 'success_count': sum(r['success'] for r in rows),
-               'error_count': sum(not r['success'] for r in rows),
-               'mean_generation_ms': float(np.mean([r['generation_ms'] for r in rows]))}
-    for key in ('structure_valid', 'references_valid', 'citation_id_validity', 'claim_reference_coverage',
-                'support_review_coverage', 'supported_claim_rate', 'answer_correct', 'answer_complete'):
-        values = [r['metrics'][key] for r in rows if r['metrics'][key] is not None]
-        summary[key] = float(np.mean(values)) if values else None
-        summary[key + '_defined_cases'] = len(values)
-    summary['claim_count'] = sum(r['metrics']['claim_count'] or 0 for r in rows)
-    summary['reference_count'] = sum(r['metrics']['reference_count'] or 0 for r in rows)
-    return summary
-
-def main(argv=None) -> int:
+def ann_main(argv=None) -> int:
     """Evaluate an existing snapshot and save a new, non-overwriting artifact folder."""
     from importlib.metadata import version
-    from ollama import Client
     from arkb.knowledge.qdrant import search_qdrant
     from arkb.knowledge.embeddings import resolve_embedding_spec
     from arkb.knowledge.embeddings import prepare_query, validate_input_tokens
@@ -280,8 +267,6 @@ def main(argv=None) -> int:
     from arkb.knowledge.embeddings import tokenizer_fingerprint
     from arkb.knowledge.models import require_qdrant_backend
     from arkb.knowledge.sqlite import SQLiteStorage
-    from arkb.knowledge.qdrant import connect_qdrant
-    from arkb.knowledge.embeddings import load_tokenizer
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--db', type=Path, required=True)
@@ -289,13 +274,13 @@ def main(argv=None) -> int:
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--vault-id', default='default')
     parser.add_argument('--top-k', type=int, default=2)
-    parser.add_argument('--host', default='http://127.0.0.1:11434')
+    parser.add_argument('--host', default=RuntimeConfig.host)
     parser.add_argument('--offline', action='store_true')
     parser.add_argument('--tokenizer-cache', type=Path)
     parser.add_argument('--qdrant-url')
     parser.add_argument('--context', action='store_true', help='Evaluate packed context on the same Qdrant exact hits.')
     parser.add_argument('--citations', action='store_true', help='Generate and evaluate structured citations on the same Qdrant exact hits.')
-    parser.add_argument('--generation-model', default='qwen3.5:4b')
+    parser.add_argument('--generation-model', default=DEFAULT_GENERATION_MODEL)
     parser.add_argument('--context-window', type=int, default=8192)
     parser.add_argument('--max-output-tokens', type=int, default=1024)
     parser.add_argument('--context-safety-margin', type=int, default=128)
@@ -310,19 +295,20 @@ def main(argv=None) -> int:
             context_config = ContextConfig(args.context_window, args.max_output_tokens, args.context_safety_margin)
         except ValueError as error:
             parser.error(str(error))
-    raw_cases = args.cases.read_bytes()
-    cases = [json.loads(line) for line in raw_cases.decode('utf-8').splitlines() if line.strip()]
-    with ExitStack() as resources, SQLiteStorage(args.db, read_only=True) as storage:
+    raw_cases, cases = load_cases(args.cases)
+    runtime_config = RuntimeConfig(host=args.host, offline=args.offline,
+        tokenizer_cache=args.tokenizer_cache, qdrant_url=args.qdrant_url, qdrant_timeout=30.0)
+    with Runtime(runtime_config) as runtime, SQLiteStorage(args.db, read_only=True) as storage:
         manifest = storage.active_manifest(args.vault_id)
         if manifest is None:
             raise ValueError('No active snapshot to evaluate.')
         metadata = storage.build_metadata(manifest.index_version)
         require_qdrant_backend(metadata['backend'])
         _, records, vectors = storage.load_snapshot(manifest.index_version)
-        tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
+        tokenizer = runtime.tokenizer()
         if tokenizer_fingerprint(tokenizer) != metadata['backend']['input']['tokenizer']:
             raise ValueError('Evaluation tokenizer differs from the snapshot.')
-        ollama = resources.enter_context(Client(host=args.host, timeout=180, trust_env=False))
+        ollama = runtime.model_client()
         limit = metadata['backend']['input']['max_tokens']
         spec = resolve_embedding_spec(ollama, manifest.embedding_spec.model, context_length=limit)
         if spec != manifest.embedding_spec:
@@ -335,7 +321,7 @@ def main(argv=None) -> int:
                               dimensions=spec.dimensions, dtype=spec.dtype, normalization=spec.normalization,
                               context_length=limit)
         embedding_seconds = perf_counter() - started
-        client = resources.enter_context(closing(connect_qdrant(args.qdrant_url or metadata['backend']['url'], 30)))
+        client = runtime.qdrant_client(args.qdrant_url or metadata['backend']['url'])
         store = QdrantIndex(client, metadata['backend']['collection'], spec, vault_id=args.vault_id)
         store.verify_snapshot(records, vectors)
         info = store.check_configuration()
@@ -347,6 +333,7 @@ def main(argv=None) -> int:
         context_rows, citation_rows = [], []
         if args.context or args.citations:
             from arkb.retrieval.semantic import snapshot_result
+            from arkb.evaluation.generation import evaluate_context, evaluate_citation_case
             counter = load_generation_counter(client=ollama, model=args.generation_model,
                                               cache_dir=args.tokenizer_cache, local_files_only=args.offline)
             by_id = {record.chunk_id: record for record in records}
@@ -372,15 +359,14 @@ def main(argv=None) -> int:
             for key in entries[0]:
                 values = [entry[key] for entry in entries if entry[key] is not None]
                 report['context']['summary'][key] = float(np.mean(values)) if values else None
-        package_dir = Path(__file__).resolve().parent
+        package_dir = Path(__file__).resolve().parent.parent
         repo = package_dir.parents[1]
         git = subprocess.run(['git', '-C', str(repo), 'rev-parse', 'HEAD'], capture_output=True, text=True)
         run = {'created_at': datetime.now(timezone.utc).isoformat(), 'manifest': asdict(manifest),
                'build_metadata': metadata, 'cases_sha256': hashlib.sha256(raw_cases).hexdigest(),
                'python': platform.python_version(), 'numpy': np.__version__, 'qdrant_client': version('qdrant-client'),
                'qdrant_server': server_info, 'source_commit': git.stdout.strip() if git.returncode == 0 else None,
-               'source_hashes': {p.relative_to(package_dir).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
-                                 for p in sorted(package_dir.rglob('*.py'))},
+               'source_hashes': source_hashes(package_dir),
                'query_embedding_seconds': embedding_seconds,
                'sqlite_bytes': args.db.stat().st_size, 'sqlite_wal_bytes': Path(str(args.db) + '-wal').stat().st_size
                if Path(str(args.db) + '-wal').exists() else 0,
@@ -396,13 +382,20 @@ def main(argv=None) -> int:
         (args.output / 'results.jsonl').write_text(''.join(json.dumps(row, ensure_ascii=False) + '\n' for row in report.pop('results')))
         (args.output / 'metrics.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
         (args.output / 'run_metadata.json').write_text(json.dumps(run, ensure_ascii=False, indent=2) + '\n')
-        corpus = [{'chunk_id': r.chunk_id, 'document_id': r.document_id, 'document_revision': r.document_revision,
-                   'source': r.chunk.source, 'chunk_index': r.chunk.chunk_index,
-                   'start_char': r.chunk.start_char, 'end_char': r.chunk.end_char,
-                   'text_sha256': hashlib.sha256((r.chunk.title + '\n\n' + r.chunk.content).encode()).hexdigest()} for r in records]
+        corpus = corpus_manifest(records)
         (args.output / 'corpus_manifest.json').write_text(json.dumps(corpus, ensure_ascii=False, indent=2) + '\n')
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0
+
+
+def main(argv=None) -> int:
+    """Select a relevance baseline or exact/ANN snapshot experiment."""
+    import sys
+    args = list(sys.argv[1:] if argv is None else argv)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('experiment', choices=('baseline', 'ann'))
+    selected = parser.parse_args(args[:1])
+    return {'baseline': baseline_main, 'ann': ann_main}[selected.experiment](args[1:])
 
 
 if __name__ == '__main__':

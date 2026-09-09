@@ -4,10 +4,12 @@ import os
 
 import pytest
 
+pytestmark = pytest.mark.integration
+
 from arkb.retrieval import SearchResult
 from arkb.retrieval.rerank import CrossEncoderScorer
 from arkb.retrieval.rerank import Reranker
-from arkb.retrieval_evaluation import evaluate_reranker
+from arkb.evaluation.retrieval import evaluate_reranker
 
 
 @pytest.mark.skipif(os.environ.get('ARKB_RUN_RERANKER_TESTS') != '1', reason='optional cross-encoder model')

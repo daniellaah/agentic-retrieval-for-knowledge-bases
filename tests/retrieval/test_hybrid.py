@@ -68,7 +68,7 @@ def test_hybrid_rejects_snapshot_mismatch_and_keeps_semantic_only_matches():
 
 def test_three_baselines_share_one_evaluation_dataset():
     from arkb.retrieval.hybrid import HybridRetriever
-    from arkb.retrieval_evaluation import evaluate_retrievers
+    from arkb.evaluation.retrieval import evaluate_retrievers
     lexical, semantic = components()
     report = evaluate_retrievers({'bm25': lexical, 'semantic': semantic,
                                  'hybrid': HybridRetriever(lexical, semantic)},
@@ -80,7 +80,7 @@ def test_three_baselines_share_one_evaluation_dataset():
 def test_optional_reranking_scores_full_hybrid_pool_before_final_top_k():
     from arkb.retrieval.hybrid import HybridRetriever
     from arkb.retrieval.rerank import Reranker, RerankedRetriever
-    from arkb.retrieval_evaluation import evaluate_retrievers
+    from arkb.evaluation.retrieval import evaluate_retrievers
     lexical, semantic = components()
     hybrid = HybridRetriever(lexical, semantic, candidate_k=2)
     scorer = SimpleNamespace(identity='frozen-relevance', score_type='logit',

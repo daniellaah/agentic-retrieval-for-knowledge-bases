@@ -18,6 +18,7 @@ class RuntimeConfig:
     offline: bool = False
     embedding_model: str | None = None
     qdrant_url: str | None = None
+    qdrant_timeout: float | None = None
 
 
 @dataclass(frozen=True, kw_only=True)

@@ -7,7 +7,7 @@ quality benchmark. Unlisted documents are treated as irrelevant; expand and
 review the labels before making quality claims.
 
 ```sh
-uv run --locked python -m arkb.retrieval_evaluation \
+uv run --locked python -m arkb.evaluation.retrieval baseline \
   --cases benchmarks/retrieval-cases.jsonl --output /tmp/retrieval-baselines.json \
   --modes semantic bm25 hybrid --top-k 5 --offline
 ```
@@ -78,7 +78,7 @@ Loading is explicit; importing the retrieval package never imports PyTorch.
 uv sync --locked --extra rerank
 ARKB_RUN_RERANKER_TESTS=1 ARKB_RERANKER_OFFLINE=0 \
   ARKB_RERANKER_CACHE=.uv-cache/reranker-models \
-  uv run --locked --extra rerank python -m pytest -q tests/integration/test_cross_encoder_model.py
+  uv run --locked --extra rerank python -m pytest -q tests/retrieval/integration/test_cross_encoder_model.py
 ```
 
 After caching, use `ARKB_RERANKER_OFFLINE=1` to verify entirely offline. CPU
@@ -92,7 +92,7 @@ For hybrid, require `top_k <= rerank_candidates <= candidate_k` (the per-source
 hybrid depth). Retrieval cannot recover candidates excluded from that pool.
 
 ```sh
-uv run --locked --extra rerank python -m arkb.retrieval_evaluation \
+uv run --locked --extra rerank python -m arkb.evaluation.retrieval baseline \
   --cases benchmarks/retrieval-cases.jsonl --output /tmp/retrieval-four-way.json \
   --modes semantic bm25 hybrid hybrid_reranked --top-k 5 \
   --candidate-k 20 --rerank-candidates 20 \

@@ -1,4 +1,5 @@
 """Qdrant persistence and raw vector reads; no retrieval result contracts."""
+
 from collections.abc import Sequence
 import math
 import os
@@ -7,7 +8,9 @@ from urllib.parse import urlsplit
 from uuid import NAMESPACE_URL, uuid5
 from qdrant_client import QdrantClient, models
 from arkb.knowledge.embeddings import validate_vectors
-from arkb.knowledge.models import ChunkRecord, EmbeddingSpec, QdrantConfig, VectorHit, validate_records
+from arkb.knowledge.models import (
+    ChunkRecord, EmbeddingSpec, QdrantConfig, VectorHit, validate_records,
+)
 
 def point_id(chunk_id: str) -> str:
     if not isinstance(chunk_id, str) or re.fullmatch('[0-9a-f]{64}', chunk_id) is None:

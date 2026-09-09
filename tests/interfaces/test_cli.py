@@ -415,7 +415,7 @@ def test_four_way_benchmark_runner_uses_saved_adapters_and_preserves_artifacts(i
     from types import SimpleNamespace
     import numpy as np
     from qdrant_client import QdrantClient
-    from arkb.retrieval_evaluation import main as compare
+    from arkb.evaluation.retrieval import baseline_main as compare
     capsys.readouterr()
     monkeypatch.setattr('ollama.Client', lambda **kw: indexed_client)
     monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', lambda *a: QdrantClient(path=str(tmp_path / 'qdrant')))

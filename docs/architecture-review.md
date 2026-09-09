@@ -2,7 +2,7 @@
 
 审查基线：`9d47667`。范围包括 `src/arkb`、常规测试、集成测试代码和已有 benchmark；本轮只新增审查文档，没有修改实现、接口或索引。
 
-后续调整：当前采用用户确定的 Knowledge、Retrieval、Generation、Agent、Interfaces、Evaluation 六个能力边界，先完成目录组织。唯一 chunking 实现归 knowledge/chunking.py，Context 与引用归 Generation，根部 runtime.py/config.py 负责组装与应用配置，tests 按能力归组。具体迁移与执行顺序见[目录重构方案](directory-refactor-plan.md)。该方案取代本文此前的目录建议和实施优先级；本文已验证的行为发现仍然有效。
+后续调整：当前采用用户确定的 Knowledge、Retrieval、Generation、Agent、Interfaces、Evaluation 六个能力边界，先完成目录组织。唯一 chunking 实现归 knowledge/chunking.py，Context 与引用归 Generation，根部 runtime.py/config.py 负责组装与应用配置，tests 按能力归组。具体迁移与执行顺序见[目录重构方案](directory-refactor-plan.md)。该方案取代本文此前的目录建议和实施优先级；F04 的资源组装重复已在本次迁移中处理；其他行为发现保留为后续工作。本文其余描述记录审查基线，代码链接已指向迁移后的职责位置；括号内行号仅对应原基线。完成情况见[重构结果](refactor-results.md)。
 
 当前代码有 29 个 Python 文件、4,228 行。直接内部 import 的静态扫描未发现循环，扫描包含函数内 import，但不代替完整的运行时依赖分析。检索核心已有脱离 provider、storage、context 和 generation 的测试。
 
@@ -28,7 +28,7 @@
 
 **类别：当前可复现问题。建议：最先独立修复。**
 
-位置：[SearchResult](../src/arkb/retrieval/contracts.py) 的 `__post_init__`（51–71 行）、[EvidenceBlock / BuiltContext](../src/arkb/context/builder.py)（95–165 行）。
+位置：[SearchResult](../src/arkb/retrieval/models.py) 的 `__post_init__`（51–71 行）、[EvidenceBlock / BuiltContext](../src/arkb/generation/context.py)（95–165 行）。
 
 `SearchResult` 使用 frozen dataclass，构造时复制 metadata，但其内部字典仍然可变。`EvidenceBlock.origins` 直接保留输入 hit，`BuiltContext.citation_sources` 又在访问时从这些 hit 读取版本等信息。
 
@@ -49,7 +49,7 @@
 
 **类别：接入工具前需要完成的接口工作。**
 
-位置：[contracts.py](../src/arkb/retrieval/contracts.py)（17–71 行）、[builder.py](../src/arkb/context/builder.py)（264–308 行）、[citation.py](../src/arkb/context/citation.py)（34–55 行）。
+位置：[contracts.py](../src/arkb/retrieval/models.py)（17–71 行）、[builder.py](../src/arkb/generation/context.py)（264–308 行）、[citation.py](../src/arkb/generation/citations.py)（34–55 行）。
 
 `SearchResult` 允许没有 score、chunk 和 index 的结果；但 Context 要求有限分数、可重建的 ChunkRecord、chunk ID、索引版本。`CitationOrigin` 也强制要求这些字段。因此不能只放宽 Context 的一次校验；引用类型和证据来源转换也需要一起审查。
 
@@ -73,7 +73,7 @@
 
 **类别：接入 exact/read/list 前的必要设计。**
 
-位置：[loaders.py](../src/arkb/indexing/loaders.py)（8–53 行）、[Note](../src/arkb/schema.py)（18–32 行）、[storage DDL](../src/arkb/storage.py)（20–37 行）。
+位置：[loaders.py](../src/arkb/knowledge/documents.py)（8–53 行）、[Note](../src/arkb/knowledge/models.py)（18–32 行）、[storage DDL](../src/arkb/knowledge/sqlite.py)（20–37 行）。
 
 当前 loader 只扫描一层 Markdown，source 保存文件名；移除第一条 `# ` 标题行后还会裁剪正文空白。索引坐标明确对应 `Note.content`，不是原始文件。验证样本 `# Title\n\nalpha body\n` 中，alpha 位于原始文件第 3 行、字符位置 9，却位于加载后正文位置 0。子目录中的笔记没有被加载。
 
@@ -93,9 +93,11 @@ SQLite 保存 chunk 记录、embedding 缓存和构建信息，没有独立保�
 
 ### F04：资源组装与配置来源存在真实重复
 
+迁移状态：已由 runtime.py/config.py 收拢客户端、tokenizer、retriever 组装和公共默认值。以下为原审查记录。
+
 **类别：现在可以进行的简化。**
 
-位置：[cli.py](../src/arkb/cli.py)（178–205 行）、[retrieval_evaluation.py](../src/arkb/retrieval_evaluation.py)（166–209 行）、[qdrant.py](../src/arkb/retrieval/qdrant.py)（133–168 行）。
+位置：[cli.py](../src/arkb/interfaces/cli.py)（178–205 行）、[retrieval_evaluation.py](../src/arkb/evaluation/retrieval.py)（166–209 行）、[qdrant.py](../src/arkb/runtime.py)（133–168 行）。
 
 CLI 和评测都需要读取 manifest、解析 backend 信息、打开客户端、加载 tokenizer、核对模型和构造 retriever。`retrieval/qdrant.py` 还同时承担 Qdrant adapter 与 Ollama + Qdrant 应用组合。
 
@@ -117,7 +119,7 @@ CLI 和评测都需要读取 manifest、解析 backend 信息、打开客户端�
 
 **类别：量化优化候选；需要先解决资源所有权。**
 
-位置：[ollama.py](../src/arkb/retrieval/ollama.py)（24–29 行）、[tokenization.py](../src/arkb/tokenization.py)（63–64 行）。
+位置：[ollama.py](../src/arkb/knowledge/embeddings.py)（24–29 行）、[tokenization.py](../src/arkb/knowledge/embeddings.py)（63–64 行）。
 
 每次 `prepare()` 都执行 tokenizer.to_str()、UTF-8 编码与 SHA-256。使用本地已缓存的固定 tokenizer、无网络与模型调用，预热后各重复 7 次：
 
@@ -136,7 +138,7 @@ CLI 和评测都需要读取 manifest、解析 backend 信息、打开客户端�
 
 **类别：现在补充少量目标样本；完整 Agent 评测随功能落地。**
 
-位置：[BM25 tokenizer](../src/arkb/retrieval/bm25.py)（21–22 行）、[ranking evaluation](../src/arkb/retrieval_evaluation.py)（40–86 行）、[测量样本](../benchmarks/retrieval-example.md)。
+位置：[BM25 tokenizer](../src/arkb/retrieval/bm25.py)（21–22 行）、[ranking evaluation](../src/arkb/evaluation/retrieval.py)（40–86 行）、[测量样本](../benchmarks/retrieval-example.md)。
 
 当前样本为 40 文档、6 查询，已有文档明确限定其用途。BM25 采用 Unicode word token，无中文分词。最小验证中，正文“知识库检索可以结合向量搜索。”无法被短查询“向量搜索”命中，而整句查询可以。这是已声明分词规则的限制，是否替换分词器要由目标语料和对照实验决定。
 
@@ -200,10 +202,10 @@ OBSIDIAN_RAG_RUN_MODEL_TESTS=0 HF_HUB_OFFLINE=1 \
 F01 的最小复现（从项目根目录的 Python 环境执行）：
 
 ```python
-from arkb.chunking import whole_note_chunks
-from arkb.context import build_context
-from arkb.retrieval.snapshot import chunk_result
-from arkb.schema import ChunkRecord, Note
+from arkb.knowledge.chunking import whole_note_chunks
+from arkb.generation.context import build_context
+from arkb.retrieval.models import chunk_result
+from arkb.knowledge.models import ChunkRecord, Note
 
 note = Note('Title', 'alpha body', 'a.md')
 record = ChunkRecord.from_note(

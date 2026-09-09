@@ -6,7 +6,9 @@ import math
 import re
 from typing import Protocol
 
-from arkb.retrieval.models import Retriever, SearchResponse, SearchResult, validate_options, validate_request
+from arkb.retrieval.models import (
+    Retriever, SearchResponse, SearchResult, validate_options, validate_request,
+)
 
 
 class CandidateScorer(Protocol):

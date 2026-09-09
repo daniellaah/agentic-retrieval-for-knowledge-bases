@@ -8,49 +8,47 @@ and sample Markdown notes in `example_notes/`.
 
 ## Python modules
 
-The package separates knowledge preparation, deterministic retrieval, context
-construction, and answer generation. The CLI composes these stages; generation
-is an independent capability. Embeddings, embedding tokenization, storage, and
-data records are shared by the stages that use them.
+The package follows six stable capability boundaries. `runtime.py` composes
+resources and reusable retrievers; `config.py` supplies explicit application
+settings. Indexing prepares knowledge, retrieval returns evidence, and generation
+packs that evidence into context and produces validated citations.
 
-| File in `src/arkb/` | Responsibility |
+| Capability in `src/arkb/` | Modules and responsibility |
 | --- | --- |
-| `__init__.py` | Package marker |
-| `indexing/loaders.py` | Markdown loading and consistent source-directory scans |
-| `chunking.py` | Shared Markdown block splitting, section provenance, and size/overlap policy |
-| `indexing/chunking.py` | Compatibility imports for the shared chunker |
-| `indexing/index.py` | Complete/incremental builds, Qdrant writes, HNSW readiness, verification, and failed-candidate cleanup |
-| `retrieval/contracts.py` | Source-based `SearchResult` and ranked `SearchResponse` contracts |
-| `retrieval/semantic.py` | `SemanticRetriever` orchestration and replaceable `Embedder` / `VectorIndex` capabilities |
-| `retrieval/bm25.py` | Independent lexical retrieval over the same saved chunks |
-| `retrieval/fusion.py` | Pure RRF with stable deduplication and per-list score/rank provenance |
-| `retrieval/hybrid.py` | Fixed BM25 + semantic + RRF composition |
-| `retrieval/reranker.py` | Replaceable candidate scorer, independent reranking, optional composition |
-| `retrieval/cross_encoder.py` | Optional pinned CPU cross-encoder adapter |
-| `retrieval/engine.py` | Explicit mode selection and optional reranking |
-| `retrieval/snapshot.py` | Shared source/section evidence translation |
-| `retrieval/ollama.py` | Query preparation, token validation and Ollama query embedding |
-| `retrieval/qdrant.py` | Read-only Qdrant search, pinned SQLite evidence lookup and current adapter wiring |
-| `context/builder.py` | Evidence provenance, deduplication, overlap merging, budgets, and message rendering |
-| `context/citation.py` | Citation contracts, strict parsing, reference/quote validation, and rendering |
-| `embeddings.py` | Document/query input preparation, token budgets, model identity, batching, retries, and vector validation |
-| `tokenization.py` | Pinned embedding tokenizer loading, token counting, and tokenizer fingerprints |
-| `schema.py` | Shared notes, chunks, search results, embedding specs, manifests, and stable identity rules |
-| `storage.py` | SQLite cache/snapshots, build states, locks, atomic publication, and shared Qdrant connection/configuration checks |
-| `generation.py` | Grounded answer generation and the Qwen generation-tokenizer adapter |
-| `retrieval_evaluation.py` | Recall@K, MRR, nDCG@K, latency, frozen-candidate reranking and comparison runner |
-| `evaluation.py` | Qdrant exact/ANN comparisons, context/citation evaluation and reproducible run artifacts |
-| `cli.py` | Command arguments, resource setup, workflow calls, and output |
+| `knowledge/` | `models.py`: notes, chunks, manifests and stable identities; `documents.py`: Markdown loading and scans; `chunking.py`: the single chunker; `embeddings.py`: input preparation, embedding tokenizer and model adapters; `indexing.py`: builds and publication; `sqlite.py` / `qdrant.py`: persistence and raw data access |
+| `retrieval/` | `models.py`: source-based contracts; `bm25.py` / `semantic.py`: independent retrieval; `hybrid.py` / `fusion.py`: fixed composition and RRF; `rerank.py`: reranking and the optional cross-encoder; `engine.py`: explicit mode selection; `exact.py`: placeholder for future exact text retrieval |
+| `generation/` | `models.py`: context/citation contracts; `context.py`: evidence packing and budgets; `citations.py`: parsing, validation and rendering; `generate.py`: answer generation and generation token counting |
+| `agent/` | `tools.py`, `state.py`, `loop.py`: documented placeholders for future task-driven orchestration |
+| `interfaces/` | `cli.py`: CLI arguments, workflows and output; `mcp.py`: protocol placeholder |
+| `evaluation/` | `datasets.py`: experiment inputs and fingerprints; `metrics.py`: ranking, coverage and citation metrics; `retrieval.py`: relevance, ANN and frozen-candidate experiments; `generation.py`: context and citation experiments |
+| `runtime.py` | Lazy client/tokenizer creation, resource reuse and closure, snapshot-bound retrieval composition |
+| `config.py` | Explicit runtime/retrieval settings and application defaults; no I/O |
 
-Use `arkb.indexing.build_index`, `arkb.retrieval.SemanticRetriever.search`, and
-`arkb.context.build_context` as the main stage APIs. `arkb.retrieval` exports
-shared contracts, each independent retrieval primitive, and `RetrievalEngine`. The current application
-adapter is `arkb.retrieval.qdrant.search_index`; direct vector searches use
-`arkb.retrieval.qdrant.search_qdrant`. Collection writes and lifecycle operations
-use `arkb.indexing.QdrantIndex`, with `arkb.indexing.QdrantConfig` settings.
-`Note` and `Chunk` remain in `arkb.schema`. The old chunk-only `schema.SearchResult`
-has been replaced by `retrieval.contracts.SearchResult`, also exported from
-`arkb.retrieval`.
+Use `arkb.knowledge.indexing.build_index`,
+`arkb.retrieval.SemanticRetriever.search`, and
+`arkb.generation.context.build_context` as the main stage APIs. `arkb.retrieval`
+exports the shared contracts, independent retrieval primitives and `RetrievalEngine`.
+`arkb.runtime.SnapshotSemanticRetriever` composes the current saved-snapshot
+adapters; `arkb.runtime.search_index` remains the one-shot entry point. Direct
+vector reads and writes use `arkb.knowledge.qdrant.search_qdrant` and
+`arkb.knowledge.qdrant.QdrantIndex`, with `QdrantConfig` from
+`arkb.knowledge.models`. Knowledge does not import Retrieval or Generation;
+production capabilities do not import Evaluation.
+
+`with Runtime(RuntimeConfig(...)) as runtime:` owns only the model/vector
+clients it opens. Its tokenizer and clients are loaded on demand and reused
+until the context exits, including exceptional exits. Explicitly supplied SQLite
+storage and clients remain caller-owned. Keep a prepared retriever or engine to
+retain its pinned snapshot across a query session. BM25-only setup opens neither
+model nor vector clients; importing the retrieval package never loads a model.
+Agent, MCP and exact text retrieval are not implemented by this directory change.
+
+Python imports now use these capability paths; the old root `chunking`,
+`embeddings`, `tokenization`, `storage`, `schema`, `cli`, `indexing`, `context`
+and `retrieval_evaluation` paths have been removed. This import migration does
+not change persisted identities, index formats or product CLI behavior. See the
+[directory plan](docs/directory-refactor-plan.md) and
+[completed migration](docs/refactor-results.md) for the mapping and validation.
 
 The package and command are named `arkb`. Run `uv sync --locked` after updating.
 Only `index`, `query`, and `status` are supported; the old bare-question command,
@@ -67,9 +65,12 @@ same `--db`, `--vault-id`, note directory, and embedding settings to reuse compa
 cached vectors. The old active snapshot is replaced only after successful publication;
 rebuilding does not delete historical snapshots or the embedding cache.
 
-Functional tests remain in `tests/test_<module>.py`. Real-service tests live in
-`tests/integration/`; generation counting checks also remain in
-`tests/test_context.py`. Regular tests need no network or running services.
+Tests roughly mirror the six capabilities under `tests/`. Shared fixtures live
+in `tests/conftest.py`; runtime ownership checks live in `tests/test_runtime.py`.
+Real-service checks live in each capability's `integration/` subdirectory and
+carry the `integration` marker as well as their existing environment gates.
+Run regular tests with `uv run --locked pytest -q -m "not integration"`; they
+need no network or running services.
 
 ## Requirements
 
@@ -169,13 +170,13 @@ previous active index unchanged. Exit codes are `0` for success, `1` for runtime
 failure, and `2` for invalid arguments; errors go to standard error.
 
 Use `arkb index --help`, `arkb query --help`, and `arkb status --help` for all options.
-The same commands are available through `python -m arkb.cli`.
+The same commands are available through `python -m arkb.interfaces.cli`.
 Regular CLI tests use Qdrant Local and replace Ollama/tokenizer boundaries, so
 no running services or network are required.
 
 ## Read notes
 
-`arkb.indexing.loaders.load_notes` accepts a directory as a `pathlib.Path` and returns
+`arkb.knowledge.documents.load_notes` accepts a directory as a `pathlib.Path` and returns
 notes with `title`, `content`, and `source` fields. It reads UTF-8 `.md` files
 directly inside that directory in filename order.
 
@@ -194,12 +195,12 @@ uv run --locked python -m pytest -q
 
 ## Count tokens
 
-`arkb.tokenization` provides local token counts for Ollama's
+`arkb.knowledge.embeddings` provides local token counts for Ollama's
 `qwen3-embedding:0.6b`. The recursive CLI path loads this tokenizer once per
 invocation and reuses it for all chunk counts.
 
 ```python
-from arkb.tokenization import count_tokens, load_tokenizer
+from arkb.knowledge.embeddings import count_tokens, load_tokenizer
 
 tokenizer = load_tokenizer()  # Download the tokenizer if needed, then reuse it.
 title = "Permanent Notes"
@@ -245,15 +246,15 @@ running with `qwen3-embedding:0.6b`, then run:
 
 ```sh
 OBSIDIAN_RAG_RUN_MODEL_TESTS=1 .venv/bin/python -B -m pytest \
-  -p no:cacheprovider -q tests/integration/test_qwen_tokenizer.py
+  -p no:cacheprovider -q tests/knowledge/integration/test_qwen_tokenizer.py
 ```
 
 ## Split notes into chunks
 
-`arkb.chunking` exposes `chunk_notes` and `whole_note_chunks`. It depends only on
-the standard library and shared records in `arkb.schema`; it performs no I/O,
-retrieval, embedding, indexing, LLM calls, or Agent reasoning. The previous
-`arkb.indexing.chunking` import path remains available for compatibility.
+`arkb.knowledge.chunking` exposes `chunk_notes` and `whole_note_chunks`. It depends only on
+the standard library and shared records in `arkb.knowledge.models`; it performs no I/O,
+retrieval, embedding, indexing, LLM calls, or Agent reasoning. All callers use
+this single canonical module.
 
 Both functions return immutable `Chunk` objects. Existing fields remain:
 `content`, `title`, `source`, `chunk_index`, `start_char`, and `end_char`. New
@@ -273,9 +274,9 @@ Whole-note chunks use a root section spanning the complete body.
 from functools import partial
 from pathlib import Path
 
-from arkb.chunking import chunk_notes, whole_note_chunks
-from arkb.indexing.loaders import load_notes
-from arkb.tokenization import count_tokens, load_tokenizer
+from arkb.knowledge.chunking import chunk_notes, whole_note_chunks
+from arkb.knowledge.documents import load_notes
+from arkb.knowledge.embeddings import count_tokens, load_tokenizer
 
 notes = load_notes(Path("example_notes"))
 tokenizer = load_tokenizer()
@@ -328,12 +329,12 @@ the tokenizer first and run (no Ollama service is required for this test file):
 
 ```sh
 OBSIDIAN_RAG_RUN_MODEL_TESTS=1 .venv/bin/python -B -m pytest \
-  -p no:cacheprovider -q tests/integration/test_qwen_chunking.py
+  -p no:cacheprovider -q tests/knowledge/integration/test_qwen_chunking.py
 ```
 
 ## Prepare embedding inputs
 
-`arkb.embeddings` owns the text formats used by the CLI:
+`arkb.knowledge.embeddings` owns the text formats used by the CLI:
 
 - `prepare_document(chunk)` returns `title + "\n\n" + content` using the versioned
   `DOCUMENT_TEMPLATE = "title-body-v1"`. Pass `EmbeddingSpec.document_template`
@@ -355,12 +356,12 @@ instruction is rejected. Use the exact prepared document text for both
 `EmbeddingSpec.embedding_key(text)` and `embed_texts([text], ...)`.
 
 ```python
-from arkb.indexing.chunking import whole_note_chunks
-from arkb.embeddings import (
+from arkb.knowledge.chunking import whole_note_chunks
+from arkb.knowledge.embeddings import (
     prepare_document, prepare_query, validate_input_tokens,
 )
-from arkb.indexing.loaders import Note
-from arkb.tokenization import load_tokenizer
+from arkb.knowledge.models import Note
+from arkb.knowledge.embeddings import load_tokenizer
 
 note = Note(title="Permanent Notes", content="Develop one idea.", source="idea.md")
 chunk = whole_note_chunks([note])[0]
@@ -391,19 +392,19 @@ above. Keep the original question for answer generation, without its instruction
 
 Regular tests use a small offline BPE tokenizer to check merged title/body
 boundaries, special markers, exact limits, and invalid tokenizer settings. The
-optional `tests/integration/test_qwen_embeddings.py` compares prepared
+optional `tests/knowledge/integration/test_qwen_embeddings.py` compares prepared
 document and query counts with Ollama's actual `prompt_eval_count`; enable it
 with `OBSIDIAN_RAG_RUN_MODEL_TESTS=1` and the cached tokenizer/local model.
 
 ## Generate embeddings
 
-`arkb.embeddings.embed_texts` converts a list of texts into a NumPy matrix
+`arkb.knowledge.embeddings.embed_texts` converts a list of texts into a NumPy matrix
 with one vector per input, preserving order. Supply an Ollama client to select the
 server and timeout. The default model is `qwen3-embedding:0.6b`.
 
 ```python
 from ollama import Client
-from arkb.embeddings import embed_texts
+from arkb.knowledge.embeddings import embed_texts
 
 client = Client(host="http://127.0.0.1:11434", timeout=60, trust_env=False)
 vectors = embed_texts(
@@ -453,8 +454,9 @@ source identities. Conflicting overlap within one declared revision raises an er
 
 ```python
 from ollama import Client
-from arkb.context import ContextConfig, build_context
-from arkb.generation import generate_cited_answer, load_generation_counter
+from arkb.generation.models import ContextConfig
+from arkb.generation.context import build_context
+from arkb.generation.generate import generate_cited_answer, load_generation_counter
 
 with Client(host="http://127.0.0.1:11434", timeout=180, trust_env=False) as client:
     counter = load_generation_counter(client=client)  # tokenizer cached after first use
@@ -566,7 +568,7 @@ The default `structured` protocol and schema do not request quotes.
 
 ```sh
 OBSIDIAN_RAG_RUN_MODEL_TESTS=1 .venv/bin/python -B -m pytest \
-  -p no:cacheprovider -q tests/test_context.py
+  -p no:cacheprovider -q tests/generation/integration/test_generation_counter.py
 ```
 
 ## Local models
@@ -619,7 +621,7 @@ Choose modes explicitly; each primitive remains independently callable:
 
 ```python
 from arkb.retrieval import BM25Retriever, RetrievalEngine, Reranker
-from arkb.retrieval.cross_encoder import CrossEncoderScorer
+from arkb.retrieval.rerank import CrossEncoderScorer
 
 bm25 = BM25Retriever.from_snapshot(storage, vault_id="default", index_version=index.index_id)
 engine = RetrievalEngine(semantic=semantic, bm25=bm25, candidate_k=20,
@@ -735,8 +737,8 @@ To reuse a captured snapshot across calls, compose the adapters explicitly:
 
 ```python
 from arkb.retrieval import SemanticRetriever
-from arkb.retrieval.ollama import OllamaQueryEmbedder
-from arkb.retrieval.qdrant import QdrantSnapshotIndex
+from arkb.knowledge.embeddings import OllamaQueryEmbedder
+from arkb.retrieval.semantic import QdrantSnapshotIndex
 
 # storage is an existing SQLiteStorage, preferably opened with read_only=True;
 # qdrant_client, ollama_client, runtime_spec and tokenizer are caller-owned.
@@ -760,7 +762,7 @@ The caller owns connection lifetimes. No query path performs index lifecycle wri
 
 `retrieval.qdrant.search_qdrant` remains the low-level vector benchmark API,
 returning `schema.VectorHit` (chunk ID and cosine score). Direct callers validate
-collections using `arkb.storage.check_qdrant_collection`; `QdrantSnapshotIndex`
+collections using `arkb.knowledge.qdrant.check_qdrant_collection`; `QdrantSnapshotIndex`
 does that itself. Source filters apply before top-k. Invalid identities, scores,
 duplicate hits and missing snapshot records fail instead of returning partial data.
 
@@ -784,7 +786,7 @@ instead of the old nested `chunk`/`record` shape. `build_context` consumes
 `indexing.build_index` accepts a complete list of loaded notes, a resolved
 `EmbeddingSpec`, vault ID, matching tokenizer, active context limit, and Ollama
 client, plus an explicit `qdrant_client` and `qdrant_config=QdrantConfig(...)`
-from `arkb.indexing`. It validates inputs, chunks notes, caches
+from `arkb.knowledge.indexing`. It validates inputs, chunks notes, caches
 successful embedding batches, verifies the SQLite and Qdrant candidates, then publishes.
 `QdrantConfig` owns the endpoint, HNSW settings, readiness timeout, defaults and
 validation. The CLI uses the same configuration. For direct collection operations,
@@ -861,7 +863,7 @@ rebuilds the search projection without recomputing compatible embeddings.
 
 ## Evaluate retrieval and evidence
 
-`evaluation.compare_retrieval` compares Qdrant exact and ANN modes on the same
+`evaluation.retrieval.compare_retrieval` compares Qdrant exact and ANN modes on the same
 query vectors, using a supplied Qdrant search callable. Exact mode is the reference. It reports neighbor Recall@k separately from
 source-group recall and union coverage of labeled sections. Section anchors must
 use `body_start_char`/`body_end_char` in loaded `Note.content`; raw-file offsets
@@ -870,7 +872,7 @@ score. Exact ties and float32 rounding can change rank order, so raw IDs/scores
 are retained. No generated-answer accuracy is inferred from these metrics.
 
 ```sh
-uv run --locked python -m arkb.evaluation \
+uv run --locked python -m arkb.evaluation.retrieval ann \
   --db .obsidian-rag/index.sqlite --cases path/to/cases.jsonl \
   --output path/to/new-evaluation --offline --top-k 2
 ```
@@ -894,8 +896,8 @@ folders. Real end-to-end lifecycle tests require both `OBSIDIAN_RAG_RUN_MODEL_TE
 edits/deletes against real services while cleaning their test collections.
 
 
-Add `--context` to evaluate the production context builder on each frozen Qdrant
-exact candidate list. `evaluation.evaluate_context` reports the packed evidence
+Use `python -m arkb.evaluation.generation` to evaluate context by default, or
+add `--context` to the ANN runner. Both use each frozen Qdrant exact candidate list. `evaluation.generation.evaluate_context` reports the packed evidence
 under the configured generation budget. Coverage retention compares the packed
 evidence with the original hits, without rendering historical prompt variants.
 `context_results.jsonl` retains final messages and provenance; `metrics.json`
@@ -903,7 +905,7 @@ includes input tokens, block counts, duplicate source-span fractions, section
 coverage/retention and build time. These are context metrics, not answer scores.
 
 ```sh
-uv run --locked python -m arkb.evaluation \
+uv run --locked python -m arkb.evaluation.generation \
   --db .obsidian-rag/index.sqlite --cases path/to/cases.jsonl \
   --output path/to/new-context-evaluation --offline --top-k 2 --context \
   --context-window 8192 --max-output-tokens 1024
@@ -915,7 +917,7 @@ registries, raw model output, validation failures, token usage and generation
 time. Existing output directories are rejected. This can be combined with
 `--context`; it does not modify the index or document vectors.
 
-`evaluation.citation_statistics` measures ID validity and the fraction of emitted
+`evaluation.metrics.citation_statistics` measures ID validity and the fraction of emitted
 claims having a known reference. These metrics do not identify omitted facts or
 prove support. Optional review data supplies an identified `reviewer`, one
 `claim_support` label per claim (`supported`, `partial`, `contradicted`,

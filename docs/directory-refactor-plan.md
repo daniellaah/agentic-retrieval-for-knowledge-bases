@@ -2,7 +2,7 @@
 
 本方案采用用户确定的 Knowledge、Retrieval、Generation、Agent、Interfaces、Evaluation 六个一级能力边界，根部保留 runtime.py 和 config.py。它取代上一版按 domain/documents/indexing/embeddings/storage/application 分为多个一级包的方案。
 
-当前生产代码基线为 9d47667。本轮只重新制定方案，尚未移动生产文件、创建功能占位或修改测试。实施时按下述结构完成迁移与占位。
+执行状态：五个阶段均已完成，重构分支为 `codex/capability-layout`，迁移前基线为 `9d47667`。下文保留既定边界、迁移映射和验收标准；实际变更与验证结果见[重构结果](refactor-results.md)。
 
 ## 1. 架构边界
 
@@ -15,7 +15,7 @@
 | Interfaces | CLI、MCP 的参数/协议适配、输出与错误表达 | 使用 runtime 准备能力；不复制算法或 Agent loop |
 | Evaluation | 数据集、指标、检索及 Agent 实验；保留现有 Context/引用评测 | 独立调用能力 API，生产能力不反向依赖评测 |
 | runtime.py | 组装能力、准备和复用资源、固定快照、管理关闭、承接现有应用查询组合 | 不放算法、prompt、数据集指标或 Agent 决策；不成为全功能业务类 |
-| config.py | 应用配置、默认值与显式参数合并/校验 | 纯配置，不创建客户端、不下载模型、不在 import 时读取/修改外部状态 |
+| config.py | 应用配置和默认值；参数校验保留在现有公开入口 | 纯配置，不创建客户端、不下载模型、不在 import 时读取/修改外部状态 |
 
 Knowledge 包含“准备知识”和“访问知识”两部分；整个包不应被理解为只能离线使用。read_note、list_notes 未来直接使用 knowledge.documents，exact 使用同一文档访问边界。
 
@@ -198,7 +198,6 @@ tests/
 ├── __init__.py
 ├── conftest.py
 ├── test_runtime.py
-├── test_config.py
 │
 ├── knowledge/
 │   ├── test_models.py
@@ -224,7 +223,6 @@ tests/
 │   └── integration/        # 真实 Qdrant 检索、cross-encoder
 │
 ├── generation/
-│   ├── test_models.py
 │   ├── test_context.py
 │   ├── test_citations.py
 │   ├── test_generate.py
@@ -238,13 +236,12 @@ tests/
 │   └── integration/        # 真实 CLI 生命周期
 │
 └── evaluation/
-    ├── test_datasets.py
     ├── test_metrics.py
     ├── test_retrieval.py
     └── test_generation.py
 ~~~
 
-各测试包/子包都添加 __init__.py，避免多个 test_models.py 在现有 pytest 导入方式下重名。示意中的测试文件由现有用例迁入或按职责拆分；不为凑齐目录新增空测试或镜像实现的测试。test_runtime/test_config 承接被抽取逻辑的相关既有用例，并仅在出现新的资源生命周期风险时补必要覆盖。
+各测试包/子包都添加 __init__.py，避免多个 test_models.py 在现有 pytest 导入方式下重名。示意中的测试文件由现有用例迁入或按职责拆分；不为凑齐目录新增空测试或镜像实现的测试。test_runtime.py 验证新资源生命周期边界；配置默认值由既有 CLI 测试覆盖，数据集/指纹由评估 runner 测试覆盖，不额外创建空 test_config.py 或 test_datasets.py。
 
 关键迁移映射：
 

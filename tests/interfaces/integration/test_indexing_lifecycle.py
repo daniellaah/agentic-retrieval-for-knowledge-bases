@@ -16,6 +16,7 @@ from arkb.knowledge.sqlite import SQLiteStorage
 
 pytestmark = pytest.mark.skipif(os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',
                                reason='Enable real model integration tests explicitly.')
+pytestmark = [pytest.mark.integration, pytestmark]
 
 
 def test_new_process_query_and_incremental_cli_lifecycle(tmp_path):

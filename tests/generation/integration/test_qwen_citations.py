@@ -26,6 +26,7 @@ from arkb.retrieval.semantic import snapshot_result
 
 pytestmark = pytest.mark.skipif(os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',
                               reason='Set OBSIDIAN_RAG_RUN_MODEL_TESTS=1 with Qwen cached and Ollama running.')
+pytestmark = [pytest.mark.integration, pytestmark]
 
 
 @pytest.mark.parametrize('question,body', [
@@ -60,7 +61,7 @@ def test_citation_cli_saved_snapshot_subprocess(tmp_path, server_index):
     notes.mkdir()
     (notes / 'project.md').write_text('# Project\nThe project code is ORCHID-42.\n')
     db, url, vault = server_index
-    repo = Path(__file__).resolve().parents[2]
+    repo = Path(__file__).resolve().parents[3]
 
     def run(*args):
         process = subprocess.run([sys.executable, '-B', '-m', 'arkb.interfaces.cli', *args, '--db', str(db), '--vault-id', vault],
@@ -86,7 +87,7 @@ def test_citation_evaluation_cli_records_results_without_modifying_index(tmp_pat
     cases.write_text(json.dumps({'id': 'code', 'question': 'What is the project code?',
                                  'required_source_groups': [['project.md']]}) + '\n')
     out = tmp_path / 'evaluation'
-    repo = Path(__file__).resolve().parents[2]
+    repo = Path(__file__).resolve().parents[3]
     built = subprocess.run([sys.executable, '-B', '-m', 'arkb.interfaces.cli', 'index',
                             '--db', str(db), '--vault-id', vault, '--qdrant-url', url, '--notes-dir', str(notes), '--offline'],
                            cwd=repo, capture_output=True, text=True, timeout=180)

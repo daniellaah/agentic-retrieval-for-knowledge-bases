@@ -23,6 +23,7 @@ from arkb.knowledge.sqlite import SQLiteStorage
 
 pytestmark = pytest.mark.skipif(not os.environ.get('OBSIDIAN_RAG_QDRANT_URL'),
                                reason='Set OBSIDIAN_RAG_QDRANT_URL to a test Qdrant Server.')
+pytestmark = [pytest.mark.integration, pytestmark]
 
 
 def test_qdrant_publication_hnsw_and_failure_recovery(tmp_path, monkeypatch):

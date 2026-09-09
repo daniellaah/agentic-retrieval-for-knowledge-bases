@@ -19,6 +19,7 @@ from arkb.knowledge.models import ChunkRecord, EmbeddingSpec
 
 pytestmark = pytest.mark.skipif(not os.environ.get('OBSIDIAN_RAG_QDRANT_URL'),
                                reason='Set OBSIDIAN_RAG_QDRANT_URL to a test Qdrant Server.')
+pytestmark = [pytest.mark.integration, pytestmark]
 
 
 def test_server_persistence_filters_and_scores():

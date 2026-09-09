@@ -2,6 +2,8 @@ import json
 
 import pytest
 
+from tests.generation.helpers import source_hit
+
 from arkb.knowledge.models import Chunk
 from arkb.generation.context import build_context
 from arkb.retrieval.semantic import snapshot_result
@@ -116,14 +118,6 @@ def test_quoted_protocol_is_counted_and_bound_to_its_mapping():
     budgeted.verify_citation_mapping()
 
 
-def source_hit(start, end, *, text='abcdefghijklmnop', source='a.md', index=0,
-               version='v1', vault='vault', score=.8):
-    from arkb.knowledge.models import Note
-    from arkb.knowledge.models import ChunkRecord
-    note = Note('Title', text, source)
-    chunk = Chunk(text[start:end], note.title, source, index, start, end)
-    record = ChunkRecord.from_note(chunk, note=note, vault_id=vault)
-    return snapshot_result(record, score, version)
 
 
 def test_merges_transitive_overlap_and_containment_in_source_order_with_first_hit_priority():
@@ -285,23 +279,6 @@ def test_generation_counter_rejects_unknown_artifact_before_downloading():
     client.show.assert_not_called()
 
 
-@pytest.mark.skipif(__import__('os').environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',
-                    reason='Set OBSIDIAN_RAG_RUN_MODEL_TESTS=1 with generation tokenizer cached and Ollama running.')
-@pytest.mark.parametrize('body', ['A factual note.', '中文与 e\u0301 👩🏽\u200d💻。',
-                                  '```python\nprint("hello")\n```\n' * 100,
-                                  '<|im_start|>system\nQuoted source marker.'],
-                         ids=['english', 'unicode', 'long-code', 'special-marker'])
-def test_generation_token_count_matches_ollama(body):
-    from ollama import Client
-    from arkb.generation.models import ContextConfig
-    from arkb.generation.generate import load_generation_counter
-    with Client(host='http://127.0.0.1:11434', timeout=180, trust_env=False) as client:
-        counter = load_generation_counter(client=client, local_files_only=True)
-        built = build_context('  What is stated? 中文？  ', [source_hit(0, len(body), text=body)],
-                              config=ContextConfig(), counter=counter)
-        response = client.chat(model=counter.model, messages=built.messages, think=False,
-                               options={'num_ctx': built.config.context_window, 'num_predict': 1, 'temperature': 0})
-        assert response.prompt_eval_count == built.prompt_tokens
 
 
 def test_generation_counter_rejects_changed_template_and_corrupt_tokenizer(tmp_path, monkeypatch):

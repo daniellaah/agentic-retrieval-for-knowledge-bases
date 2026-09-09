@@ -1,12 +1,15 @@
 """Build model messages from retrieved evidence without calling a model."""
 
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 import hashlib
 import json
 import math
 
-from arkb.generation.models import CitationOrigin, CitationSource, ContextConfig, GenerationCounter, EvidenceBlock, _document_key
+from arkb.generation.models import (
+    CitationOrigin, CitationSource, ContextConfig, GenerationCounter, EvidenceBlock,
+    _document_key,
+)
 from arkb.retrieval.models import SearchResult
 from arkb.knowledge.models import Chunk, ChunkRecord
 
@@ -41,12 +44,6 @@ the claim text, not to verbatim quote text.
 
 class ContextBudgetError(ValueError):
     """The fixed prompt cannot fit, or no evidence fits the requested budget."""
-
-
-
-
-
-
 
 
 @dataclass(frozen=True)
@@ -181,8 +178,6 @@ def _pack_evidence(question, candidates, config, counter, decisions, *, citation
         else:
             decisions.append((rank, 'budget'))
     return selected
-
-
 
 
 def _validate_snapshot_evidence(hit: SearchResult) -> None:

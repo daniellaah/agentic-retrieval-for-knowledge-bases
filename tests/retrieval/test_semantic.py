@@ -137,7 +137,7 @@ import sys
 class BlockDependencies:
     def find_spec(self, fullname, *args):
         if fullname.split('.')[0] in ('ollama', 'qdrant_client', 'numpy', 'tokenizers', 'torch', 'sentence_transformers') or fullname in (
-            'arkb.context', 'arkb.generation', 'arkb.knowledge.indexing', 'arkb.knowledge.sqlite', 'arkb.knowledge.embeddings'
+            'arkb.generation', 'arkb.knowledge.indexing', 'arkb.knowledge.sqlite', 'arkb.knowledge.embeddings'
         ):
             raise AssertionError('Unexpected dependency: ' + fullname)
 sys.meta_path.insert(0, BlockDependencies())

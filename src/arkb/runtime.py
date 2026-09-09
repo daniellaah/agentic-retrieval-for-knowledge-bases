@@ -1,4 +1,5 @@
-"""Compose retrieval capabilities with explicit, caller-owned resources."""
+"""Compose capabilities and manage the lifetime of resources opened here."""
+
 from collections.abc import Mapping
 from contextlib import ExitStack, closing
 from typing import TYPE_CHECKING
@@ -51,7 +52,8 @@ class Runtime:
         self._require_open()
         if url not in self._qdrant_clients:
             from arkb.knowledge.qdrant import connect_qdrant
-            client = self._resources.enter_context(closing(connect_qdrant(url, self.config.timeout)))
+            client = self._resources.enter_context(closing(connect_qdrant(url, self.config.timeout
+                if self.config.qdrant_timeout is None else self.config.qdrant_timeout)))
             self._qdrant_clients[url] = client
         return self._qdrant_clients[url]
 

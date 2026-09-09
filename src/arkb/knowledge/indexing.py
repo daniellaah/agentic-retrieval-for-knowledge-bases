@@ -9,19 +9,17 @@ from uuid import uuid4
 from ollama import Client
 from tokenizers import Tokenizer
 
-from arkb.knowledge.models import QdrantConfig
+from arkb.knowledge.models import (
+    QdrantConfig, ChunkRecord, EmbeddingSpec, IndexManifest, Note, fingerprint_config,
+)
 from arkb.knowledge.qdrant import QdrantIndex
 
 from arkb.knowledge.chunking import chunk_notes, whole_note_chunks
-from arkb.knowledge.embeddings import DEFAULT_QUERY_INSTRUCTION, prepare_document, prepare_query, validate_input_tokens, iter_embedding_batches, validate_vectors
-from arkb.knowledge.models import ChunkRecord, EmbeddingSpec, IndexManifest, Note, fingerprint_config, validate_records
-from arkb.knowledge.qdrant import point_id, qdrant_identity
+from arkb.knowledge.embeddings import (
+    DEFAULT_QUERY_INSTRUCTION, prepare_document, prepare_query, validate_input_tokens,
+    iter_embedding_batches, count_tokens, tokenizer_fingerprint,
+)
 from arkb.knowledge.sqlite import SQLiteStorage
-from arkb.knowledge.qdrant import check_qdrant_collection
-from arkb.knowledge.models import require_qdrant_backend
-from arkb.knowledge.embeddings import count_tokens, tokenizer_fingerprint
-
-
 
 
 @dataclass(frozen=True)

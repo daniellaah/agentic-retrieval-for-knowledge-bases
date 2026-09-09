@@ -1,4 +1,5 @@
 """Shared generation evidence, budget and citation data; no model or backend calls."""
+
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
 import math

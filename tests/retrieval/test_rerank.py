@@ -1,3 +1,4 @@
+import sys
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -49,7 +50,7 @@ def test_reranker_empty_ties_invalid_scores_and_duplicate_identity():
 
 def test_frozen_candidate_evaluation_isolates_ranking_changes_and_latency():
     from arkb.retrieval.rerank import Reranker
-    from arkb.retrieval_evaluation import evaluate_reranker
+    from arkb.evaluation.retrieval import evaluate_reranker
     scorer = SimpleNamespace(identity='frozen', score_type='logit', score=Mock(return_value=[-2., 5.]))
     row = evaluate_reranker(Reranker(scorer), 'Paris?', candidates(), {'b.md': 1}, top_k=1)
     assert row['before']['recall_at_k'] == 0
@@ -58,10 +59,6 @@ def test_frozen_candidate_evaluation_isolates_ranking_changes_and_latency():
     assert row['latency_ms'] >= 0
     assert len(row['candidates']) == 2 and len(row['results']) == 1
 
-
-from types import SimpleNamespace
-from unittest.mock import Mock
-import sys
 
 
 def test_cross_encoder_pins_model_uses_query_passage_pairs_and_returns_raw_logits(monkeypatch):
