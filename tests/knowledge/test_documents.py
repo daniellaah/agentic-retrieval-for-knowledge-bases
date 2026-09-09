@@ -123,6 +123,13 @@ def test_access_identity_matches_index_records_and_only_reads_resolved_file(tmp_
     access = DocumentAccess(tmp_path, vault_id='v')
     assert access.read(indexed.document_id) == indexed
     load.assert_called_once_with(tmp_path / 'a.md')
+    load.reset_mock()
+    assert access.read(source='a.md') == indexed
+    load.assert_called_once_with(tmp_path / 'a.md')
+    load.reset_mock()
+    with pytest.raises(LookupError):
+        access.read(indexed.document_id, source='unrelated.md')
+    load.assert_not_called()
     with pytest.raises(LookupError):
         DocumentAccess(tmp_path, vault_id='other').read(indexed.document_id)
 
@@ -173,6 +180,10 @@ def test_access_preserves_flat_scope_and_excludes_external_symlinks(tmp_path):
     access = DocumentAccess(root, vault_id='v')
     assert [r.chunk.source for r in access.records()] == ['a.md']
     assert list(access.records(source='../private.md')) == []
+    assert access.read(source='a.md').chunk.content == 'inside'
+    for source in ('../private.md', str(outside), 'link.md', 'nested/nested.md', 'ignore.txt'):
+        with pytest.raises(LookupError):
+            access.read(source=source)
 
 
 def test_access_propagates_filesystem_and_decoding_errors(tmp_path, monkeypatch):

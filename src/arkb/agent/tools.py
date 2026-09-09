@@ -80,12 +80,13 @@ class AgentTools:
         return _query_result(self._engine.search(query, mode=self._mode, rerank=self._rerank,
                                                 filters=filters, top_k=limit))
 
-    def read(self, document_id: str, *, section_id: str | None = None,
+    def read(self, document_id: str | None = None, *, source: str | None = None,
+             section_id: str | None = None,
              start_char: int | None = None, end_char: int | None = None) -> ReadResult:
-        """Use after locating a document to inspect its current original text or
-        expand context, optionally selecting a section or character range.
+        """Read by returned document ID or known source filename. Both selectors
+        must agree when supplied together. Optionally select a section or range.
         """
-        record = self._documents.read(document_id, section_id=section_id,
+        record = self._documents.read(document_id, source=source, section_id=section_id,
                                       start_char=start_char, end_char=end_char)
         evidence = _evidence(chunk_result(record, method='read'))
         # A live source slice is not an indexed chunk. Only claim a selected section.
@@ -131,15 +132,21 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
     },
     {
         'name': 'read',
-        'description': 'Use after locating a document to read its current original text or '
-                       'expand context. Select a section or character range, not both. '
+        'description': 'Read current original text or expand context. Supply '
+                       'document_id from a result or source for a known filename. '
+                       'If both are supplied, they must identify the same document. '
+                       'Select a section or character range, not both. '
                        'Ranges address the current body: zero-based, end-exclusive; omitted '
                        'endpoints use document boundaries. Search locations can become stale '
                        'after files are edited.',
         'parameters': {
-            'type': 'object', 'required': ['document_id'], 'additionalProperties': False,
+            'type': 'object', 'anyOf': [{'required': ['document_id']}, {'required': ['source']}],
+            'additionalProperties': False,
             'properties': {
-                'document_id': {'type': 'string', 'pattern': '^[0-9a-f]{64}$'},
+                'document_id': {'type': 'string', 'pattern': '^[0-9a-f]{64}$',
+                                'description': 'Use a document ID returned by match or search.'},
+                'source': {'type': 'string', 'minLength': 1,
+                           'description': 'Exact knowledge-relative filename, e.g. rag.md.'},
                 'section_id': {'type': ['string', 'null'], 'pattern': '^[0-9a-f]{64}$'},
                 'start_char': {'type': ['integer', 'null'], 'minimum': 0},
                 'end_char': {'type': ['integer', 'null'], 'minimum': 0},

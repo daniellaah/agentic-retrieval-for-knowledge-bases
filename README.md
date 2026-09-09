@@ -18,7 +18,7 @@ packs that evidence into context and produces validated citations.
 | `knowledge/` | `models.py`: notes, chunks, manifests and stable identities; `documents.py`: Markdown loading, scans and live document access; `chunking.py`: the single chunker; `embeddings.py`: input preparation, embedding tokenizer and model adapters; `indexing.py`: builds and publication; `sqlite.py` / `qdrant.py`: persistence and raw data access |
 | `retrieval/` | `models.py`: source-based contracts; `bm25.py` / `semantic.py`: independent retrieval; `hybrid.py` / `fusion.py`: fixed composition and RRF; `rerank.py`: reranking and the optional cross-encoder; `engine.py`: explicit mode selection; `exact.py`: literal/regex matching over live source text |
 | `generation/` | `models.py`: context/citation contracts; `context.py`: evidence packing and budgets; `citations.py`: parsing, validation and rendering; `generate.py`: answer generation and generation token counting |
-| `agent/` | `tools.py`: thin `match`, `search`, `read` adapters and provider-independent tool definitions; `state.py` / `loop.py`: placeholders |
+| `agent/` | `tools.py`: thin `match`, `search`, `read` adapters and provider-independent tool definitions; `state.py`: conversation and turn count; `loop.py`: bounded model/tool orchestration |
 | `interfaces/` | `cli.py`: CLI arguments, workflows and output; `mcp.py`: protocol placeholder |
 | `evaluation/` | `datasets.py`: experiment inputs and fingerprints; `metrics.py`: ranking, coverage and citation metrics; `retrieval.py`: relevance, ANN and frozen-candidate experiments; `generation.py`: context and citation experiments |
 | `runtime.py` | Lazy client/tokenizer creation, resource reuse and closure, snapshot-bound retrieval composition |
@@ -41,8 +41,9 @@ until the context exits, including exceptional exits. Explicitly supplied SQLite
 storage and clients remain caller-owned. Keep a prepared retriever or engine to
 retain its pinned snapshot across a query session. BM25-only setup opens neither
 model nor vector clients; importing the retrieval package never loads a model.
-Agent tools expose retrieval and live document access. Agent orchestration and
-MCP remain unimplemented.
+Agent tools expose retrieval and live document access. `Runtime.run_agent` composes
+the prepared tools with an Ollama client for a bounded conversation. MCP remains
+unimplemented.
 
 Python imports now use these capability paths; the old root `chunking`,
 `embeddings`, `tokenization`, `storage`, `schema`, `cli`, `indexing`, `context`
@@ -70,7 +71,7 @@ Tests roughly mirror the six capabilities under `tests/`. Shared fixtures live
 in `tests/conftest.py`; runtime ownership checks live in `tests/test_runtime.py`.
 Real-service checks live in each capability's `integration/` subdirectory and
 carry the `integration` marker as well as their existing environment gates.
-Run regular tests with `uv run --locked pytest -q -m "not integration"`; they
+Run regular tests with `uv run --locked python -m pytest -q -m "not integration"`; they
 need no network or running services. Exact lexical matching tests require `rg`
 (ripgrep) on `PATH`.
 
@@ -200,13 +201,13 @@ uv run --locked python -m pytest -q
 
 `arkb.agent.AgentTools` exposes three primitives. `TOOL_DEFINITIONS` contains
 plain JSON input schemas and descriptions of when to use each tool, with no
-provider SDK, dispatcher, agent loop, state machine, or MCP server.
+provider SDK or dispatch logic in the tool definitions.
 
 ```python
 match(query, *, target="content", regex=False, case_sensitive=True,
       source=None, limit=5)
 search(query, *, source=None, limit=5)
-read(document_id, *, section_id=None, start_char=None, end_char=None)
+read(document_id=None, *, source=None, section_id=None, start_char=None, end_char=None)
 ```
 
 - `match`: use for a known word, phrase, symbol, filename, or text pattern.
@@ -222,8 +223,11 @@ read(document_id, *, section_id=None, start_char=None, end_char=None)
   The application selects the engine's strategy when composing the tools;
   retrieval modes, fusion, reranking, scores, and internal metadata are absent
   from the agent-facing parameters and results.
-- `read`: use a returned `document_id` to read current source text or expand
-  context. No selector reads the full body. A range uses zero-based Python
+- `read`: supply a returned `document_id` or known `source` filename
+  (for example, `read(source="rag.md")`) to read current source text or expand
+  context. If both are provided they must identify the same document; conflicting
+  selectors raise `LookupError`. With no section/range selector, read the full
+  body. A range uses zero-based Python
   character positions in `Note.content`, with an exclusive end; an omitted
   endpoint means the corresponding document boundary. Out-of-bounds ranges
   fail instead of silently clipping. `section_id` and range parameters are
@@ -298,6 +302,124 @@ Run focused tests with:
 ```sh
 uv run --locked python -m pytest -q tests/agent tests/retrieval/test_exact.py tests/knowledge/test_documents.py tests/test_runtime.py
 ```
+
+## Agent runtime
+
+`arkb.agent.run_agent(query, *, client, tools, model, max_turns=8)` runs a minimal
+ReAct-style conversation. `Runtime.run_agent` supplies a reused Ollama client and
+defaults to `qwen3.5:4b`; an explicitly supplied `client` remains caller-owned.
+The model must support tool calling. The loop follows the existing
+[Ollama tool-calling protocol](https://docs.ollama.com/capabilities/tool-calling).
+
+To run the complete slice with local Markdown and an in-memory lexical index:
+
+```python
+from pathlib import Path
+from arkb.knowledge.documents import DocumentAccess
+from arkb.retrieval import BM25Retriever, RetrievalEngine
+from arkb.runtime import Runtime
+
+directory = Path("example_notes")
+documents = DocumentAccess(directory, vault_id="default")
+engine = RetrievalEngine(bm25=BM25Retriever(list(documents.records()), index_id="local"))
+
+with Runtime() as runtime:
+    tools = runtime.agent_tools(engine=engine, directory=directory,
+                                vault_id="default", mode="bm25")
+    result = runtime.run_agent("帮我找一些写 Agent Memory 的素材", tools=tools, max_turns=8)
+    print(result.stop_reason)
+    if result.response is not None:
+        print(result.response)
+    print([call["function"]["name"] for call in result.state.tool_calls])
+```
+
+For semantic or hybrid retrieval, use `runtime.retrieval_engine` with an existing
+snapshot as in the composition example above, then pass its tools to
+`runtime.run_agent`. Engine strategy is selected by the application; the model
+only receives `match`, `search`, and `read`. Knowledge and Retrieval never import
+Agent, and the loop contains no retrieval algorithms or query routing rules.
+
+Each run starts with a short system instruction and the user query. On every
+turn the model sees the full conversation and all three function schemas. The
+Ollama SDK parses structured `message.tool_calls`; the loop preserves the
+assistant message, executes its calls sequentially, and appends one message per
+result: `{"role": "tool", "tool_name": name, "content": "<JSON result>"}`. The next
+model request includes these observations. This supports multiple calls in a
+single response (including repeated names) and repeated calls across turns.
+Ollama associates these observations by tool name and order; this is not an
+OpenAI `tool_call_id` adapter.
+
+An assistant message without calls is final if it contains nonblank text. Its
+text is returned unchanged in `AgentResult.response`. Inputs that need no
+knowledge can finish on the first turn. `AgentState` stores only `messages` and
+`turn`; `tool_calls` derives ordered history from the messages, without duplicating
+results in an evidence store. A new query always starts a fresh conversation.
+
+`max_turns` bounds **model requests**, including the final response. Every tool
+call in the last allowed response is executed and recorded; if that response
+contains calls, the run stops with `stop_reason="max_turns"` and `response=None`.
+The caller can inspect the collected trajectory. There is no extra finalization
+request or synthetic answer. The bound does not limit calls per response, total
+tokens, or tool execution time; Runtime's timeout applies to model requests.
+
+Errors propagate immediately: unknown tools, invalid arguments, missing documents,
+backend/model failures, malformed model output, truncated output, and empty final
+messages are not converted into successful responses. No retry or automatic error
+recovery is implemented. Tool methods enforce their arguments even when the SDK
+or model does not enforce JSON Schema constraints. In particular, installed
+Ollama SDK 0.6.2 filters keywords such as `anyOf` and `additionalProperties` when
+serializing tool schemas; descriptions explain selectors and Python validates them.
+
+Deterministic tests use scripted models to check A/B/C tool dispatch, D's
+`search → read → search → final` with real tools/retrieval, E's direct response,
+and F's turn limit. They also cover batched calls, observation content/order,
+empty results, independent runs, error propagation, and resource ownership.
+An offline `httpx.MockTransport` test exercises the real Ollama SDK wire contract.
+Scripted choices verify orchestration, not a real model's routing accuracy.
+
+Real-model smoke tests are separate and opt-in; they assert tool trajectories
+and successful termination without requiring fixed natural-language responses:
+
+```sh
+OBSIDIAN_RAG_RUN_MODEL_TESTS=1 uv run --locked python -m pytest -q tests/agent/integration
+```
+
+They use temporary Markdown notes, host-configured BM25, and local Ollama, without
+Qdrant or embedding requests. Optionally set `OBSIDIAN_RAG_AGENT_MODEL` to another
+installed model that supports tool calling. Multi-turn capability is enforced by
+the scripted test; real-model checks allow it to stop when its evidence is enough.
+
+For the complete persisted runtime path, start local Ollama and Qdrant, cache the
+embedding tokenizer, and run:
+
+```sh
+OBSIDIAN_RAG_RUN_MODEL_TESTS=1 \
+OBSIDIAN_RAG_QDRANT_URL=http://127.0.0.1:6333 \
+uv run --locked python -m pytest -q -s tests/agent/integration/test_runtime_qdrant.py
+```
+
+This test builds five temporary Markdown documents through the real indexing CLI,
+embeds their chunks with `qwen3-embedding:0.6b`, publishes SQLite/Qdrant state, and
+reopens the snapshot with a fresh Runtime for each query. The agent uses real
+hybrid retrieval and Ollama tool calling. Cases cover match, search, direct read,
+cross-document reading with a random verification code, direct conversation, and
+the turn limit. No model, retrieval, storage, or tool client is mocked. The small
+collection verifies query readiness; it does not benchmark HNSW/ANN performance.
+The cross-document case fails if the model only names a reference instead of
+retrieving the requested facts; a final message alone does not establish success.
+
+Set `OBSIDIAN_RAG_AGENT_REPORT_DIR` to a **new directory** to retain the generated
+notes, SQLite database, index report, and per-case JSON conversations; otherwise
+pytest's temporary directory is used. Tests never create the default application
+index. Test-owned Qdrant collections are deleted afterward, so retained SQLite
+files are diagnostic artifacts and need reindexing before further vector queries.
+
+This milestone exposes a Python API. The existing CLI `query` remains the fixed
+retrieval/generation workflow. Agent CLI/MCP entry points, streaming, context
+budgets/optimization, citation validation, persistence, and agent evaluation are
+not implemented. Live `match`/`read` versus indexed `search` retain the eventual
+consistency described above; callers must align the tools' directory/vault with
+their prepared engine.
 
 ## Count tokens
 

@@ -71,16 +71,25 @@ class DocumentAccess:
             yield ChunkRecord.from_note(whole_note_chunks([note])[0], note=note,
                                         vault_id=self.vault_id)
 
-    def read(self, document_id: str, *, section_id: str | None = None,
+    def read(self, document_id: str | None = None, *, source: str | None = None,
+             section_id: str | None = None,
              start_char: int | None = None, end_char: int | None = None) -> ChunkRecord:
         """Read a full body, Markdown section, or end-exclusive character range.
 
+        Supply a document ID or exact source filename; if both are provided,
+        they must identify the same document. Source lookup
+        uses the same flat directory scope and symlink exclusions as ID lookup.
         A missing range endpoint means the corresponding document boundary.
         Sections include their heading and direct body, up to the next heading.
         Section IDs always refer to current Markdown sections. Use an unqualified
         read for a whole document, including hits from whole-note indexes.
         """
-        _require_digest(document_id, 'document_id')
+        if document_id is None and source is None:
+            raise ValueError('Supply document_id or source.')
+        if document_id is not None:
+            _require_digest(document_id, 'document_id')
+        if source is not None:
+            _require_text(source, 'source')
         if section_id is not None:
             _require_digest(section_id, 'section_id')
             if start_char is not None or end_char is not None:
@@ -92,15 +101,15 @@ class DocumentAccess:
             raise ValueError('start_char must not exceed end_char.')
 
         # Resolve by path identity without loading unrelated document bodies.
-        path = next((path for path in self._paths() if _digest('document-id', {
+        path = next((path for path in self._paths(source) if document_id is None or _digest('document-id', {
             'vault_id': self.vault_id, 'source': path.name,
         }) == document_id), None)
         if path is None:
-            raise LookupError(f'Unknown document: {document_id}.')
+            raise LookupError(f'No document matches document_id={document_id!r}, source={source!r}.')
         try:
             note = _load_note(path)
         except FileNotFoundError as error:
-            raise LookupError(f'Document no longer exists: {document_id}.') from error
+            raise LookupError(f'Document no longer exists: {path.name}.') from error
         chunk = whole_note_chunks([note])[0]
         if section_id is not None:
             section = next((s for s in _sections(note) if s.section_id == section_id), None)

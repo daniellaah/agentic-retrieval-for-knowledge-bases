@@ -4,11 +4,12 @@ from collections.abc import Mapping
 from contextlib import ExitStack, closing
 from pathlib import Path
 from typing import TYPE_CHECKING
-from arkb.config import RuntimeConfig, RetrievalConfig
+from arkb.config import DEFAULT_GENERATION_MODEL, RuntimeConfig, RetrievalConfig
 from arkb.knowledge.models import EmbeddingSpec
 from arkb.retrieval.models import SearchResponse, validate_request
 from arkb.retrieval.semantic import QdrantSnapshotIndex, SemanticRetriever
 if TYPE_CHECKING:
+    from arkb.agent.state import AgentResult
     from arkb.agent.tools import AgentTools
     from arkb.retrieval.engine import RetrievalEngine
     from arkb.knowledge.sqlite import SQLiteStorage
@@ -126,6 +127,19 @@ class Runtime:
         documents = DocumentAccess(directory, vault_id=vault_id)
         return AgentTools(documents=documents, exact=ExactRetriever(documents), engine=engine,
                           mode=mode, rerank=rerank)
+
+    def run_agent(self, query: str, *, tools: 'AgentTools',
+                  model: str = DEFAULT_GENERATION_MODEL, max_turns: int = 8,
+                  client: 'Client | None' = None) -> 'AgentResult':
+        """Run with prepared tools and a reused model client, or a caller-owned one.
+
+        Compose tools with agent_tools and keep their directory/vault aligned
+        with the prepared engine. Each query gets an independent conversation.
+        """
+        self._require_open()
+        from arkb.agent.loop import run_agent
+        return run_agent(query, client=self.model_client() if client is None else client,
+                         tools=tools, model=model, max_turns=max_turns)
 
 
 class SnapshotSemanticRetriever:

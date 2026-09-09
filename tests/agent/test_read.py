@@ -56,7 +56,7 @@ def test_read_delegates_once_and_propagates_errors(documents, engine):
     exact = Mock(spec=ExactRetriever)
     tools = AgentTools(documents=access, exact=exact, engine=engine)
     tools.read(record.document_id, start_char=1, end_char=3)
-    access.read.assert_called_once_with(record.document_id, section_id=None, start_char=1, end_char=3)
+    access.read.assert_called_once_with(record.document_id, source=None, section_id=None, start_char=1, end_char=3)
     error = PermissionError('cannot read')
     access.read.side_effect = error
     with pytest.raises(PermissionError) as raised:
@@ -64,3 +64,28 @@ def test_read_delegates_once_and_propagates_errors(documents, engine):
     assert raised.value is error
     engine.search.assert_not_called()
     exact.search.assert_not_called()
+
+
+def test_read_known_source_directly_without_discovery(documents, engine):
+    exact = Mock(spec=ExactRetriever)
+    tools = AgentTools(documents=documents, exact=exact, engine=engine)
+    record = next(documents.records(source='a.md'))
+    assert tools.read(source='a.md') == tools.read(record.document_id)
+    assert tools.read(record.document_id, source='a.md') == tools.read(record.document_id)
+    assert tools.read(source='a.md', end_char=2)['result']['content'] == '中文'
+    engine.search.assert_not_called()
+    exact.search.assert_not_called()
+
+
+@pytest.mark.parametrize('options', [
+    {}, {'source': ''}, {'source': ' '}, {'source': 1}, {'source': True},
+])
+def test_read_requires_a_valid_document_selector(tools, options):
+    with pytest.raises(ValueError):
+        tools.read(**options)
+
+
+def test_read_rejects_conflicting_document_selectors(tools, documents):
+    record = next(documents.records(source='a.md'))
+    with pytest.raises(LookupError):
+        tools.read(record.document_id, source='b.md')
