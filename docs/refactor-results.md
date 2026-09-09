@@ -1,6 +1,6 @@
 # Capability 目录重构结果
 
-已按[目录重构方案](directory-refactor-plan.md)完成五个阶段。分支：`codex/capability-layout`；迁移前基线：`9d47667`。
+已按[目录重构方案](directory-refactor-plan.md)完成五个阶段。分支：`refactor/capability-layout`；迁移前基线：`9d47667`。
 
 ## 交付结构
 

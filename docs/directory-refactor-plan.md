@@ -2,7 +2,7 @@
 
 本方案采用用户确定的 Knowledge、Retrieval、Generation、Agent、Interfaces、Evaluation 六个一级能力边界，根部保留 runtime.py 和 config.py。它取代上一版按 domain/documents/indexing/embeddings/storage/application 分为多个一级包的方案。
 
-执行状态：五个阶段均已完成，重构分支为 `codex/capability-layout`，迁移前基线为 `9d47667`。下文保留既定边界、迁移映射和验收标准；实际变更与验证结果见[重构结果](refactor-results.md)。
+执行状态：五个阶段均已完成，重构分支为 `refactor/capability-layout`，迁移前基线为 `9d47667`。下文保留既定边界、迁移映射和验收标准；实际变更与验证结果见[重构结果](refactor-results.md)。
 
 ## 1. 架构边界
 
