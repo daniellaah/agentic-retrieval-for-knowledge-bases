@@ -1,5 +1,6 @@
 """Three agent-facing primitives; capability objects are supplied by the runtime."""
 
+from copy import deepcopy
 from typing import TypedDict
 
 from arkb.knowledge.documents import DocumentAccess
@@ -48,7 +49,8 @@ def _query_result(response: SearchResponse) -> QueryResult:
 class AgentTools:
     """Adapt injected capabilities without owning resources or making retrieval decisions.
 
-    mode and rerank are application composition settings, absent from tool schemas.
+    mode is the default strategy; an agent may override it on each search.
+    Reranking remains an application composition setting.
     The existing engine remains responsible for all retrieval strategy execution.
     """
 
@@ -64,6 +66,28 @@ class AgentTools:
         self._mode = mode
         self._rerank = rerank
 
+    def tool_definitions(self) -> tuple[dict[str, ConfigValue], ...]:
+        """Describe only search modes supported by the composed engine.
+
+        This advertises capabilities, without choosing a strategy for the agent.
+        The shared catalog remains unchanged for other compositions.
+        """
+        modes = []
+        if self._engine.bm25 is not None:
+            modes.append('bm25')
+        if self._engine.semantic is not None:
+            modes.append('semantic')
+        if len(modes) == 2:
+            modes.append('hybrid')
+        definitions = deepcopy(TOOL_DEFINITIONS)
+        search = next(definition for definition in definitions if definition['name'] == 'search')
+        search['parameters']['properties']['mode']['enum'] = [*modes, None]
+        meanings = {'bm25': 'keyword ranking', 'semantic': 'meaning', 'hybrid': 'keywords and meaning'}
+        strategies = ', '.join(f'{mode} ({meanings[mode]})' for mode in modes)
+        search['parameters']['properties']['mode']['description'] = (
+            f'Available strategies: {strategies or "none"}; omitted/null uses {self._mode}.')
+        return definitions
+
     def match(self, query: str, *, target: str = 'content', regex: bool = False,
               case_sensitive: bool = True, source: str | None = None, limit: int = 5) -> QueryResult:
         """Use when you know an exact word, phrase, symbol, filename, or text pattern."""
@@ -72,12 +96,16 @@ class AgentTools:
             filters={'source': source} if source is not None else None, top_k=limit,
         ))
 
-    def search(self, query: str, *, source: str | None = None, limit: int = 5) -> QueryResult:
+    def search(self, query: str, *, source: str | None = None, limit: int = 5,
+               mode: str | None = None) -> QueryResult:
         """Use to discover relevant knowledge about a question, topic, or concept
         when you do not know the document's exact wording.
         """
         filters = validate_request(query, limit, {'source': source} if source is not None else None)
-        return _query_result(self._engine.search(query, mode=self._mode, rerank=self._rerank,
+        if mode is not None and mode not in ('bm25', 'semantic', 'hybrid'):
+            raise ValueError('mode must be bm25, semantic or hybrid.')
+        return _query_result(self._engine.search(query, mode=self._mode if mode is None else mode,
+                                                rerank=self._rerank,
                                                 filters=filters, top_k=limit))
 
     def read(self, document_id: str | None = None, *, source: str | None = None,
@@ -119,11 +147,14 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
         'name': 'search',
         'description': 'Use to discover relevant knowledge about a question, topic, or '
                        'concept when you do not know the exact wording. Results are ordered '
-                       'by relevance. Use read with a returned document_id to expand context.',
+                       'by relevance. Choose an available strategy from the mode parameter, '
+                       'or omit it for the default. Use read with a returned document_id to expand context.',
         'parameters': {
             'type': 'object', 'required': ['query'], 'additionalProperties': False,
             'properties': {
                 'query': {'type': 'string', 'minLength': 1},
+                'mode': {'type': ['string', 'null'], 'enum': ['bm25', 'semantic', 'hybrid', None],
+                         'description': 'Retrieval strategy for this call; omitted/null uses the configured default.'},
                 'source': {'type': ['string', 'null'], 'minLength': 1,
                            'description': 'Restrict to this exact knowledge-relative source path.'},
                 'limit': {'type': 'integer', 'minimum': 1, 'default': 5},

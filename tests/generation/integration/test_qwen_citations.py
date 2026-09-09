@@ -22,6 +22,8 @@ from arkb.knowledge.models import ChunkRecord
 from arkb.generation.generate import CitedGenerationError, generate_cited_answer
 from arkb.knowledge.models import Note
 from arkb.retrieval.semantic import snapshot_result
+from arkb.config import RuntimeConfig
+from arkb.runtime import Runtime
 
 
 pytestmark = pytest.mark.skipif(os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',
@@ -56,7 +58,7 @@ def test_real_output_truncation_is_reported():
     assert error.value.code == 'truncated_output'
 
 
-def test_citation_cli_saved_snapshot_subprocess(tmp_path, server_index):
+def test_citation_python_api_uses_cli_built_snapshot(tmp_path, server_index):
     notes = tmp_path / 'notes'
     notes.mkdir()
     (notes / 'project.md').write_text('# Project\nThe project code is ORCHID-42.\n')
@@ -69,12 +71,20 @@ def test_citation_cli_saved_snapshot_subprocess(tmp_path, server_index):
         assert process.returncode == 0, process.stderr
         return json.loads(process.stdout)
 
-    indexed = run('index', '--notes-dir', str(notes), '--qdrant-url', url, '--offline')
+    indexed = run('index', '--notes-dir', str(notes), '--qdrant-url', url, '--offline', '--json')
     (notes / 'project.md').write_text('# Project\nThe live file has changed.\n')
-    saved = run('query', 'What is the project code?', '--db', str(db), '--offline', '--answer-json')
+    with Runtime(RuntimeConfig(offline=True)) as runtime:
+        question = 'What is the project code?'
+        response = runtime.search(question, db=db, vault_id=vault)
+        client = runtime.model_client()
+        counter = load_generation_counter(client=client, local_files_only=True)
+        context = build_context(question, response.results, config=ContextConfig(), counter=counter)
+        assert context.to_dict()['token_usage']['is_estimate'] is False
+        assert context.prompt_tokens <= context.config.input_budget
+        saved = generate_cited_answer(context, client=client).to_dict()
     assert 'ORCHID-42' in saved['text']
     assert saved['sources'][0]['origins'][0]['index_version'] == indexed['manifest']['index_version']
-    retrieved = run('query', 'What is the project code?', '--db', str(db), '--offline', '--json')
+    retrieved = run('search', 'What is the project code?', '--offline', '--json')
     assert 'results' in retrieved and 'answer' not in retrieved
 
 

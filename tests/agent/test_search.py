@@ -41,6 +41,7 @@ def test_search_empty_defaults_and_underlying_error(tools, engine):
 @pytest.mark.parametrize('query, options', [
     ('', {}), ('\n', {}), (None, {}), ('x', {'limit': 0}), ('x', {'limit': -1}),
     ('x', {'limit': True}), ('x', {'limit': 1.5}), ('x', {'source': ' '}), ('x', {'source': 1}),
+    ('x', {'mode': 'unknown'}), ('x', {'mode': True}),
 ])
 def test_search_rejects_invalid_input_before_engine(tools, engine, query, options):
     with pytest.raises(ValueError):
@@ -48,17 +49,20 @@ def test_search_rejects_invalid_input_before_engine(tools, engine, query, option
     engine.search.assert_not_called()
 
 
-def test_search_policy_is_host_configured(documents, engine):
+def test_search_default_is_host_configured_and_agent_can_override_it(documents, engine):
     tools = AgentTools(documents=documents, exact=ExactRetriever(documents), engine=engine,
                        mode='hybrid', rerank=True)
     tools.search('question')
     engine.search.assert_called_once_with('question', mode='hybrid', rerank=True, filters={}, top_k=5)
-    for method, options in ((tools.search, {'mode': 'bm25'}), (tools.search, {'rerank': True})):
-        with pytest.raises(TypeError):
-            method('question', **options)
+    for mode in ('bm25', 'semantic', 'hybrid', None):
+        tools.search('question', mode=mode)
+        engine.search.assert_called_with('question', mode=mode or 'hybrid', rerank=True, filters={}, top_k=5)
+    with pytest.raises(TypeError):
+        tools.search('question', rerank=True)
     definitions = json.loads(json.dumps(TOOL_DEFINITIONS))
     assert [d['name'] for d in definitions] == ['match', 'search', 'read']
-    assert set(definitions[1]['parameters']['properties']) == {'query', 'source', 'limit'}
+    assert set(definitions[1]['parameters']['properties']) == {'query', 'source', 'limit', 'mode'}
+    assert definitions[1]['parameters']['properties']['mode']['enum'] == ['bm25', 'semantic', 'hybrid', None]
 
 
 def test_real_engine_search_to_read_sections_ranges_and_eventual_consistency(documents):
@@ -83,3 +87,17 @@ def test_real_engine_search_to_read_sections_ranges_and_eventual_consistency(doc
     with pytest.raises(LookupError):
         tools.read(hit['document_id'], section_id=hit['section_id'])
     exact.search.assert_not_called()
+
+
+@pytest.mark.parametrize('modes,expected', [
+    (['bm25'], ['bm25', None]), (['semantic'], ['semantic', None]),
+    (['bm25', 'semantic'], ['bm25', 'semantic', 'hybrid', None]),
+])
+def test_tool_schema_advertises_only_prepared_modes_without_mutating_catalog(documents, modes, expected):
+    engine = RetrievalEngine(**{mode: Mock() for mode in modes})
+    tools = AgentTools(documents=documents, exact=ExactRetriever(documents), engine=engine, mode=modes[0])
+    definitions = tools.tool_definitions()
+    assert definitions[1]['parameters']['properties']['mode']['enum'] == expected
+    assert TOOL_DEFINITIONS[1]['parameters']['properties']['mode']['enum'] == ['bm25', 'semantic', 'hybrid', None]
+    definitions[1]['parameters']['properties']['mode']['enum'].clear()
+    assert tools.tool_definitions()[1]['parameters']['properties']['mode']['enum'] == expected

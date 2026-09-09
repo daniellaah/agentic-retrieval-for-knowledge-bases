@@ -1,440 +1,220 @@
+"""CLI contracts against a fake Runtime: no storage, model, or retrieval services."""
+
+from dataclasses import asdict
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, Mock
+import sqlite3
+import subprocess
+from unittest.mock import create_autospec
 
-from httpx import ReadError, ReadTimeout
-from ollama import ChatResponse, Client, EmbedResponse, Message, ResponseError
+from httpx import ReadTimeout
 import pytest
-from tokenizers import Tokenizer, models, pre_tokenizers, processors
 
-from arkb.interfaces.cli import main
-
-
-@pytest.fixture(autouse=True)
-def workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    directory = tmp_path / "example_notes"
-    directory.mkdir()
-    (directory / "habits.md").write_text(
-        "# Habit Stages\n\nA cue starts a habit.\n", encoding="utf-8"
-    )
-    (directory / "literature.md").write_text(
-        "# Literature Notes\n\nPreserve the author's meaning.\n", encoding="utf-8"
-    )
-    (directory / "permanent.md").write_text(
-        "# Permanent Notes\n\nDevelop one idea per note.\n", encoding="utf-8"
-    )
-    monkeypatch.chdir(tmp_path)
-    return tmp_path
-
-
-@pytest.fixture
-def client() -> MagicMock:
-    client = MagicMock(spec=Client)
-    client.__enter__.return_value = client
-    client.embed.side_effect = [
-        EmbedResponse(embeddings=[[0.0, 1.0], [3.0, 4.0], [1.0, 0.0]]),
-        EmbedResponse(embeddings=[[1.0, 0.0]]),
-    ]
-    client.chat.return_value = ChatResponse(
-        message=Message(
-            role="assistant", content=json.dumps({'status': 'answered', 'claims': [
-                {'text': 'Develop one idea per note.', 'source_ids': ['S1']}], 'missing_information': []})
-        )
-    )
-    return client
+from arkb.agent.state import AgentResult, AgentState
+from arkb.config import DEFAULT_DB, DEFAULT_GENERATION_MODEL, DEFAULT_RETRIEVAL_MODE, RetrievalConfig
+from arkb.interfaces.cli import _parser, main
+from arkb.knowledge.indexing import BuildReport
+from arkb.knowledge.models import EmbeddingSpec, IndexManifest
+from arkb.retrieval.models import SearchResponse, SearchResult
+from arkb.runtime import Runtime
+from tests.agent.helpers import tool_call
 
 
 @pytest.fixture(autouse=True)
-def client_factory(client: MagicMock, monkeypatch: pytest.MonkeyPatch) -> Mock:
-    factory = Mock(return_value=client)
-    monkeypatch.setattr("ollama.Client", factory)
-    return factory
+def runtime(monkeypatch):
+    factory = create_autospec(Runtime)
+    runtime = factory.return_value
+    runtime.__enter__.return_value = runtime
+    monkeypatch.setattr('arkb.interfaces.cli.Runtime', factory)
+    calls = [tool_call('search', query='agent memory', mode='bm25'),
+             tool_call('read', source='34_agent_memory_lifecycle.md'),
+             tool_call('search', query='episodic memory agents', mode='hybrid')]
+    messages = [{'role': 'system', 'content': 'internal instructions'}]
+    for call in calls:
+        messages.extend([{'role': 'assistant', 'tool_calls': [call], 'thinking': 'internal model reasoning'},
+                         {'role': 'tool', 'tool_name': call['function']['name'], 'content': '{}'}])
+    messages.append({'role': 'assistant', 'content': '相关素材已找到。'})
+    runtime.ask.return_value = AgentResult('相关素材已找到。', 'final', AgentState(messages, 4))
+    hit = SearchResult(source_id='document-id', source='rag.md', content='RAG', method='exact',
+                       start_char=4, end_char=7, metadata={'title': '检索'})
+    runtime.match.return_value = SearchResponse(query='RAG', method='exact', results=(hit,))
+    runtime.search.return_value = SearchResponse(query='Agent Memory', method='semantic', index_id='snapshot')
+    manifest = IndexManifest(index_version='snapshot', vault_id='default',
+        embedding_spec=EmbeddingSpec(model='fake', model_revision='fake', dimensions=2,
+                                     document_template='title-body-v1'),
+        chunking_fingerprint='0' * 64, document_count=2, chunk_count=3, status='ready')
+    runtime.index.return_value = BuildReport(manifest, embedded_inputs=2, cached_inputs=1)
+    runtime.status.return_value = {'vault_id': 'default', 'active_version': 'snapshot',
+        'builds': [asdict(manifest)], 'notes_dir': '/notes', 'backend': {'kind': 'qdrant'}}
+    return runtime, factory
 
 
-@pytest.fixture(autouse=True)
-def tokenizer_download(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Mock:
-    tokenizer = Tokenizer(models.WordLevel({"[UNK]": 0, "<|endoftext|>": 1},
-                                           unk_token="[UNK]"))
-    tokenizer.pre_tokenizer = pre_tokenizers.Split("", behavior="isolated")
-    tokenizer.post_processor = processors.TemplateProcessing(
-        single="$A <|endoftext|>", special_tokens=[("<|endoftext|>", 1)],
-    )
-    path = tmp_path / "tokenizer.json"
-    tokenizer.save(str(path))
-    download = Mock(return_value=str(path))
-    monkeypatch.setattr("arkb.knowledge.embeddings.hf_hub_download", download)
-    return download
+def test_only_five_top_level_commands():
+    commands = next(action for action in _parser()._actions if action.dest == 'command')
+    assert set(commands.choices) == {'match', 'search', 'ask', 'index', 'status'}
 
 
-@pytest.fixture
-def persistent_client(client):
-    from ollama import ListResponse, ShowResponse
-    client.list.return_value = ListResponse(models=[{'model': 'qwen3-embedding:0.6b', 'digest': 'actual-digest'}])
-    client.show.return_value = ShowResponse(model_info={'qwen3.embedding_length': 2, 'qwen3.context_length': 32768})
-    client.embed.side_effect = lambda **kw: EmbedResponse(embeddings=[[1., 0.] for _ in kw['input']])
-    return client
+def test_match_calls_only_runtime_match_and_formats_occurrences(runtime, capsys):
+    fake, _ = runtime
+    assert main(['match', 'RAG', '--source', 'rag.md', '--top-k', '3', '--notes-dir', 'notes']) == 0
+    fake.match.assert_called_once_with('RAG', db=DEFAULT_DB, vault_id='default',
+                                       notes_dir=Path('notes'), source='rag.md', top_k=3)
+    assert all(not getattr(fake, name).called for name in ('search', 'ask', 'index', 'status'))
+    output = capsys.readouterr()
+    assert 'rag.md (body chars 4:7)' in output.out and 'RAG' in output.out
+    assert output.err == ''
 
 
-def test_persistent_commands_build_reopen_query_and_show_status(
-    workspace, persistent_client, capsys, client_factory, tokenizer_download,
-):
-    assert main(['index', '--offline', '--context-length', '512']) == 0
-    report = json.loads(capsys.readouterr().out)
-    assert report['embedded_inputs'] == 3
-    assert report['manifest']['embedding_spec']['model_revision'] == 'actual-digest'
-    assert persistent_client.embed.call_args.kwargs['options'] == {'num_ctx': 512}
-    persistent_client.embed.reset_mock()
-    (workspace / 'example_notes' / 'habits.md').write_text('# Edited\nThis must not appear in a snapshot query.')
-    assert main(['query', 'Question?', '--offline', '--json', '--source', 'habits.md']) == 0
-    result = json.loads(capsys.readouterr().out)
-    assert result['index_version'] == report['manifest']['index_version']
-    assert result['method'] == result['results'][0]['method'] == 'semantic'
-    assert result['results'][0]['score_type'] == 'cosine_similarity'
-    assert result['results'][0]['source_id'] and result['results'][0]['chunk_id']
-    assert result['results'][0]['content'] == 'A cue starts a habit.'
-    assert persistent_client.embed.call_count == 1
-    assert persistent_client.embed.call_args.kwargs['input'] == [
-        'Instruct: Given a question, retrieve relevant notes that help answer it.\nQuery:Question?']
-    assert persistent_client.embed.call_args.kwargs['options'] == {'num_ctx': 512}
-    persistent_client.chat.assert_not_called()
-    client_factory.reset_mock()
-    tokenizer_download.reset_mock()
-    assert main(['status']) == 0
-    assert json.loads(capsys.readouterr().out)['active_version'] == result['index_version']
-    client_factory.assert_not_called()
-    tokenizer_download.assert_not_called()
+@pytest.mark.parametrize('mode', ['bm25', 'semantic', 'hybrid'])
+def test_search_passes_mode_top_k_and_source(runtime, mode):
+    fake, _ = runtime
+    assert main(['search', '如何管理智能体的长期记忆', '--mode', mode, '--top-k', '5',
+                 '--source', 'memory.md', '--db', 'kb.sqlite', '--vault-id', 'kb']) == 0
+    fake.search.assert_called_once_with('如何管理智能体的长期记忆', db=Path('kb.sqlite'), vault_id='kb',
+        mode=mode, top_k=5, source='memory.md', settings=RetrievalConfig(), rerank=False, exact=False)
+    fake.ask.assert_not_called()
+    fake.run_agent.assert_not_called()
+    fake.model_client.assert_not_called()
 
 
-def test_query_checks_digest_and_missing_database_before_embedding(persistent_client, capsys):
-    from ollama import ListResponse
-    assert main(['query', 'Question?', '--json']) == 1
-    persistent_client.embed.assert_not_called()
-    assert main(['index', '--offline']) == 0
-    capsys.readouterr()
-    persistent_client.embed.reset_mock()
-    persistent_client.list.return_value = ListResponse(models=[{'model': 'qwen3-embedding:0.6b', 'digest': 'changed'}])
-    assert main(['query', 'Question?', '--offline']) == 1
-    assert 'incompatible' in capsys.readouterr().err
-    persistent_client.embed.assert_not_called()
+def test_search_uses_project_default(runtime):
+    fake, _ = runtime
+    assert main(['search', 'Agent Memory']) == 0
+    assert fake.search.call_args.kwargs['mode'] == DEFAULT_RETRIEVAL_MODE == 'semantic'
+
+
+@pytest.mark.parametrize('command,arguments', [
+    ('match', ['RAG']), ('search', ['Agent Memory']), ('ask', ['帮我找素材']), ('index', []), ('status', []),
+    ('ask', ['帮我找素材', '--think']), ('ask', ['帮我找素材', '--no-think']),
+])
+def test_json_changes_only_format_for_every_command(runtime, capsys, command, arguments):
+    fake, factory = runtime
+    assert main([command, *arguments]) == 0
+    human = capsys.readouterr()
+    first_call = getattr(fake, command).call_args
+    config = factory.call_args
+    fake.reset_mock()
+    assert main([command, *arguments, '--json']) == 0
+    output = capsys.readouterr()
+    assert getattr(fake, command).call_args_list == [first_call]
+    assert factory.call_args == config
+    assert all(not getattr(fake, other).called for other in ('match', 'search', 'ask', 'index', 'status')
+               if other != command)
+    value = getattr(fake, command).return_value
+    assert json.loads(output.out) == json.loads(json.dumps(value if command == 'status' else asdict(value)))
+    assert human.out and human.out != output.out
+    assert human.err == output.err == ''
+    fake.model_client.assert_not_called()
+
+
+def test_ask_calls_agent_entry_point_with_model_and_turn_limit(runtime, capsys):
+    fake, _ = runtime
+    assert main(['ask', '有哪些笔记提到了 RAG?', '--max-turns', '6', '--generation-model', 'fake-agent']) == 0
+    fake.ask.assert_called_once_with('有哪些笔记提到了 RAG?', db=DEFAULT_DB, vault_id='default',
+                                     notes_dir=None, model='fake-agent', max_turns=6, think=True)
+    assert capsys.readouterr().out == '相关素材已找到。\n'
+    fake.match.assert_not_called()
+    fake.search.assert_not_called()
+
+
+@pytest.mark.parametrize('flags,think', [([], True), (['--think'], True), (['--no-think'], False)])
+def test_ask_thinking_flags_only_set_the_model_option(runtime, capsys, flags, think):
+    fake, _ = runtime
+    assert main(['ask', 'Question', *flags]) == 0
+    assert fake.ask.call_args.kwargs['think'] is think
+    output = capsys.readouterr()
+    assert output.out == '相关素材已找到。\n' and output.err == ''
+
+
+@pytest.mark.parametrize('json_output', [False, True])
+@pytest.mark.parametrize('think_flag', ['--think', '--no-think'])
+def test_ask_trace_is_stderr_and_does_not_change_execution(runtime, capsys, json_output, think_flag):
+    fake, _ = runtime
+    args = ['ask', 'Agent Memory', think_flag] + (['--json'] if json_output else [])
+    assert main(args) == 0
+    original = capsys.readouterr()
+    first_call = fake.ask.call_args
+    assert main([*args, '--trace']) == 0
+    output = capsys.readouterr()
+    assert fake.ask.call_args == first_call
+    assert original.out == output.out and original.err == ''
+    assert output.err == ('[1] search\nquery: "agent memory"\nmode: "bm25"\n\n'
+        '[2] read\nsource: "34_agent_memory_lifecycle.md"\n\n'
+        '[3] search\nquery: "episodic memory agents"\nmode: "hybrid"\n\n[4] final\n')
+    assert 'internal instructions' not in output.err
+    assert 'internal model reasoning' not in output.err
+
+
+@pytest.mark.parametrize('json_output', [False, True])
+def test_ask_turn_limit_reports_no_fabricated_answer(runtime, capsys, json_output):
+    fake, _ = runtime
+    fake.ask.return_value = AgentResult(None, 'max_turns', AgentState(turn=1))
+    assert main(['ask', 'Q', '--max-turns', '1', '--trace'] + (['--json'] if json_output else [])) == 1
+    output = capsys.readouterr()
+    if json_output:
+        assert json.loads(output.out) == {'response': None, 'stop_reason': 'max_turns',
+                                          'state': {'messages': [], 'turn': 1}}
+    else:
+        assert output.out == ''
+    assert '[1] max_turns' in output.err and 'without a final response' in output.err
+
+
+def test_index_preserves_build_options_and_status_scope(runtime):
+    fake, _ = runtime
+    assert main(['index', '--notes-dir', 'notes', '--force', '--chunking', 'none', '--batch-size', '4',
+                 '--context-length', '512', '--max-batch-tokens', '1024', '--max-retries', '3',
+                 '--query-instruction', '', '--db', 'kb.sqlite', '--vault-id', 'kb']) == 0
+    options = fake.index.call_args.kwargs
+    assert options['notes_dir'] == Path('notes') and options['force'] is True
+    assert options['chunking'] == 'none' and options['query_instruction'] == ''
+    assert (options['batch_size'], options['context_length'], options['max_batch_tokens'], options['max_retries']) == (4, 512, 1024, 3)
+    assert main(['status', '--db', 'kb.sqlite', '--vault-id', 'kb']) == 0
+    fake.status.assert_called_once_with(db=Path('kb.sqlite'), vault_id='kb')
 
 
 @pytest.mark.parametrize('arguments', [
-    ['index', '--context-length', '0'], ['index', '--max-retries', '9'],
-    ['index', '--batch-size', '0'], ['index', '--chunk-overlap', '512'],
-    ['query', ' '], ['query', 'Question?', '--top-k', '0'], ['status', '--vault-id', ' '],
+    [], ['query', 'Q'], ['answer', 'Q'], ['chat'], ['read', 'a.md'], ['match'], ['search'], ['ask'],
+    ['match', ' '], ['search', ' '], ['ask', ' '], ['status', '--vault-id', ' '],
+    ['match', 'RAG', '--top-k', '0'], ['search', 'Q', '--top-k', '-1'], ['search', 'Q', '--source', ' '],
+    ['search', 'Q', '--mode', 'bad'], ['search', 'Q', '--top-k', '1.5'],
+    ['search', 'Q', '--timeout', 'nan'], ['ask', 'Q', '--timeout', 'inf'],
+    ['ask', 'Q', '--max-turns', '0'], ['ask', 'Q', '--max-turns', 'bad'],
+    ['ask', 'Q', '--mode', 'bm25'], ['ask', 'Q', '--mode', 'semantic'], ['ask', 'Q', '--mode', 'hybrid'],
+    ['ask', 'Q', '--top-k', '2'], ['ask', 'Q', '--generation-model', ' '],
+    ['search', 'Q', '--show-context'], ['search', 'Q', '--answer-json'],
+    ['index', '--chunk-size', '0'], ['index', '--batch-size', '0'], ['index', '--max-retries', '9'],
+    ['ask', 'Q', '--think', 'false'], ['search', 'Q', '--think'], ['match', 'Q', '--no-think'],
+    ['index', '--think'], ['status', '--think'],
 ])
-def test_persistent_cli_rejects_invalid_arguments(arguments, client_factory):
+def test_invalid_arguments_fail_before_constructing_runtime(runtime, capsys, arguments):
+    _, factory = runtime
     with pytest.raises(SystemExit) as error:
         main(arguments)
     assert error.value.code == 2
-    client_factory.assert_not_called()
+    assert 'error:' in capsys.readouterr().err
+    factory.assert_not_called()
 
 
-def test_index_scan_failure_does_not_replace_the_previous_version(workspace, persistent_client, capsys):
-    assert main(['index', '--offline']) == 0
-    first = json.loads(capsys.readouterr().out)['manifest']['index_version']
-    assert main(['index', '--notes-dir', 'missing', '--offline']) == 1
-    capsys.readouterr()
-    assert main(['status']) == 0
-    assert json.loads(capsys.readouterr().out)['active_version'] == first
-
-
-def test_query_can_generate_from_the_saved_snapshot(persistent_client, capsys):
-    assert main(['index', '--offline']) == 0
-    capsys.readouterr()
-    assert main(['query', 'Question?', '--offline']) == 0
-    assert 'Develop one idea' in capsys.readouterr().out
-    assert json.loads(persistent_client.chat.call_args.kwargs['messages'][1]['content'])['question'] == 'Question?'
-
-
-@pytest.fixture(autouse=True)
-def generation_counter_adapter(monkeypatch):
-    from arkb.generation.models import GenerationCounter
-    def load(**kwargs):
-        return GenerationCounter(kwargs['model'], 'test-counter',
-                                 lambda messages: 12 + sum(len(m['content']) for m in messages))
-    factory = Mock(side_effect=load)
-    monkeypatch.setattr("arkb.interfaces.cli.load_generation_counter", factory)
-    return factory
-
-
-def test_persistent_show_context_uses_saved_revision_and_json_remains_retrieval_only(
-    workspace, persistent_client, capsys, generation_counter_adapter,
-):
-    assert main(['index', '--offline']) == 0
-    version = json.loads(capsys.readouterr().out)['manifest']['index_version']
-    assert main(['query', 'Q?', '--offline', '--json']) == 0
-    capsys.readouterr()
-    generation_counter_adapter.assert_not_called()
-    (workspace / 'example_notes' / 'habits.md').write_text('# Changed\nNew content.')
-    assert main(['query', 'Q?', '--source', 'habits.md', '--offline', '--show-context']) == 0
-    context = json.loads(capsys.readouterr().out)
-    assert 'evidence_blocks' not in context and 'citation_map' not in context
-    assert context['citation_sources'][0]['source_id'] == 'S1'
-    assert context['citation_sources'][0]['content'] == 'A cue starts a habit.'
-    assert context['citation_sources'][0]['origins'][0]['index_version'] == version
-    persistent_client.chat.assert_not_called()
-
-
-@pytest.mark.parametrize('arguments', [
-    ['query', 'Q?', '--context-window', '0'], ['query', 'Q?', '--max-output-tokens', '0'],
-    ['query', 'Q?', '--context-safety-margin', '-1'], ['query', 'Q?', '--context-window', '100'],
-    ['query', 'Q?', '--json', '--show-context'],
-    ['query', 'Q?', '--answer-json', '--show-context'], ['query', 'Q?', '--json', '--answer-json'],
-    ['query', 'Q?', '--answer-json', '--citation-mode', 'legacy'],
-])
-def test_context_argument_errors_happen_before_model_calls(arguments, client_factory):
+@pytest.mark.parametrize('command', ['', 'match', 'search', 'ask', 'index', 'status'])
+def test_help_without_runtime(runtime, capsys, command):
+    _, factory = runtime
     with pytest.raises(SystemExit) as error:
-        main(arguments)
-    assert error.value.code == 2
-    client_factory.assert_not_called()
-
-
-def test_cli_reports_fixed_prompt_overflow_without_generating(indexed_client, client, capsys):
-    assert main(['query', 'Q?', '--context-window', '300', '--max-output-tokens', '100',
-                 '--context-safety-margin', '0']) == 1
-    output = capsys.readouterr()
-    assert 'before adding evidence' in output.err
-    assert output.out == ''
-    client.chat.assert_not_called()
-
-
-def test_persistent_answer_json_keeps_saved_source_after_live_file_changes(workspace, persistent_client, capsys):
-    assert main(['index', '--offline']) == 0
-    version = json.loads(capsys.readouterr().out)['manifest']['index_version']
-    (workspace / 'example_notes' / 'habits.md').write_text('# Changed\nDifferent facts.')
-    assert main(['query', 'Q?', '--offline', '--source', 'habits.md', '--answer-json']) == 0
-    result = json.loads(capsys.readouterr().out)
-    assert result['sources'][0]['content'] == 'A cue starts a habit.'
-    assert result['sources'][0]['origins'][0]['index_version'] == version
-
-
-def test_cli_invalid_citation_fails_without_printing_the_unverified_answer(indexed_client, client, capsys):
-    client.chat.return_value.message.content = json.dumps({'status': 'answered', 'claims': [
-        {'text': 'Unverified content', 'source_ids': ['S99']}], 'missing_information': []})
-    assert main(['query', 'Q?', '--answer-json']) == 1
-    output = capsys.readouterr()
-    assert output.out == ''
-    assert 'invalid_references' in output.err
-    assert 'Unverified content' not in output.err
-
-
-def test_cli_quoted_answer_json_exposes_program_computed_offsets(indexed_client, client, capsys):
-    client.chat.return_value.message.content = json.dumps({'status': 'answered', 'claims': [
-        {'text': 'Develop one idea per note.', 'source_ids': ['S1'],
-         'quotes': [{'source_id': 'S1', 'text': 'one idea'}]}], 'missing_information': []})
-    assert main(['query', 'Q?', '--source', 'permanent.md', '--answer-json', '--citation-mode', 'quoted']) == 0
-    result = json.loads(capsys.readouterr().out)
-    quote = result['validation']['resolved_quotes'][0]
-    assert (quote['start_char'], quote['end_char']) == (8, 16)
-
-
-@pytest.fixture(autouse=True)
-def qdrant_connections(tmp_path, monkeypatch):
-    from qdrant_client import QdrantClient
-    import warnings
-    def connect(*args):
-        return QdrantClient(path=str(tmp_path / 'qdrant'))
-    monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', connect)
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', message='Payload indexes have no effect in the local Qdrant.*')
-        yield
-
-
-@pytest.fixture
-def indexed_client(persistent_client, capsys):
-    assert main(['index', '--offline']) == 0
-    capsys.readouterr()
-    persistent_client.embed.reset_mock()
-    return persistent_client
-
-
-@pytest.mark.parametrize('arguments', [[], ['Question?'], ['index', '--backend', 'numpy'],
-                                       ['query', 'Q?', '--citation-mode', 'legacy']])
-def test_retired_interfaces_are_rejected(arguments, client_factory):
-    with pytest.raises(SystemExit) as error:
-        main(arguments)
-    assert error.value.code == 2
-    client_factory.assert_not_called()
-
-
-@pytest.mark.parametrize('arguments', [['--help'], ['index', '--help'], ['query', '--help'], ['status', '--help']])
-def test_help_needs_no_services(arguments, client_factory, capsys):
-    with pytest.raises(SystemExit) as error:
-        main(arguments)
+        main(([command] if command else []) + ['--help'])
     assert error.value.code == 0
     assert 'usage:' in capsys.readouterr().out
-    client_factory.assert_not_called()
+    factory.assert_not_called()
 
 
-@pytest.mark.parametrize('operation,error', [
-    ('embed', ConnectionError('Ollama is unavailable.')),
-    ('embed', ReadTimeout('Ollama request timed out.')),
-    ('chat', ReadError('Ollama connection was interrupted.')),
-    ('chat', ResponseError('Model not found.', status_code=404)),
+@pytest.mark.parametrize('command,error', [
+    ('match', FileNotFoundError('rg is missing')), ('match', subprocess.CalledProcessError(2, ['rg'])),
+    ('search', ReadTimeout('embedding unavailable')), ('ask', LookupError('Document no longer exists')),
+    ('ask', ValueError('Agent model response was truncated.')), ('index', OSError('scan failed')),
+    ('status', sqlite3.OperationalError('unable to open database')),
 ])
-def test_query_reports_service_errors_without_an_answer(indexed_client, operation, error, capsys):
-    getattr(indexed_client, operation).side_effect = error
-    assert main(['query', 'Question?', '--offline']) == 1
+def test_runtime_errors_go_to_stderr_without_partial_results(runtime, capsys, command, error):
+    fake, _ = runtime
+    getattr(fake, command).side_effect = error
+    assert main([command, *(['Q'] if command in ('match', 'search', 'ask') else []), '--json']) == 1
     output = capsys.readouterr()
-    assert output.out == '' and str(error) in output.err
-    assert 'Traceback' not in output.err
-
-
-def test_query_preserves_unicode_and_whitespace(indexed_client):
-    question = "  为什么保留 e\u0301？\r\n"
-    assert main(['query', question, '--offline']) == 0
-    assert indexed_client.embed.call_args.kwargs['input'][0].endswith('Query:' + question)
-    assert json.loads(indexed_client.chat.call_args.kwargs['messages'][1]['content'])['question'] == question
-
-
-@pytest.mark.parametrize('body', ['', '   ', '{'])
-def test_query_rejects_invalid_generated_structure(indexed_client, body, capsys):
-    indexed_client.chat.return_value.message.content = body
-    assert main(['query', 'Q?', '--offline']) == 1
-    output = capsys.readouterr()
-    assert output.out == '' and 'invalid_structure' in output.err
-
-
-def test_query_rejects_invalid_embedding_before_generation(indexed_client, capsys):
-    indexed_client.embed.side_effect = [EmbedResponse(embeddings=[[0., 0.]])]
-    assert main(['query', 'Q?', '--offline']) == 1
-    assert capsys.readouterr().out == ''
-    indexed_client.chat.assert_not_called()
-
-
-@pytest.mark.parametrize('error', [FileNotFoundError('Tokenizer is not cached.'), ReadError('Download failed.')])
-def test_index_tokenizer_failure_makes_no_model_calls(tokenizer_download, client_factory, error, capsys):
-    tokenizer_download.side_effect = error
-    assert main(['index', '--offline']) == 1
-    assert str(error) in capsys.readouterr().err
-    client_factory.assert_not_called()
-
-
-def test_index_offline_cache_option(persistent_client, tokenizer_download):
-    assert main(['index', '--offline', '--tokenizer-cache', 'cache']) == 0
-    assert tokenizer_download.call_args.kwargs['local_files_only'] is True
-    assert tokenizer_download.call_args.kwargs['cache_dir'] == Path('cache')
-
-
-def test_query_rejects_retired_snapshot_before_loading_models(indexed_client, client_factory, capsys):
-    from arkb.knowledge.sqlite import SQLiteStorage
-    with SQLiteStorage(Path('.obsidian-rag/index.sqlite')) as storage:
-        manifest = storage.active_manifest('default')
-        storage.connection.execute("UPDATE builds SET backend=? WHERE version=?",
-                                   (json.dumps({'kind': 'numpy'}), manifest.index_version))
-        storage.connection.commit()
-    client_factory.reset_mock()
-    assert main(['query', 'Q?', '--json']) == 1
-    assert 'run arkb index' in capsys.readouterr().err
-    client_factory.assert_not_called()
-
-
-@pytest.mark.parametrize('options', [
-    ['--hnsw-m', '1'], ['--index-timeout', 'nan'], ['--full-scan-threshold', '9'],
-    ['--require-hnsw', '--indexing-threshold', '0'],
-])
-def test_cli_qdrant_config_errors_precede_service_calls(options, client_factory):
-    with pytest.raises(SystemExit) as error:
-        main(['index', *options])
-    assert error.value.code == 2
-    client_factory.assert_not_called()
-
-
-def test_cli_bm25_runs_without_model_or_vector_connections(indexed_client, client_factory,
-                                                          tokenizer_download, monkeypatch, capsys):
-    capsys.readouterr()
-    client_factory.reset_mock()
-    tokenizer_download.reset_mock()
-    connect = Mock(side_effect=AssertionError('No Qdrant for lexical retrieval'))
-    monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', connect)
-    assert main(['query', 'habit', '--mode', 'bm25', '--json', '--top-k', '1']) == 0
-    response = json.loads(capsys.readouterr().out)
-    assert response['method'] == 'bm25'
-    assert response['results'][0]['source'] == 'habits.md'
-    assert response['results'][0]['score_type'] == 'bm25'
-    client_factory.assert_not_called()
-    tokenizer_download.assert_not_called()
-    connect.assert_not_called()
-
-
-@pytest.mark.parametrize('mode', ['semantic', 'bm25', 'lexical', 'hybrid'])
-def test_cli_modes_support_optional_reranking_without_generation(indexed_client, mode, monkeypatch, capsys):
-    import sys
-    from types import SimpleNamespace
-    import numpy as np
-    capsys.readouterr()
-    model = SimpleNamespace(config=SimpleNamespace(num_labels=1),
-        predict=lambda pairs, **kw: np.array([5. if 'habit' in passage else -1. for _, passage in pairs]))
-    monkeypatch.setitem(sys.modules, 'sentence_transformers', SimpleNamespace(CrossEncoder=lambda *a, **kw: model))
-    monkeypatch.setitem(sys.modules, 'torch.nn', SimpleNamespace(Identity=lambda: None))
-    args = ['query', 'habit', '--mode', mode, '--json', '--top-k', '1', '--offline']
-    assert main(args) == 0
-    before = json.loads(capsys.readouterr().out)
-    assert before['method'] == ('bm25' if mode == 'lexical' else mode)
-    assert main(args + ['--rerank']) == 0
-    after = json.loads(capsys.readouterr().out)
-    assert after['method'] == before['method'] + '+rerank'
-    hit = after['results'][0]
-    assert hit['source'] == 'habits.md' and hit['score_type'] == 'cross_encoder_logit'
-    assert hit['metadata']['rerank']['input_method'] == before['method']
-    if mode == 'hybrid':
-        assert hit['metadata']['fusion']['contributions']
-    indexed_client.chat.assert_not_called()
-    context_args = [arg for arg in args if arg != '--json'] + ['--rerank', '--show-context']
-    assert main(context_args) == 0
-    origin = json.loads(capsys.readouterr().out)['citation_sources'][0]['origins'][0]
-    assert origin['score'] == 5. and origin['score_type'] == 'cross_encoder_logit'
-
-
-@pytest.mark.parametrize('options', [
-    ['--mode', 'hybrid', '--candidate-k', '1'], ['--rrf-k', '-1'],
-    ['--rerank', '--rerank-candidates', '1'], ['--candidate-k', '0'],
-])
-def test_invalid_retrieval_depths_fail_before_model_calls(options, client_factory):
-    with pytest.raises(SystemExit) as error:
-        main(['query', 'question'] + options)
-    assert error.value.code == 2
-    client_factory.assert_not_called()
-
-
-@pytest.mark.parametrize('mode', ['bm25', 'hybrid'])
-def test_new_retrieval_scores_can_build_citation_context(indexed_client, capsys, mode):
-    capsys.readouterr()
-    assert main(['query', 'habit', '--mode', mode, '--show-context', '--source', 'habits.md']) == 0
-    context = json.loads(capsys.readouterr().out)
-    origin = context['citation_sources'][0]['origins'][0]
-    assert origin['method'] == mode
-    assert origin['score_type'] == ('bm25' if mode == 'bm25' else 'rrf')
-
-
-@pytest.mark.filterwarnings('ignore:Local mode performs exact.*')
-def test_four_way_benchmark_runner_uses_saved_adapters_and_preserves_artifacts(indexed_client, tmp_path,
-                                                                            monkeypatch, capsys):
-    import sys
-    from types import SimpleNamespace
-    import numpy as np
-    from qdrant_client import QdrantClient
-    from arkb.evaluation.retrieval import baseline_main as compare
-    capsys.readouterr()
-    monkeypatch.setattr('ollama.Client', lambda **kw: indexed_client)
-    monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', lambda *a: QdrantClient(path=str(tmp_path / 'qdrant')))
-    model = SimpleNamespace(config=SimpleNamespace(num_labels=1),
-        predict=lambda pairs, **kw: np.array([5. if 'habit' in text else -1. for _, text in pairs]))
-    monkeypatch.setitem(sys.modules, 'sentence_transformers', SimpleNamespace(CrossEncoder=lambda *a, **kw: model))
-    monkeypatch.setitem(sys.modules, 'torch.nn', SimpleNamespace(Identity=lambda: None))
-    cases, output = tmp_path / 'cases.jsonl', tmp_path / 'results.json'
-    cases.write_text(json.dumps({'id': 'habit', 'question': 'habit', 'relevance': {'habits.md': 3}}))
-    args = ['--cases', str(cases), '--output', str(output), '--offline', '--top-k', '2',
-            '--modes', 'semantic', 'bm25', 'hybrid', 'hybrid_reranked']
-    assert compare(args) == 0
-    report = json.loads(output.read_text())
-    assert set(report['summary']) == {'semantic', 'bm25', 'hybrid', 'hybrid_reranked'}
-    assert report['summary']['hybrid_reranked']['mrr'] == 1
-    row = report['results'][0]['modes']['hybrid_reranked']
-    assert row['response']['results'][0]['metadata']['rerank']['candidate_count'] == 3
-    assert report['run']['cases'][0]['id'] == 'habit' and report['run']['source_hashes']
-    before = output.read_bytes()
-    with pytest.raises(SystemExit):
-        compare(args)
-    assert output.read_bytes() == before
+    assert output.out == '' and str(error) in output.err and 'Traceback' not in output.err
+    fake.__exit__.assert_called_once()

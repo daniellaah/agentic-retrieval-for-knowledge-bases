@@ -29,8 +29,8 @@ def test_real_model_selects_tools_and_finishes(tmp_path, query, allowed_first_to
         '# Agent Memory\nAgent Memory stores past events and useful facts. '
         'Agent Memory 包括工作记忆与长期记忆。', encoding='utf-8')
     documents = DocumentAccess(tmp_path, vault_id='agent-test')
-    # Keep the service check focused on model tool calling; search policy is
-    # still host-configured and hidden from the model, with no vector server.
+    # Keep the service check focused on model tool calling. The tool schema
+    # advertises this engine's BM25-only capability, with no vector server.
     engine = RetrievalEngine(bm25=BM25Retriever(list(documents.records()), index_id='test'))
     with Runtime(RuntimeConfig(timeout=120)) as runtime:
         tools = runtime.agent_tools(engine=engine, directory=tmp_path, vault_id='agent-test', mode='bm25')

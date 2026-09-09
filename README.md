@@ -3,8 +3,8 @@
 Local retrieval over Markdown notes using Python, Qdrant, and Ollama.
 
 The repository includes a command-line interface, a Markdown note loader, an
-Ollama embedding client function, cosine similarity search, answer generation,
-and sample Markdown notes in `example_notes/`.
+Ollama embedding client, ranked retrieval, an agent tool-calling runtime,
+fixed-pipeline answer generation, and sample Markdown notes in `example_notes/`.
 
 ## Python modules
 
@@ -19,9 +19,9 @@ packs that evidence into context and produces validated citations.
 | `retrieval/` | `models.py`: source-based contracts; `bm25.py` / `semantic.py`: independent retrieval; `hybrid.py` / `fusion.py`: fixed composition and RRF; `rerank.py`: reranking and the optional cross-encoder; `engine.py`: explicit mode selection; `exact.py`: literal/regex matching over live source text |
 | `generation/` | `models.py`: context/citation contracts; `context.py`: evidence packing and budgets; `citations.py`: parsing, validation and rendering; `generate.py`: answer generation and generation token counting |
 | `agent/` | `tools.py`: thin `match`, `search`, `read` adapters and provider-independent tool definitions; `state.py`: conversation and turn count; `loop.py`: bounded model/tool orchestration |
-| `interfaces/` | `cli.py`: CLI arguments, workflows and output; `mcp.py`: protocol placeholder |
+| `interfaces/` | `cli.py`: argument parsing, Runtime calls and output formatting; `mcp.py`: protocol placeholder |
 | `evaluation/` | `datasets.py`: experiment inputs and fingerprints; `metrics.py`: ranking, coverage and citation metrics; `retrieval.py`: relevance, ANN and frozen-candidate experiments; `generation.py`: context and citation experiments |
-| `runtime.py` | Lazy client/tokenizer creation, resource reuse and closure, snapshot-bound retrieval composition |
+| `runtime.py` | Lazy client/tokenizer creation, resource reuse and closure, snapshot-bound retrieval composition and `match`/`search`/`ask`/`index`/`status` entry points |
 | `config.py` | Explicit runtime/retrieval settings and application defaults; no I/O |
 
 Use `arkb.knowledge.indexing.build_index`,
@@ -41,9 +41,11 @@ until the context exits, including exceptional exits. Explicitly supplied SQLite
 storage and clients remain caller-owned. Keep a prepared retriever or engine to
 retain its pinned snapshot across a query session. BM25-only setup opens neither
 model nor vector clients; importing the retrieval package never loads a model.
-Agent tools expose retrieval and live document access. `Runtime.run_agent` composes
-the prepared tools with an Ollama client for a bounded conversation. MCP remains
-unimplemented.
+Agent tools expose retrieval and live document access. `Runtime.ask` composes
+them and calls `Runtime.run_agent` for a bounded conversation; the lower-level
+entry point still accepts prepared tools and an injected client. One-shot entry
+points close their own SQLite connections. MCP remains unimplemented and can
+reuse these same Runtime entry points.
 
 Python imports now use these capability paths; the old root `chunking`,
 `embeddings`, `tokenization`, `storage`, `schema`, `cli`, `indexing`, `context`
@@ -53,7 +55,7 @@ not change persisted identities, index formats or product CLI behavior. See the
 [completed migration](docs/refactor-results.md) for the mapping and validation.
 
 The package and command are named `arkb`. Run `uv sync --locked` after updating.
-Only `index`, `query`, and `status` are supported; the old bare-question command,
+Only `match`, `search`, `ask`, `index`, and `status` are supported; the old bare-question command,
 `obsidian-rag` alias, `retrieve`, and `search_numpy` APIs have been removed.
 Qdrant is the semantic search backend; BM25 uses saved SQLite text and an
 in-memory lexical index. NumPy remains a dependency for embedding
@@ -106,77 +108,133 @@ uv run --locked python -c "import arkb, numpy, ollama; print('Imports OK')"
 uv run --locked python -m pytest --version
 ```
 
-## Index notes and ask a question
-
-Start Ollama with the models below and Qdrant Server, then build an index:
+## CLI: match, search, ask, index, status
 
 ```sh
 uv run --locked arkb index --notes-dir example_notes --qdrant-url http://127.0.0.1:6333
-uv run --locked arkb query "Why combine lexical and vector retrieval?"
-uv run --locked arkb query "How does Reciprocal Rank Fusion combine rankings?" --top-k 2 --json
+uv run --locked arkb match "RAG"
+uv run --locked arkb search "Agent Memory"
+uv run --locked arkb search "Agent Memory" --mode bm25
+uv run --locked arkb search "如何管理智能体的长期记忆" --mode hybrid --top-k 5 --json
+uv run --locked arkb ask "我想写一篇 Agent Memory 的文章，帮我找相关素材" --trace
 uv run --locked arkb status
 ```
 
-`index` reads Markdown files directly in the selected directory, splits long notes,
-embeds uncached inputs, writes a Qdrant collection, and publishes a snapshot.
-`query` defaults to semantic retrieval, embeds only the question, and reads
-evidence from that saved snapshot. `--mode bm25` reads text without embedding.
-Its default output is a structured-citation answer rendered as text; `--json`
-returns retrieved evidence without calling the generation model.
+| Command | Meaning | Main options |
+| --- | --- | --- |
+| `match <pattern>` | Case-sensitive literal occurrences in live note bodies; no model or index required | `--source`, `--top-k` (5), `--notes-dir` |
+| `search <query>` | Deterministic ranked Retrieval Engine results from the saved snapshot; no generation or agent loop | `--mode bm25\|semantic\|hybrid` (semantic), `--top-k` (2), `--source` |
+| `ask <query>` | Existing Agent Runtime chooses match/search/read and search modes, processes observations, and returns its final response | `--think` / `--no-think` (on), `--max-turns` (8), `--trace`, `--notes-dir`, `--generation-model` (`qwen3.5:4b`) |
+| `index` | Existing scanning, chunking, embedding, cache reuse and snapshot publication | `--notes-dir` (`example_notes`), `--force`, chunking/embedding/Qdrant options |
+| `status` | Saved manifests, active version, note directory and backend configuration; no service probes | `--db`, `--vault-id` |
 
-Repeat `index` after editing notes. Relative paths resolve from the current
-working directory; subdirectories are not scanned. The default database is
-`.obsidian-rag/index.sqlite`; use `--db` and `--vault-id` consistently across commands.
-`index` prints a JSON build report. `status` reads saved manifests without loading
-a tokenizer or contacting Ollama. A missing index or mismatched model/tokenizer
-produces an error instead of rebuilding during a query.
+Every command supports `--db` (default `.obsidian-rag/index.sqlite`), `--vault-id`
+(default `default`), and `--json`. Default output is human-readable. **`--json`
+changes only serialization:** match/search return a `SearchResponse` with `query`,
+`method`, `index_id` and `results`; ask returns the existing `AgentResult` with
+`response`, `stop_reason`, and `state` (messages and model-turn count). Index JSON
+retains its build report, and status JSON retains `vault_id`, `active_version`,
+and `builds`, adding `notes_dir` and saved `backend` information.
 
-| Command | Option | Default | Purpose |
-| --- | --- | --- | --- |
-| index | `--notes-dir` | `example_notes` | Directory containing Markdown notes |
-| index | `--qdrant-url` | `http://127.0.0.1:6333` | Qdrant endpoint saved with the snapshot |
-| index | `--embedding-model` | `qwen3-embedding:0.6b` | Embedding model |
-| index | `--chunking` | `recursive` | Markdown sections with recursive overflow splitting, or whole-note `none` |
-| index | `--chunk-size` / `--chunk-overlap` | `512` / `64` | Body token limit and target overlap |
-| index | `--context-length` | `8192` | Full embedding-input limit, including title and special tokens |
-| query | `--top-k` | `2` | Maximum candidates before context processing |
-| query | `--mode` | `semantic` | `semantic`, `bm25` (`lexical` alias), or `hybrid` |
-| query | `--candidate-k` / `--rrf-k` | `20` / `60` | Per-retriever hybrid depth and RRF rank constant |
-| query | `--rerank` | off | Apply the optional cross-encoder after candidate retrieval |
-| query | `--rerank-candidates` | `20` | Candidate pool scored before final top-K |
-| query | `--reranker-cache` | Hub default | Optional model cache directory |
-| query | `--source` | unset | Filter by an exact saved source path |
-| query | `--exact` | off | Request Qdrant exact search |
-| query | `--generation-model` | `qwen3.5:4b` | Answer model |
-| query | `--context-window` | `8192` | Generation window, also passed as `num_ctx` |
-| query | `--max-output-tokens` | `1024` | Output reserve, also passed as `num_predict` |
-| query | `--context-safety-margin` | `128` | Additional reserved space |
-| query | `--show-context` | off | Inspect final messages, evidence and budget without generation |
-| query | `--citation-mode` | `structured` | Validated source IDs; `quoted` also requires exact excerpts |
-| query | `--answer-json` | off | Answer, used sources, raw response and validation |
-| index/query | `--host` | `http://127.0.0.1:11434` | Ollama endpoint |
-| index/query | `--timeout` | `180` | Request timeout in seconds |
-| index/query | `--tokenizer-cache` | Hub default | Tokenizer cache directory |
-| index/query | `--offline` | off | Prevent tokenizer/reranker downloads; local model/server calls still occur |
+Normal ask text contains only the final response. `--trace` formats a summary of
+the available trajectory to stderr; final text or JSON stays on stdout, including when both
+`--trace` and `--json` are selected. Trace does not change the agent run:
 
-The CLI validates the supported Qwen 0.6b embedding tokenizer/model pairing.
-The installed model supplies its digest, dimensions and maximum context length.
-`--context-length` cannot exceed that limit and is sent as `num_ctx` for document
-and query embeddings. `--batch-size`, `--max-batch-tokens`, and `--max-retries`
-control embedding work; `--query-instruction ''` saves a raw-query configuration.
-Both chunking modes count the complete embedding input and keep `truncate=False`.
-In recursive mode, require `chunk_size > 0` and `0 <= chunk_overlap < chunk_size`.
-Use `--offline` after caching tokenizers; a missing tokenizer is an error.
+```text
+[1] search
+query: "agent memory"
+mode: "bm25"
 
-`--json`, `--show-context`, and `--answer-json` are mutually exclusive.
-An empty source directory publishes an empty index. Source scan errors leave the
-previous active index unchanged. Exit codes are `0` for success, `1` for runtime
-failure, and `2` for invalid arguments; errors go to standard error.
+[2] read
+source: "34_agent_memory_lifecycle.md"
 
-Use `arkb index --help`, `arkb query --help`, and `arkb status --help` for all options.
-The same commands are available through `python -m arkb.interfaces.cli`.
-Regular CLI tests use Qdrant Local and replace Ollama/tokenizer boundaries, so
-no running services or network are required.
+[3] final
+```
+
+`--max-turns` counts model requests, including the final response. If the limit
+is exhausted, there is no fabricated answer: JSON contains `response: null` and
+`stop_reason: "max_turns"`, a diagnostic goes to stderr, and the exit code is 1.
+Other exit codes remain 0 for success, 1 for runtime failure, and 2 for invalid
+arguments. On model/tool failures, `--trace` also renders the partial call history
+with an `error` stop reason. Errors still propagate from the Agent Runtime;
+no final response or success JSON is fabricated. This CLI summary lists requested
+calls, including any without a recorded result; full observations are available
+through the Python `AgentTrace` API below.
+
+The CLI calls only `Runtime.match`, `Runtime.search`, `Runtime.ask`,
+`Runtime.index`, and `Runtime.status`. Runtime composes `ExactRetriever`,
+`RetrievalEngine`, the existing `run_agent`/`AgentTools`, `build_index`, and
+`SQLiteStorage`, respectively. It contains no query-text routing. For ask, BM25
+and semantic adapters are prepared only when the agent chooses to search; the
+same snapshot is retained across turns and modes. **Ask has no `--mode` option.**
+
+Agent thinking is enabled by default for the current `qwen3.5:4b` model.
+`--think` enables it explicitly; `--no-think` disables it for comparison or a
+model that does not support thinking. This changes the model request, independently
+of `--json` or `--trace`. Normal text and trajectory output omit provider thinking
+text; JSON retains the full `AgentResult.state`, including provider message fields.
+There is no model-name heuristic or automatic fallback if the provider rejects
+the setting. Thinking can improve multi-step completion and can also increase
+repeated searches and latency; use `--max-turns` to bound model turns.
+
+```sh
+arkb ask "帮我核对关联笔记中的事实" --think --trace
+arkb ask "帮我核对关联笔记中的事实" --no-think --json
+```
+
+Search retains explicit advanced controls: `--candidate-k` (20), `--rrf-k` (60),
+`--rerank`, `--rerank-candidates` (20), `--reranker-model`, `--reranker-revision`,
+`--reranker-cache`, `--reranker-max-length` (512), and `--exact` (Qdrant exact vector
+search). Algorithms, fusion and reranking remain in Retrieval. BM25 needs no model
+or vector service. Semantic/hybrid may call the embedding model; neither calls a
+chat/generation model. ANN and embedding-provider behavior retain their existing
+repeatability limits; there is no agent planning or hidden fallback in search.
+
+Index keeps its existing options and behavior: `--chunking none|recursive`,
+`--chunk-size` (512), `--chunk-overlap` (64), `--context-length` (8192),
+`--batch-size` (32), `--max-batch-tokens`, `--max-retries` (2),
+`--query-instruction`, `--force`, `--hnsw-m`, `--ef-construct`,
+`--indexing-threshold`, `--full-scan-threshold`, `--index-timeout`, and
+`--require-hnsw`. `--force` rebuilds while reusing compatible vectors. An empty
+directory publishes an empty index; a failed scan leaves the active index intact.
+Index/search/ask also accept `--host`, `--timeout`, `--embedding-model`,
+`--qdrant-url`, `--tokenizer-cache`, and `--offline`. Offline prevents model-file
+and tokenizer downloads; configured Ollama/Qdrant service calls still occur.
+
+Repeat index after editing notes. Search reads indexed content, while match/read
+read current files. Status reports saved state; it does not currently compute
+live index freshness or probe backend health. For match/ask, the note directory
+comes from the saved index scope, falling back to `example_notes` when no scope
+exists. `--notes-dir` can select an unindexed directory; when an index has a saved
+scope, an explicit directory must match it. This prevents mixing indexed
+knowledge with unrelated live documents. Relative paths resolve from the current
+working directory. The existing flat Markdown scope is unchanged.
+
+**Migration:** `query` has been removed, with no alias. Use `search` for old
+retrieval-only usage (`query ... --json`) and `ask` for agentic responses. The old
+CLI `--show-context`, `--answer-json`, context-budget and citation switches are
+removed; fixed RAG remains a Python API and evaluation baseline:
+
+```python
+from arkb.runtime import Runtime
+from arkb.generation.context import build_context
+from arkb.generation.generate import load_generation_counter, generate_cited_answer
+from arkb.generation.models import ContextConfig
+
+with Runtime() as runtime:
+    question = "Why combine lexical and vector retrieval?"
+    retrieved = runtime.search(question, mode="hybrid", top_k=5)
+    client = runtime.model_client()
+    counter = load_generation_counter(client=client)
+    context = build_context(question, retrieved.results, config=ContextConfig(), counter=counter)
+    answer = generate_cited_answer(context, client=client)
+    print(answer.text)
+```
+
+Use `arkb --help` or any command's `--help` for all parameters. The console entry
+point remains `arkb.interfaces.cli:main`; `python -m arkb.interfaces.cli` exposes
+the same five commands. CLI contract tests use a fake Runtime; workflow tests use
+Qdrant Local and fake Ollama/tokenizer boundaries, with no real LLM calls.
 
 ## Read notes
 
@@ -201,12 +259,14 @@ uv run --locked python -m pytest -q
 
 `arkb.agent.AgentTools` exposes three primitives. `TOOL_DEFINITIONS` contains
 plain JSON input schemas and descriptions of when to use each tool, with no
-provider SDK or dispatch logic in the tool definitions.
+provider SDK or dispatch logic in the tool definitions. `tools.tool_definitions()`
+returns a copy whose search-mode choices reflect the composed engine; the agent
+loop uses this copy so a BM25-only engine advertises only BM25.
 
 ```python
 match(query, *, target="content", regex=False, case_sensitive=True,
       source=None, limit=5)
-search(query, *, source=None, limit=5)
+search(query, *, source=None, limit=5, mode=None)
 read(document_id=None, *, source=None, section_id=None, start_char=None, end_char=None)
 ```
 
@@ -220,9 +280,10 @@ read(document_id=None, *, source=None, section_id=None, start_char=None, end_cha
   Ordering is filename, then position; `limit` caps the total result count.
 - `search`: use for a question, topic, or concept when the wording is unknown.
   Delegates directly to `RetrievalEngine.search`, preserving its result order.
-  The application selects the engine's strategy when composing the tools;
-  retrieval modes, fusion, reranking, scores, and internal metadata are absent
-  from the agent-facing parameters and results.
+  The agent can choose `mode="bm25"`, `"semantic"`, or `"hybrid"` per call.
+  Omitting mode uses the application's configured default. Fusion and reranking
+  stay inside Retrieval; scores and internal metadata remain absent from the
+  agent-facing evidence results.
 - `read`: supply a returned `document_id` or known `source` filename
   (for example, `read(source="rag.md")`) to read current source text or expand
   context. If both are provided they must identify the same document; conflicting
@@ -262,7 +323,8 @@ produce an empty `results` list. Filesystem, decoding, and backend errors propag
 instead of being reported as empty successful results.
 
 Compose once with the existing runtime and the same directory/vault used for
-indexing. Keep application strategy settings outside agent tool calls:
+indexing. A manually prepared engine must support the modes used by its tools;
+`Runtime.ask` supplies all three supported modes lazily:
 
 ```python
 from pathlib import Path
@@ -305,9 +367,14 @@ uv run --locked python -m pytest -q tests/agent tests/retrieval/test_exact.py te
 
 ## Agent runtime
 
-`arkb.agent.run_agent(query, *, client, tools, model, max_turns=8)` runs a minimal
+`arkb.agent.run_agent(query, *, client, tools, model, max_turns=8, think=True)` runs a minimal
 ReAct-style conversation. `Runtime.run_agent` supplies a reused Ollama client and
 defaults to `qwen3.5:4b`; an explicitly supplied `client` remains caller-owned.
+Both `runtime.ask(..., think=False)` and `runtime.run_agent(..., think=False)`
+forward the explicit boolean unchanged on every model turn. The default is
+`DEFAULT_AGENT_THINK=True`; non-booleans are rejected. This setting belongs only
+to Agent execution. The independent fixed RAG generation API keeps its existing
+non-thinking token-counting profile.
 The model must support tool calling. The loop follows the existing
 [Ollama tool-calling protocol](https://docs.ollama.com/capabilities/tool-calling).
 
@@ -335,8 +402,8 @@ with Runtime() as runtime:
 
 For semantic or hybrid retrieval, use `runtime.retrieval_engine` with an existing
 snapshot as in the composition example above, then pass its tools to
-`runtime.run_agent`. Engine strategy is selected by the application; the model
-only receives `match`, `search`, and `read`. Knowledge and Retrieval never import
+`runtime.run_agent`. The application prepares supported capabilities; the agent
+selects `match`, `search`, or `read`, and the mode for each search. Knowledge and Retrieval never import
 Agent, and the loop contains no retrieval algorithms or query routing rules.
 
 Each run starts with a short system instruction and the user query. On every
@@ -354,6 +421,32 @@ text is returned unchanged in `AgentResult.response`. Inputs that need no
 knowledge can finish on the first turn. `AgentState` stores only `messages` and
 `turn`; `tool_calls` derives ordered history from the messages, without duplicating
 results in an evidence store. A new query always starts a fresh conversation.
+`stop_reason="final"` describes protocol termination; it does not certify that
+the answer satisfies every requested fact. Thinking text alone is not a final answer.
+
+`result.trace` derives an `AgentTrace` snapshot on demand from these messages and
+the `AgentResult`. It records `query`, `turns` (attempted model requests), ordered
+`tool_calls`, `final_response`, and `stop_reason`. Each `AgentToolTrace` contains
+its one-based `turn`, tool `name`, `arguments`, and decoded JSON `result`.
+Repeated tool names are paired with observations by turn and execution order.
+A `result` of `None` means no observation was recorded: the call failed or had
+not executed when the run stopped. No second trajectory is maintained in the loop.
+
+```python
+from dataclasses import asdict
+
+trace = result.trace
+print(asdict(trace))  # JSON-serializable snapshot, detached from AgentState.
+```
+
+Model/protocol/tool exceptions retain their original type and identity. When the
+exception accepts attributes, `error.agent_result` holds the partial `AgentResult`
+with `response=None` and `stop_reason="error"`; use `error.agent_result.trace`
+to inspect it. Completed observations survive errors, including a failure midway
+through a batch. The failed model request counts toward `turns`. Invalid run
+options and failures before the loop has initialized its state have no trajectory.
+`AgentResult` serialization still contains only `response`, `stop_reason`, and
+`state`; serialize `asdict(result.trace)` explicitly for the structured trace.
 
 `max_turns` bounds **model requests**, including the final response. Every tool
 call in the last allowed response is executed and recorded; if that response
@@ -381,7 +474,7 @@ Real-model smoke tests are separate and opt-in; they assert tool trajectories
 and successful termination without requiring fixed natural-language responses:
 
 ```sh
-OBSIDIAN_RAG_RUN_MODEL_TESTS=1 uv run --locked python -m pytest -q tests/agent/integration
+OBSIDIAN_RAG_RUN_MODEL_TESTS=1 uv run --locked python -m pytest -q tests/agent/integration/test_qwen_agent.py
 ```
 
 They use temporary Markdown notes, host-configured BM25, and local Ollama, without
@@ -407,6 +500,16 @@ the turn limit. No model, retrieval, storage, or tool client is mocked. The smal
 collection verifies query readiness; it does not benchmark HNSW/ANN performance.
 The cross-document case fails if the model only names a reference instead of
 retrieving the requested facts; a final message alone does not establish success.
+Paired runs also compare `think=False` and `think=True` twice each on the same
+snapshot, checking the actual HTTP option on every turn and recording elapsed
+time, search/read counts, and new source/snippet counts. The non-thinking group
+is a diagnostic control: its protocol checks may pass while `facts_complete` is
+false. The thinking group must return the random code and retention period.
+Search gains count distinct returned sources and exact snippets; they do not
+measure semantic novelty or prove that the final answer is relevant.
+
+See the [thinking configuration validation](docs/agent-thinking-validation.md)
+for the earlier diagnosis, current results, and remaining model-quality limits.
 
 Set `OBSIDIAN_RAG_AGENT_REPORT_DIR` to a **new directory** to retain the generated
 notes, SQLite database, index report, and per-case JSON conversations; otherwise
@@ -414,10 +517,10 @@ pytest's temporary directory is used. Tests never create the default application
 index. Test-owned Qdrant collections are deleted afterward, so retained SQLite
 files are diagnostic artifacts and need reindexing before further vector queries.
 
-This milestone exposes a Python API. The existing CLI `query` remains the fixed
-retrieval/generation workflow. Agent CLI/MCP entry points, streaming, context
-budgets/optimization, citation validation, persistence, and agent evaluation are
-not implemented. Live `match`/`read` versus indexed `search` retain the eventual
+The Agent Runtime is exposed through the Python API and `arkb ask`. MCP,
+streaming, agent context-budget optimization, agent citation validation,
+conversation persistence, and agent evaluation are not implemented. Fixed-pipeline
+generation retains its existing budgeting and citation validation APIs. Live `match`/`read` versus indexed `search` retain the eventual
 consistency described above; callers must align the tools' directory/vault with
 their prepared engine.
 
@@ -765,26 +868,18 @@ Generation requires a budget whenever evidence is present.
 An empty evidence set returns an insufficient-information message without
 calling the generation model. If the fixed question/system prompt cannot fit,
 or all evidence is excluded by the budget, generation raises
-`ContextBudgetError`. `--show-context` exposes `budget_exhausted` as a diagnostic
-status. The query command defaults to structured citations.
-Answer factuality, completeness and citation support still require evaluation.
+`ContextBudgetError`. `context.to_dict()` exposes `budget_exhausted` as a diagnostic
+status. Answer factuality, completeness and citation support still require evaluation.
 
-The query command accepts the context options listed above:
+Fixed-pipeline context/generation is a Python API (see the CLI migration example
+above) and an evaluation baseline. Use `ContextConfig(context_window=8192,
+max_output_tokens=1024, safety_margin=128)` to set its budget. Inspect
+`context.to_dict()` before generation or `answer.to_dict()` afterward. Search
+never loads a generation tokenizer. Changing context settings does not require
+rebuilding the index or recomputing document embeddings.
 
-```sh
-uv run --locked arkb query "What does chunking preserve?" --offline --show-context
-uv run --locked arkb query "What does chunking preserve?" --offline --answer-json
-uv run --locked arkb query "What does chunking preserve?" --offline \
-  --context-window 8192 --max-output-tokens 1024 --context-safety-margin 128
-```
-
-`query --json` remains retrieval-only and does not load a generation tokenizer.
-`--json`, `--show-context` and `--answer-json` are mutually exclusive;
-`--answer-json` requires structured or quoted citations. Changing context settings does not
-require rebuilding the index or recomputing document embeddings.
-
-For exact supporting excerpts, select `--citation-mode quoted`, or build a
-Python context with `citation_mode='quoted'`. Each claim then includes `quotes`,
+For exact supporting excerpts, build a Python context with
+`citation_mode='quoted'`. Each claim then includes `quotes`,
 objects containing `source_id` and verbatim `text`, with at least one quote per
 cited source. Python computes the offsets; model-provided offsets are rejected.
 Quotes must occur exactly once inside their cited evidence block. Missing,
@@ -866,9 +961,9 @@ no provider SDK or model and makes no automatic mode choices or fallbacks.
 remain public for direct use and ablations. Reranking works with any retriever.
 
 ```sh
-uv run --locked arkb query "ERR_CONNECTION_RESET" --mode bm25 --json
-uv run --locked arkb query "How do rankings combine?" --mode hybrid --top-k 5 --json
-uv run --locked --extra rerank arkb query "How do rankings combine?" \
+uv run --locked arkb search "ERR_CONNECTION_RESET" --mode bm25 --json
+uv run --locked arkb search "How do rankings combine?" --mode hybrid --top-k 5 --json
+uv run --locked --extra rerank arkb search "How do rankings combine?" \
   --mode hybrid --rerank --top-k 5 --json
 ```
 
@@ -1005,9 +1100,8 @@ affect repeatability. The primitive does not add randomness or hidden decisions.
 
 Python callers now use `response.results` and direct result fields such as
 `result.content` and `result.source_id`; snapshot revision/version are in
-`result.metadata`. The CLI retains its `question`, `index_version`, `results`
-JSON envelope, adds `method`, and serializes each result using this contract
-instead of the old nested `chunk`/`record` shape. `build_context` consumes
+`result.metadata`. The match/search CLI JSON serializes `SearchResponse` directly (`query`,
+`method`, `index_id`, `results`), including each result using this contract. `build_context` consumes
 `response.results`; answer generation remains an application choice.
 
 ## Build an index snapshot
@@ -1042,7 +1136,7 @@ not claim to mutate only changed vector-database records.
 A process-level advisory lock serializes builds for a SQLite database. Interrupted
 building snapshots are marked failed by the next writer, and completed embedding
 batches remain reusable. Locks are released by the OS when a process exits.
-The CLI verifies the flat Markdown scope is stable while reading and binds each
+Runtime verifies the flat Markdown scope is stable while reading and binds each
 vault to its source directory, so a different or failed scan cannot silently
 replace its corpus. An intentionally emptied directory publishes an empty index.
 Historical snapshots are retained. The storage API does not expose snapshot deletion.
@@ -1071,8 +1165,8 @@ Run Qdrant Server separately, for example with the validated
 
 The endpoint and collection are saved with the snapshot; queries open that exact
 collection and fetch only the returned source records from SQLite. Set
-`QDRANT_API_KEY` when needed; credentials are never saved in manifests. The query
-command accepts `--qdrant-url` for an explicitly restored/moved server.
+`QDRANT_API_KEY` when needed; credentials are never saved in manifests. Search and ask
+accept `--qdrant-url` for an explicitly restored/moved server.
 
 `--hnsw-m`, `--ef-construct`, `--indexing-threshold` (Qdrant's KB threshold), and
 `--index-timeout` configure construction. `--full-scan-threshold` controls the

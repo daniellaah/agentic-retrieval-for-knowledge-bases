@@ -1,10 +1,10 @@
 import json
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 from ollama import ResponseError
 import pytest
 
-from arkb.agent import AgentState, AgentTools, run_agent
+from arkb.agent import AgentState, AgentTools, TOOL_DEFINITIONS, run_agent
 from arkb.agent.loop import SYSTEM_INSTRUCTION
 from tests.agent.helpers import ScriptedModel, reply, tool_call
 
@@ -18,7 +18,7 @@ from tests.agent.helpers import ScriptedModel, reply, tool_call
      {'result': {'source': 'rag.md', 'content': '完整文档内容'}}),
 ])
 def test_model_selected_tool_receives_arguments_and_returns_observation(query, call, observation):
-    tools = Mock(spec=AgentTools)
+    tools = Mock(spec=AgentTools, tool_definitions=Mock(return_value=TOOL_DEFINITIONS))
     name = call['function']['name']
     getattr(tools, name).return_value = observation
     final = reply('  model response\n')
@@ -44,10 +44,11 @@ def test_model_selected_tool_receives_arguments_and_returns_observation(query, c
     for request in model.requests:
         assert request['model'] == 'fake'
         assert request['stream'] is False
+        assert request['think'] is True
         assert request['messages'][0] == {'role': 'system', 'content': SYSTEM_INSTRUCTION}
         assert [d['function']['name'] for d in request['tools']] == ['match', 'search', 'read']
         assert all(d['type'] == 'function' for d in request['tools'])
-        assert set(request['tools'][1]['function']['parameters']['properties']) == {'query', 'source', 'limit'}
+        assert set(request['tools'][1]['function']['parameters']['properties']) == {'query', 'source', 'limit', 'mode'}
 
 
 def test_ordinary_input_can_finish_without_tools(tools, engine):
@@ -60,6 +61,28 @@ def test_ordinary_input_can_finish_without_tools(tools, engine):
     assert result.state.tool_calls == []
     assert [m['role'] for m in result.state.messages] == ['system', 'user', 'assistant']
     engine.search.assert_not_called()
+
+
+@pytest.mark.parametrize('think', [True, False])
+def test_think_is_forwarded_on_every_turn_without_changing_loop_semantics(tools, think):
+    first = reply(calls=[tool_call('read', source='a.md')])
+    first.message.thinking = 'Provider reasoning accompanying the tool call.'
+    final = reply('Final response')
+    final.message.thinking = 'Provider reasoning accompanying the final answer.'
+    model = ScriptedModel(first, final)
+    result = run_agent('Read a.md', client=model, tools=tools, model='fake', think=think)
+    assert result.response == 'Final response' and result.state.turn == 2
+    assert result.stop_reason == 'final'
+    assert all(request['think'] is think for request in model.requests)
+    assert result.state.messages[2]['thinking'] == first.message.thinking
+    assert result.state.messages[3]['role'] == 'tool'
+
+
+def test_thinking_alone_is_not_a_final_response(tools):
+    response = reply()
+    response.message.thinking = 'Still considering what to do.'
+    with pytest.raises(ValueError, match='neither tool calls nor a final response'):
+        run_agent('Question', client=ScriptedModel(response), tools=tools, model='fake', think=True)
 
 
 def test_multiple_calls_in_one_turn_preserve_order_and_are_all_observed(tools):
@@ -122,27 +145,28 @@ def test_runs_have_independent_conversations(tools):
 @pytest.mark.parametrize('options', [
     {'query': ''}, {'query': ' '}, {'query': None}, {'model': ''}, {'model': None},
     {'max_turns': 0}, {'max_turns': -1}, {'max_turns': True}, {'max_turns': 1.5},
+    {'think': None}, {'think': 'false'}, {'think': 0}, {'think': 1},
 ])
 def test_invalid_run_options_fail_before_model_or_tools(options):
-    client, tools = Mock(), Mock(spec=AgentTools)
+    client, tools = Mock(), Mock(spec=AgentTools, tool_definitions=Mock(return_value=TOOL_DEFINITIONS))
     with pytest.raises(ValueError):
         run_agent(client=client, tools=tools, **{'query': 'x', 'model': 'fake', **options})
     client.chat.assert_not_called()
     assert tools.mock_calls == []
 
 
-@pytest.mark.parametrize('name', ['bm25', 'semantic', 'hybrid', 'rrf', 'rerank', '_documents', '__init__'])
+@pytest.mark.parametrize('name', ['bm25', 'semantic', 'hybrid', 'rrf', 'rerank', '_documents', '__init__', 'tool_definitions'])
 def test_only_public_tools_can_be_dispatched(name):
-    tools = Mock(spec=AgentTools)
+    tools = Mock(spec=AgentTools, tool_definitions=Mock(return_value=TOOL_DEFINITIONS))
     model = ScriptedModel(reply(calls=[tool_call(name, query='x')]))
     with pytest.raises(ValueError, match='Unknown agent tool'):
         run_agent('x', client=model, tools=tools, model='fake')
-    assert tools.mock_calls == []
+    assert tools.mock_calls == [call.tool_definitions()]
 
 
 @pytest.mark.parametrize('call,error_type', [
     (tool_call('search'), TypeError),
-    (tool_call('search', query='x', mode='bm25'), TypeError),
+    (tool_call('search', query='x', mode='unknown'), ValueError),
     (tool_call('search', query='x', limit=True), ValueError),
     (tool_call('match', query='[', regex=True), ValueError),
     (tool_call('read', source='absent.md'), LookupError),
@@ -182,10 +206,10 @@ def test_backend_errors_propagate_unchanged(tools, engine):
     (reply(calls=[tool_call('read', source='a.md')], done_reason='length'), 'truncated'),
 ])
 def test_empty_or_truncated_responses_are_not_successful_finals(response, pattern):
-    tools = Mock(spec=AgentTools)
+    tools = Mock(spec=AgentTools, tool_definitions=Mock(return_value=TOOL_DEFINITIONS))
     with pytest.raises(ValueError, match=pattern):
         run_agent('x', client=ScriptedModel(response), tools=tools, model='fake')
-    assert tools.mock_calls == []
+    assert tools.mock_calls == [call.tool_definitions()]
 
 
 def test_non_assistant_response_is_rejected(tools):

@@ -113,7 +113,7 @@ engine = RetrievalEngine(semantic=semantic, bm25=bm25, reranker=reranker)
 engine.search("query", mode="hybrid", rerank=True, top_k=5)
 ```
 
-`arkb query --mode semantic|bm25|hybrid --rerank --json` exposes the same choices;
+`arkb search --mode semantic|bm25|hybrid --rerank --json` exposes the same choices;
 `lexical` aliases `bm25`. Semantic remains the default. Without `--rerank`, no
 reranker model is loaded. The independent benchmark runner continues to call the
 primitives directly so engine composition does not hide baseline behavior.
