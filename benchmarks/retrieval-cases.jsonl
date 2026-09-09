@@ -1,0 +1,6 @@
+{"id":"fusion","question":"How does Reciprocal Rank Fusion combine lexical and semantic rankings?","relevance":{"13_hybrid_rank_fusion.md":3}}
+{"id":"reranking","question":"Why score a query and candidate passage together with a cross encoder?","relevance":{"14_cross_encoder_reranking.md":3}}
+{"id":"context","question":"How can a chunk retain the subject and period needed to interpret its facts?","relevance":{"12_contextual_retrieval.md":3,"15_chunk_boundaries.md":1}}
+{"id":"sparse","question":"What is a learned sparse encoder and how does text expansion help vocabulary mismatch?","relevance":{"29_learned_sparse_retrieval.md":3}}
+{"id":"dimensions","question":"What does Matryoshka representation learning offer for shorter embedding vectors?","relevance":{"16_matryoshka_embeddings.md":3}}
+{"id":"boundaries","question":"Why should chunk boundaries preserve complete ideas?","relevance":{"15_chunk_boundaries.md":3,"12_contextual_retrieval.md":1}}

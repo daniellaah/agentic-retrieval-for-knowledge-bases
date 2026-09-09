@@ -65,4 +65,3 @@ class SemanticRetriever:
                     or ('source' in filters and result.source != filters['source'])):
                 raise ValueError('Vector index returned invalid semantic evidence or filter metadata.')
         return SearchResponse(query=query, method='semantic', results=results, index_id=self.index.index_id)
-

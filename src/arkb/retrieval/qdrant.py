@@ -73,18 +73,9 @@ def snapshot_result(record: ChunkRecord, score: float, index_version: str) -> Se
         raise ValueError('Snapshot evidence requires a ChunkRecord.')
     if type(score) not in (int, float) or not math.isfinite(score) or not -1 <= score <= 1:
         raise ValueError('Snapshot evidence requires a finite cosine score.')
-    chunk = record.chunk
-    return SearchResult(
-        source_id=record.document_id, source=chunk.source, content=chunk.content,
-        method='semantic', chunk_id=record.chunk_id,
-        start_char=chunk.start_char, end_char=chunk.end_char,
-        score=score, score_type='cosine_similarity',
-        metadata={'title': chunk.title, 'vault_id': record.vault_id,
-                  'document_revision': record.document_revision, 'index_version': index_version,
-                  'chunk_index': chunk.chunk_index, 'heading_path': list(chunk.heading_path),
-                  'section_id': chunk.section_id, 'section_start_char': chunk.section_start_char,
-                  'section_end_char': chunk.section_end_char, 'occurrence': chunk.occurrence},
-    )
+    from arkb.retrieval.snapshot import chunk_result
+    return chunk_result(record, method='semantic', index_id=index_version,
+                        score=score, score_type='cosine_similarity')
 
 
 class QdrantSnapshotIndex:
