@@ -2,7 +2,6 @@
 
 import argparse
 from collections.abc import Sequence
-from contextlib import ExitStack, closing
 from dataclasses import asdict
 import json
 import math
@@ -11,16 +10,15 @@ import sqlite3
 import sys
 
 from httpx import HTTPError
-from ollama import Client, ResponseError
+from ollama import ResponseError
 
+from arkb.config import RuntimeConfig, RetrievalConfig, DEFAULT_EMBEDDING_MODEL, DEFAULT_GENERATION_MODEL
+from arkb.runtime import Runtime
 from arkb.knowledge.embeddings import resolve_embedding_spec
 from arkb.knowledge.models import QdrantConfig
 from arkb.generation.models import ContextConfig
 from arkb.generation.context import build_context
 from arkb.generation.generate import generate_cited_answer, load_generation_counter
-from arkb.knowledge.qdrant import connect_qdrant
-from arkb.knowledge.models import require_qdrant_backend
-from arkb.knowledge.embeddings import load_tokenizer
 
 
 def _add_context_arguments(parser):
@@ -59,6 +57,12 @@ def _answer_output(args, context, client):
     return json.dumps(result.to_dict(), ensure_ascii=False) if args.answer_json else result.text
 
 
+def _runtime_config(args):
+    return RuntimeConfig(host=args.host, timeout=args.timeout, tokenizer_cache=args.tokenizer_cache,
+                         offline=args.offline, embedding_model=args.embedding_model,
+                         qdrant_url=args.qdrant_url)
+
+
 def _parser():
     from arkb.knowledge.embeddings import DEFAULT_QUERY_INSTRUCTION
     parser = argparse.ArgumentParser(prog='arkb')
@@ -69,11 +73,11 @@ def _parser():
         command.add_argument('--vault-id', default='default')
         if name == 'status':
             continue
-        command.add_argument('--host', default='http://127.0.0.1:11434')
-        command.add_argument('--timeout', type=float, default=180.0)
+        command.add_argument('--host', default=RuntimeConfig.host)
+        command.add_argument('--timeout', type=float, default=RuntimeConfig.timeout)
         command.add_argument('--tokenizer-cache', type=Path)
         command.add_argument('--offline', action='store_true')
-        command.add_argument('--embedding-model', default='qwen3-embedding:0.6b' if name == 'index' else None)
+        command.add_argument('--embedding-model', default=DEFAULT_EMBEDDING_MODEL if name == 'index' else None)
         if name == 'index':
             command.add_argument('--notes-dir', type=Path, default=Path('example_notes'))
             command.add_argument('--qdrant-url', default=QdrantConfig.url)
@@ -99,25 +103,23 @@ def _parser():
             command.add_argument('--top-k', type=int, default=2)
             command.add_argument('--source')
             command.add_argument('--mode', choices=('semantic', 'bm25', 'lexical', 'hybrid'), default='semantic')
-            command.add_argument('--candidate-k', type=int, default=20, help='Candidates per retriever for hybrid.')
-            command.add_argument('--rrf-k', type=float, default=60)
+            command.add_argument('--candidate-k', type=int, default=RetrievalConfig.candidate_k, help='Candidates per retriever for hybrid.')
+            command.add_argument('--rrf-k', type=float, default=RetrievalConfig.rrf_k)
             command.add_argument('--rerank', action='store_true')
-            command.add_argument('--rerank-candidates', type=int, default=20)
+            command.add_argument('--rerank-candidates', type=int, default=RetrievalConfig.rerank_candidates)
             command.add_argument('--reranker-cache')
-            command.add_argument('--reranker-model', default='cross-encoder/ms-marco-MiniLM-L6-v2')
-            command.add_argument('--reranker-revision', default='233902d25c440f23af6f7d6e94d2946bac0bee0a')
-            command.add_argument('--reranker-max-length', type=int, default=512)
+            command.add_argument('--reranker-model', default=RetrievalConfig.reranker_model)
+            command.add_argument('--reranker-revision', default=RetrievalConfig.reranker_revision)
+            command.add_argument('--reranker-max-length', type=int, default=RetrievalConfig.reranker_max_length)
             command.add_argument('--exact', action='store_true')
             command.add_argument('--json', action='store_true', help='Print retrieval results without generation.')
-            command.add_argument('--generation-model', default='qwen3.5:4b')
+            command.add_argument('--generation-model', default=DEFAULT_GENERATION_MODEL)
             _add_context_arguments(command)
     return parser
 
 def main(argv: Sequence[str] | None = None) -> int:
     from arkb.knowledge.indexing import build_index
     from arkb.knowledge.documents import scan_notes
-    from arkb.retrieval import BM25Retriever, RetrievalEngine, Reranker
-    from arkb.runtime import SnapshotSemanticRetriever
     from arkb.knowledge.sqlite import SQLiteStorage
     from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
@@ -163,11 +165,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == 'index':
             # Finish the source scan before opening or changing index state.
             notes = scan_notes(args.notes_dir)
-            tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
-            with Client(host=args.host, timeout=args.timeout, trust_env=False) as client:
+            with Runtime(_runtime_config(args)) as runtime:
+                tokenizer = runtime.tokenizer()
+                client = runtime.model_client()
                 spec = resolve_embedding_spec(client, args.embedding_model, context_length=args.context_length)
-                with ExitStack() as resources, SQLiteStorage(args.db) as storage:
-                    qclient = resources.enter_context(closing(connect_qdrant(args.qdrant_url, args.timeout)))
+                with SQLiteStorage(args.db) as storage:
+                    qclient = runtime.qdrant_client(args.qdrant_url)
                     report = build_index(storage, notes, spec=spec, vault_id=args.vault_id, client=client,
                                          tokenizer=tokenizer, max_input_tokens=args.context_length,
                                          chunking=args.chunking, chunk_size=args.chunk_size,
@@ -177,31 +180,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                                          source_scope=str(args.notes_dir.resolve()), qdrant_config=qdrant_config, qdrant_client=qclient)
                     print(json.dumps(asdict(report), ensure_ascii=False))
             return 0
-        with ExitStack() as resources, SQLiteStorage(args.db, read_only=True) as storage:
+        with Runtime(_runtime_config(args)) as runtime, SQLiteStorage(args.db, read_only=True) as storage:
             manifest = storage.active_manifest(args.vault_id)
             if manifest is None:
                 raise ValueError('No published index; run the index command first.')
-            semantic, bm25, reranker, client = None, None, None, None
-            if args.mode in ('bm25', 'lexical', 'hybrid'):
-                bm25 = BM25Retriever.from_snapshot(storage, vault_id=args.vault_id,
-                                                   index_version=manifest.index_version)
-            if args.mode in ('semantic', 'hybrid'):
-                metadata = storage.build_metadata(manifest.index_version)['backend']
-                require_qdrant_backend(metadata)
-                qclient = resources.enter_context(closing(connect_qdrant(args.qdrant_url or metadata['url'], args.timeout)))
-                tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
-                client = resources.enter_context(Client(host=args.host, timeout=args.timeout, trust_env=False))
-                spec = resolve_embedding_spec(client, args.embedding_model or manifest.embedding_spec.model,
-                                              context_length=metadata['input']['max_tokens'])
-                semantic = SnapshotSemanticRetriever(storage, vault_id=args.vault_id, spec=spec,
-                    tokenizer=tokenizer, client=client, exact=args.exact,
-                    index_version=manifest.index_version, qdrant_client=qclient)
-            if args.rerank:
-                from arkb.retrieval.rerank import CrossEncoderScorer
-                reranker = Reranker(CrossEncoderScorer(model=args.reranker_model, revision=args.reranker_revision,
-                    max_length=args.reranker_max_length, cache_folder=args.reranker_cache, local_files_only=args.offline))
-            engine = RetrievalEngine(semantic=semantic, bm25=bm25, candidate_k=args.candidate_k,
-                                     rrf_k=args.rrf_k, reranker=reranker, rerank_candidates=args.rerank_candidates)
+            settings = RetrievalConfig(candidate_k=args.candidate_k, rrf_k=args.rrf_k,
+                rerank_candidates=args.rerank_candidates, reranker_model=args.reranker_model,
+                reranker_revision=args.reranker_revision, reranker_max_length=args.reranker_max_length,
+                reranker_cache=args.reranker_cache)
+            engine = runtime.retrieval_engine(storage, manifest, modes=(args.mode,),
+                rerank=args.rerank, settings=settings, exact=args.exact)
             response = engine.search(args.question, mode=args.mode, top_k=args.top_k,
                                      filters={'source': args.source} if args.source is not None else None,
                                      rerank=args.rerank)
@@ -210,8 +198,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                                   'results': [asdict(r) for r in response.results],
                                   'method': response.method}, ensure_ascii=False))
             else:
-                if client is None:
-                    client = resources.enter_context(Client(host=args.host, timeout=args.timeout, trust_env=False))
+                client = runtime.model_client()
                 context = _build_cli_context(args, response.results, client)
                 if args.show_context:
                     print(json.dumps(context.to_dict(), ensure_ascii=False))

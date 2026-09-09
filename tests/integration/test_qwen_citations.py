@@ -63,7 +63,7 @@ def test_citation_cli_saved_snapshot_subprocess(tmp_path, server_index):
     repo = Path(__file__).resolve().parents[2]
 
     def run(*args):
-        process = subprocess.run([sys.executable, '-B', '-m', 'arkb.cli', *args, '--db', str(db), '--vault-id', vault],
+        process = subprocess.run([sys.executable, '-B', '-m', 'arkb.interfaces.cli', *args, '--db', str(db), '--vault-id', vault],
                                  cwd=repo, capture_output=True, text=True, timeout=180)
         assert process.returncode == 0, process.stderr
         return json.loads(process.stdout)
@@ -87,7 +87,7 @@ def test_citation_evaluation_cli_records_results_without_modifying_index(tmp_pat
                                  'required_source_groups': [['project.md']]}) + '\n')
     out = tmp_path / 'evaluation'
     repo = Path(__file__).resolve().parents[2]
-    built = subprocess.run([sys.executable, '-B', '-m', 'arkb.cli', 'index',
+    built = subprocess.run([sys.executable, '-B', '-m', 'arkb.interfaces.cli', 'index',
                             '--db', str(db), '--vault-id', vault, '--qdrant-url', url, '--notes-dir', str(notes), '--offline'],
                            cwd=repo, capture_output=True, text=True, timeout=180)
     assert built.returncode == 0, built.stderr

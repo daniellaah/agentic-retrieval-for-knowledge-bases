@@ -7,7 +7,7 @@ from ollama import ChatResponse, Client, EmbedResponse, Message, ResponseError
 import pytest
 from tokenizers import Tokenizer, models, pre_tokenizers, processors
 
-from arkb.cli import main
+from arkb.interfaces.cli import main
 
 
 @pytest.fixture(autouse=True)
@@ -47,7 +47,7 @@ def client() -> MagicMock:
 @pytest.fixture(autouse=True)
 def client_factory(client: MagicMock, monkeypatch: pytest.MonkeyPatch) -> Mock:
     factory = Mock(return_value=client)
-    monkeypatch.setattr("arkb.cli.Client", factory)
+    monkeypatch.setattr("ollama.Client", factory)
     return factory
 
 
@@ -154,7 +154,7 @@ def generation_counter_adapter(monkeypatch):
         return GenerationCounter(kwargs['model'], 'test-counter',
                                  lambda messages: 12 + sum(len(m['content']) for m in messages))
     factory = Mock(side_effect=load)
-    monkeypatch.setattr("arkb.cli.load_generation_counter", factory)
+    monkeypatch.setattr("arkb.interfaces.cli.load_generation_counter", factory)
     return factory
 
 
@@ -235,7 +235,7 @@ def qdrant_connections(tmp_path, monkeypatch):
     import warnings
     def connect(*args):
         return QdrantClient(path=str(tmp_path / 'qdrant'))
-    monkeypatch.setattr('arkb.cli.connect_qdrant', connect)
+    monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', connect)
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', message='Payload indexes have no effect in the local Qdrant.*')
         yield
@@ -347,7 +347,7 @@ def test_cli_bm25_runs_without_model_or_vector_connections(indexed_client, clien
     client_factory.reset_mock()
     tokenizer_download.reset_mock()
     connect = Mock(side_effect=AssertionError('No Qdrant for lexical retrieval'))
-    monkeypatch.setattr('arkb.cli.connect_qdrant', connect)
+    monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', connect)
     assert main(['query', 'habit', '--mode', 'bm25', '--json', '--top-k', '1']) == 0
     response = json.loads(capsys.readouterr().out)
     assert response['method'] == 'bm25'

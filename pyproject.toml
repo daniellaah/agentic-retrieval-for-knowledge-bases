@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-arkb = "arkb.cli:main"
+arkb = "arkb.interfaces.cli:main"
 
 [project.optional-dependencies]
 rerank = [

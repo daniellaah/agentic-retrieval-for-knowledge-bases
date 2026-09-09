@@ -29,7 +29,7 @@ def test_new_process_query_and_incremental_cli_lifecycle(tmp_path):
     db = tmp_path / 'index.sqlite'
     vault = 'test-' + uuid4().hex
     def run(*args):
-        result = subprocess.run([sys.executable, '-B', '-m', 'arkb.cli', *args,
+        result = subprocess.run([sys.executable, '-B', '-m', 'arkb.interfaces.cli', *args,
                                  '--db', str(db), '--vault-id', vault],
                                 capture_output=True, text=True, timeout=120)
         assert result.returncode == 0, result.stderr
@@ -48,7 +48,7 @@ def test_new_process_query_and_incremental_cli_lifecycle(tmp_path):
         assert context['citation_sources'][0]['origins'][0]['index_version'] == first['manifest']['index_version']
         assert context['token_usage']['is_estimate'] is False
         assert context['token_usage']['prompt_tokens'] <= context['token_usage']['input_budget']
-        generated = subprocess.run([sys.executable, '-B', '-m', 'arkb.cli',
+        generated = subprocess.run([sys.executable, '-B', '-m', 'arkb.interfaces.cli',
                                     'query', 'Why cache vectors?', '--offline', '--source', 'a.md',
                                     '--db', str(db), '--vault-id', vault, '--max-output-tokens', '128'],
                                    capture_output=True, text=True, timeout=180)
