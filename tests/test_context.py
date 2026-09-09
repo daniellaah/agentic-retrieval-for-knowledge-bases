@@ -346,7 +346,7 @@ def test_snapshot_requirements_belong_to_context_not_shared_retrieval_contract()
     from dataclasses import replace
     from arkb.retrieval import SearchResult
     unscored = SearchResult(source_id='document', source='a.md', content='Evidence', method='grep')
-    with pytest.raises(ValueError, match='cosine'):
+    with pytest.raises(ValueError, match='declared score'):
         build_context('Q?', [unscored])
     for changed in (replace(source_hit(0, 4), source_id='wrong'),
                     replace(source_hit(0, 4), chunk_id=None),

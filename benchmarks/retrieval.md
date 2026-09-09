@@ -104,3 +104,33 @@ explicit reranker configuration. Relevance and latency use the same questions
 and snapshot for every mode. Full input ranks in reranked hit metadata show
 which candidates moved; isolated `evaluate_reranker` diagnostics measure just
 reranking latency. Whole-pipeline timings include all retrieval and scoring calls.
+
+The engine and CLI choose a supplied mode explicitly:
+
+```python
+from arkb.retrieval import RetrievalEngine
+engine = RetrievalEngine(semantic=semantic, bm25=bm25, reranker=reranker)
+engine.search("query", mode="hybrid", rerank=True, top_k=5)
+```
+
+`arkb query --mode semantic|bm25|hybrid --rerank --json` exposes the same choices;
+`lexical` aliases `bm25`. Semantic remains the default. Without `--rerank`, no
+reranker model is loaded. The independent benchmark runner continues to call the
+primitives directly so engine composition does not hide baseline behavior.
+
+For an isolated build with real Ollama embeddings and a cross-encoder, without
+Qdrant Server, use the example runner:
+
+```sh
+uv run --locked --extra rerank python -B benchmarks/run_local_retrieval.py \
+  --output /tmp/arkb-local-comparison
+```
+
+The output directory must be new. It contains the SQLite snapshot, Qdrant Local
+index, and `report.json` with complete responses, source hashes, corpus identity,
+model configuration, and frozen-candidate reranker ablations. It indexes the same
+Markdown chunks as production. `--offline` requires both tokenizers and reranker
+artifacts to be cached. Ollama still runs locally. `--modes` can select individual
+baselines. Qdrant Local runs exact search; its timings cannot establish server or
+ANN performance. The checked-in [example measurement](retrieval-example.md)
+records a real run and its limits.

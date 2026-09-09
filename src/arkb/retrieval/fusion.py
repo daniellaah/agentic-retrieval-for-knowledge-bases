@@ -22,7 +22,7 @@ def rrf(ranked_lists: Mapping[str, Sequence[SearchResult]] | Sequence[Sequence[S
         str(i): values for i, values in enumerate(ranked_lists)}
     if any(not isinstance(name, str) or not name.strip() for name in lists):
         raise ValueError('RRF list names must be nonblank strings.')
-    evidence, contributions = {}, {}
+    evidence, contributions, provenance = {}, {}, {}
     for name in sorted(lists):
         seen = set()
         for rank, hit in enumerate(lists[name], 1):
@@ -31,11 +31,13 @@ def rrf(ranked_lists: Mapping[str, Sequence[SearchResult]] | Sequence[Sequence[S
             key = hit.identity
             previous = evidence.setdefault(key, hit)
             if ((previous.source, previous.content, previous.start_char, previous.end_char) !=
-                    (hit.source, hit.content, hit.start_char, hit.end_char)
-                    or any(previous.metadata.get(field) != hit.metadata.get(field)
-                           for field in ('index_version', 'document_revision', 'vault_id')
-                           if previous.metadata.get(field) is not None and hit.metadata.get(field) is not None)):
+                    (hit.source, hit.content, hit.start_char, hit.end_char)):
                 raise ValueError('RRF received conflicting evidence for one identity.')
+            known = provenance.setdefault(key, {})
+            for field in ('index_version', 'document_revision', 'vault_id'):
+                value = hit.metadata.get(field)
+                if value is not None and known.setdefault(field, value) != value:
+                    raise ValueError('RRF received conflicting provenance for one identity.')
             if key in seen:
                 continue
             seen.add(key)

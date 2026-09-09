@@ -105,6 +105,7 @@ class Retriever(Protocol):
     def search(self, query: str, *, top_k: int = 2,
                filters: Mapping[str, str] | None = None) -> SearchResponse: ...
 
+
 def validate_request(query: str, top_k: int, filters: Mapping[str, str] | None) -> dict[str, str]:
     """Validate the original query and explicit retrieval parameters."""
     if not isinstance(query, str) or not query.strip():

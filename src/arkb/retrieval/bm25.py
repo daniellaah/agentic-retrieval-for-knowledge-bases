@@ -36,7 +36,8 @@ class BM25Retriever:
             if revisions.setdefault(record.document_id, record.document_revision) != record.document_revision:
                 raise ValueError('BM25 cannot mix document revisions.')
         self.index_id, self.k1, self.b = index_id, k1, b
-        SearchResponse(query='validate index', method='bm25', index_id=index_id)
+        if index_id is not None and (not isinstance(index_id, str) or not index_id.strip()):
+            raise ValueError('index_id must be nonblank text.')
         self._postings = defaultdict(dict)
         self._lengths = []
         for ordinal, record in enumerate(self.records):

@@ -85,7 +85,6 @@ def evaluate_retrievers(retrievers, cases: Sequence[dict], *, top_k: int = 10,
             'summary': summary, 'results': rows}
 
 
-
 def evaluate_reranker(reranker, query, candidates, relevance, *, top_k=10,
                       relevance_key='source') -> dict:
     """Score one frozen candidate set, retaining input/output and rank movement."""
@@ -107,8 +106,9 @@ def evaluate_reranker(reranker, query, candidates, relevance, *, top_k=10,
             'rank_changes': [{'identity': list(hit.identity), 'before': ranks[hit.identity], 'after': i}
                              for i, hit in enumerate(results, 1)]}
 
+
 def main(argv=None) -> int:
-    """Run semantic/BM25 baselines against one pinned production snapshot."""
+    """Run explicit retrieval configurations against one pinned production snapshot."""
     import argparse
     from contextlib import ExitStack, closing
     from dataclasses import asdict
@@ -149,6 +149,20 @@ def main(argv=None) -> int:
         parser.error('--timeout must be positive and finite')
     raw = args.cases.read_bytes()
     cases = [json.loads(line) for line in raw.splitlines() if line.strip()]
+    from arkb.retrieval.contracts import validate_request
+    from arkb.retrieval.fusion import rrf
+    if not cases or len({case['id'] for case in cases}) != len(cases):
+        parser.error('Cases must be nonempty with unique IDs')
+    for case in cases:
+        validate_request(case['question'], args.top_k, case.get('filters'))
+        ranking_metrics(case['relevance'], [], k=args.top_k)
+    if set(args.modes) & {'hybrid', 'hybrid_reranked'}:
+        validate_request('configuration', args.candidate_k, None)
+        rrf([], k=args.rrf_k)
+        if args.top_k > args.candidate_k:
+            parser.error('top-k cannot exceed hybrid candidate-k')
+    if 'hybrid_reranked' in args.modes and not args.top_k <= args.rerank_candidates <= args.candidate_k:
+        parser.error('Require top-k <= rerank-candidates <= candidate-k')
     with ExitStack() as resources:
         storage = resources.enter_context(SQLiteStorage(args.db, read_only=True))
         manifest = storage.get_manifest(args.index_version) if args.index_version else storage.active_manifest(args.vault_id)
@@ -164,9 +178,7 @@ def main(argv=None) -> int:
         if set(args.modes) & {'semantic', 'hybrid', 'hybrid_reranked'}:
             from ollama import Client
             from arkb.embeddings import resolve_embedding_spec
-            from arkb.retrieval.semantic import SemanticRetriever
-            from arkb.retrieval.ollama import OllamaQueryEmbedder
-            from arkb.retrieval.qdrant import QdrantSnapshotIndex
+            from arkb.retrieval.qdrant import SnapshotSemanticRetriever
             from arkb.storage import connect_qdrant, require_qdrant_backend
             from arkb.tokenization import load_tokenizer
             metadata = storage.build_metadata(manifest.index_version)['backend']
@@ -176,12 +188,9 @@ def main(argv=None) -> int:
             tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
             spec = resolve_embedding_spec(client, manifest.embedding_spec.model,
                                           context_length=metadata['input']['max_tokens'])
-            index = QdrantSnapshotIndex(storage, qclient, vault_id=args.vault_id,
-                                       index_version=manifest.index_version, exact=True)
-            embedder = OllamaQueryEmbedder(client=client, spec=spec, tokenizer=tokenizer,
-                tokenizer_identity=index.inputs['tokenizer'], max_input_tokens=index.inputs['max_tokens'],
-                query_instruction=manifest.query_instruction)
-            retrievers['semantic'] = SemanticRetriever(embedder, index)
+            retrievers['semantic'] = SnapshotSemanticRetriever(storage, vault_id=args.vault_id,
+                spec=spec, tokenizer=tokenizer, client=client, index_version=manifest.index_version,
+                exact=True, qdrant_client=qclient)
         if set(args.modes) & {'bm25', 'hybrid', 'hybrid_reranked'}:
             retrievers['bm25'] = BM25Retriever(records, index_id=manifest.index_version,
                                                 k1=args.bm25_k1, b=args.bm25_b)

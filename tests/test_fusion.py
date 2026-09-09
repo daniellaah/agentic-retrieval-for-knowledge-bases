@@ -53,3 +53,11 @@ def test_invalid_rrf_parameters_fail(options):
     from arkb.retrieval.fusion import rrf
     with pytest.raises(ValueError):
         rrf([], **options)
+
+
+def test_unknown_provenance_does_not_hide_conflicting_known_snapshots():
+    from arkb.retrieval.fusion import rrf
+    a = hit('a')
+    with pytest.raises(ValueError, match='conflicting'):
+        rrf([[a], [replace(a, metadata={'index_version': 'v1'})],
+             [replace(a, metadata={'index_version': 'v2'})]])

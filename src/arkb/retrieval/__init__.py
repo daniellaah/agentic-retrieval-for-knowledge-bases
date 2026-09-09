@@ -1,10 +1,15 @@
-"""Public retrieval contracts and provider-independent semantic search."""
+"""Public deterministic retrieval primitives and explicit composition."""
 
-from arkb.retrieval.contracts import Retriever, SearchResponse, SearchResult
 from arkb.retrieval.bm25 import BM25Retriever
-from arkb.retrieval.reranker import CandidateScorer, Reranker, RerankedRetriever
-from arkb.retrieval.hybrid import HybridRetriever
+from arkb.retrieval.contracts import Retriever, SearchResponse, SearchResult
+from arkb.retrieval.engine import RetrievalEngine
 from arkb.retrieval.fusion import rrf
+from arkb.retrieval.hybrid import HybridRetriever
+from arkb.retrieval.reranker import CandidateScorer, RerankedRetriever, Reranker
 from arkb.retrieval.semantic import Embedder, SemanticRetriever, VectorIndex
 
-__all__ = ['RerankedRetriever', 'CandidateScorer', 'Reranker', 'HybridRetriever', 'rrf', 'BM25Retriever', 'Retriever', 'SearchResult', 'SearchResponse', 'Embedder', 'VectorIndex', 'SemanticRetriever']
+__all__ = [
+    'SearchResult', 'SearchResponse', 'Retriever', 'Embedder', 'VectorIndex',
+    'SemanticRetriever', 'BM25Retriever', 'rrf', 'HybridRetriever',
+    'CandidateScorer', 'Reranker', 'RerankedRetriever', 'RetrievalEngine',
+]

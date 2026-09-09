@@ -339,3 +339,102 @@ def test_cli_qdrant_config_errors_precede_service_calls(options, client_factory)
         main(['index', *options])
     assert error.value.code == 2
     client_factory.assert_not_called()
+
+
+def test_cli_bm25_runs_without_model_or_vector_connections(indexed_client, client_factory,
+                                                          tokenizer_download, monkeypatch, capsys):
+    capsys.readouterr()
+    client_factory.reset_mock()
+    tokenizer_download.reset_mock()
+    connect = Mock(side_effect=AssertionError('No Qdrant for lexical retrieval'))
+    monkeypatch.setattr('arkb.cli.connect_qdrant', connect)
+    assert main(['query', 'habit', '--mode', 'bm25', '--json', '--top-k', '1']) == 0
+    response = json.loads(capsys.readouterr().out)
+    assert response['method'] == 'bm25'
+    assert response['results'][0]['source'] == 'habits.md'
+    assert response['results'][0]['score_type'] == 'bm25'
+    client_factory.assert_not_called()
+    tokenizer_download.assert_not_called()
+    connect.assert_not_called()
+
+
+@pytest.mark.parametrize('mode', ['semantic', 'bm25', 'lexical', 'hybrid'])
+def test_cli_modes_support_optional_reranking_without_generation(indexed_client, mode, monkeypatch, capsys):
+    import sys
+    from types import SimpleNamespace
+    import numpy as np
+    capsys.readouterr()
+    model = SimpleNamespace(config=SimpleNamespace(num_labels=1),
+        predict=lambda pairs, **kw: np.array([5. if 'habit' in passage else -1. for _, passage in pairs]))
+    monkeypatch.setitem(sys.modules, 'sentence_transformers', SimpleNamespace(CrossEncoder=lambda *a, **kw: model))
+    monkeypatch.setitem(sys.modules, 'torch.nn', SimpleNamespace(Identity=lambda: None))
+    args = ['query', 'habit', '--mode', mode, '--json', '--top-k', '1', '--offline']
+    assert main(args) == 0
+    before = json.loads(capsys.readouterr().out)
+    assert before['method'] == ('bm25' if mode == 'lexical' else mode)
+    assert main(args + ['--rerank']) == 0
+    after = json.loads(capsys.readouterr().out)
+    assert after['method'] == before['method'] + '+rerank'
+    hit = after['results'][0]
+    assert hit['source'] == 'habits.md' and hit['score_type'] == 'cross_encoder_logit'
+    assert hit['metadata']['rerank']['input_method'] == before['method']
+    if mode == 'hybrid':
+        assert hit['metadata']['fusion']['contributions']
+    indexed_client.chat.assert_not_called()
+    context_args = [arg for arg in args if arg != '--json'] + ['--rerank', '--show-context']
+    assert main(context_args) == 0
+    origin = json.loads(capsys.readouterr().out)['citation_sources'][0]['origins'][0]
+    assert origin['score'] == 5. and origin['score_type'] == 'cross_encoder_logit'
+
+
+@pytest.mark.parametrize('options', [
+    ['--mode', 'hybrid', '--candidate-k', '1'], ['--rrf-k', '-1'],
+    ['--rerank', '--rerank-candidates', '1'], ['--candidate-k', '0'],
+])
+def test_invalid_retrieval_depths_fail_before_model_calls(options, client_factory):
+    with pytest.raises(SystemExit) as error:
+        main(['query', 'question'] + options)
+    assert error.value.code == 2
+    client_factory.assert_not_called()
+
+
+@pytest.mark.parametrize('mode', ['bm25', 'hybrid'])
+def test_new_retrieval_scores_can_build_citation_context(indexed_client, capsys, mode):
+    capsys.readouterr()
+    assert main(['query', 'habit', '--mode', mode, '--show-context', '--source', 'habits.md']) == 0
+    context = json.loads(capsys.readouterr().out)
+    origin = context['citation_sources'][0]['origins'][0]
+    assert origin['method'] == mode
+    assert origin['score_type'] == ('bm25' if mode == 'bm25' else 'rrf')
+
+
+@pytest.mark.filterwarnings('ignore:Local mode performs exact.*')
+def test_four_way_benchmark_runner_uses_saved_adapters_and_preserves_artifacts(indexed_client, tmp_path,
+                                                                            monkeypatch, capsys):
+    import sys
+    from types import SimpleNamespace
+    import numpy as np
+    from qdrant_client import QdrantClient
+    from arkb.retrieval_evaluation import main as compare
+    capsys.readouterr()
+    monkeypatch.setattr('ollama.Client', lambda **kw: indexed_client)
+    monkeypatch.setattr('arkb.storage.connect_qdrant', lambda *a: QdrantClient(path=str(tmp_path / 'qdrant')))
+    model = SimpleNamespace(config=SimpleNamespace(num_labels=1),
+        predict=lambda pairs, **kw: np.array([5. if 'habit' in text else -1. for _, text in pairs]))
+    monkeypatch.setitem(sys.modules, 'sentence_transformers', SimpleNamespace(CrossEncoder=lambda *a, **kw: model))
+    monkeypatch.setitem(sys.modules, 'torch.nn', SimpleNamespace(Identity=lambda: None))
+    cases, output = tmp_path / 'cases.jsonl', tmp_path / 'results.json'
+    cases.write_text(json.dumps({'id': 'habit', 'question': 'habit', 'relevance': {'habits.md': 3}}))
+    args = ['--cases', str(cases), '--output', str(output), '--offline', '--top-k', '2',
+            '--modes', 'semantic', 'bm25', 'hybrid', 'hybrid_reranked']
+    assert compare(args) == 0
+    report = json.loads(output.read_text())
+    assert set(report['summary']) == {'semantic', 'bm25', 'hybrid', 'hybrid_reranked'}
+    assert report['summary']['hybrid_reranked']['mrr'] == 1
+    row = report['results'][0]['modes']['hybrid_reranked']
+    assert row['response']['results'][0]['metadata']['rerank']['candidate_count'] == 3
+    assert report['run']['cases'][0]['id'] == 'habit' and report['run']['source_hashes']
+    before = output.read_bytes()
+    with pytest.raises(SystemExit):
+        compare(args)
+    assert output.read_bytes() == before

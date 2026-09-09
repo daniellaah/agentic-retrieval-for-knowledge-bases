@@ -153,6 +153,7 @@ class BuiltContext:
                     hit.chunk_id, hit.source_id,
                     metadata['document_revision'], metadata['vault_id'],
                     metadata['index_version'],
+                    score_type=hit.score_type, method=hit.method,
                 ))
             sources.append(CitationSource(f'S{i}', block.source, block.title, block.content,
                                           block.start_char, block.end_char, tuple(origins)))
@@ -266,9 +267,11 @@ def _validate_snapshot_evidence(hit: SearchResult) -> None:
     This is a consumer constraint, not a requirement of the retrieval contract.
     Recheck serialized source/chunk identity before merging or citing evidence.
     """
-    if (not isinstance(hit, SearchResult) or hit.score_type != 'cosine_similarity'
-            or hit.score is None or not math.isfinite(hit.score) or not -1 <= hit.score <= 1):
-        raise ValueError('Expected a search result with a finite cosine score.')
+    if (not isinstance(hit, SearchResult) or not hit.score_type
+            or hit.score is None or not math.isfinite(hit.score)):
+        raise ValueError('Expected a search result with a finite declared score.')
+    if hit.score_type == 'cosine_similarity' and not -1 <= hit.score <= 1:
+        raise ValueError('Expected a finite cosine score in [-1, 1].')
     try:
         metadata = hit.metadata
         version = metadata['index_version']

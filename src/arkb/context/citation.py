@@ -40,11 +40,17 @@ class CitationOrigin:
     document_revision: str
     vault_id: str
     index_version: str
+    score_type: str = 'cosine_similarity'
+    method: str = 'semantic'
 
     def __post_init__(self):
         _span(self.start_char, self.end_char)
-        if type(self.score) not in (int, float) or not math.isfinite(self.score) or not -1 <= self.score <= 1:
-            raise ValueError('Origin score must be a finite cosine score.')
+        if type(self.score) not in (int, float) or not math.isfinite(self.score):
+            raise ValueError('Origin score must be finite.')
+        _text(self.score_type, 'Origin score_type')
+        _text(self.method, 'Origin method')
+        if self.score_type == 'cosine_similarity' and not -1 <= self.score <= 1:
+            raise ValueError('Origin cosine score must be in [-1, 1].')
         for value in (self.chunk_id, self.document_id, self.document_revision, self.vault_id, self.index_version):
             _text(value, 'Origin identity')
 

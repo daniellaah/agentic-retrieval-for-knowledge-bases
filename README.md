@@ -8,7 +8,7 @@ and sample Markdown notes in `example_notes/`.
 
 ## Python modules
 
-The package separates knowledge preparation, semantic retrieval, context
+The package separates knowledge preparation, deterministic retrieval, context
 construction, and answer generation. The CLI composes these stages; generation
 is an independent capability. Embeddings, embedding tokenization, storage, and
 data records are shared by the stages that use them.
@@ -22,6 +22,13 @@ data records are shared by the stages that use them.
 | `indexing/index.py` | Complete/incremental builds, Qdrant writes, HNSW readiness, verification, and failed-candidate cleanup |
 | `retrieval/contracts.py` | Source-based `SearchResult` and ranked `SearchResponse` contracts |
 | `retrieval/semantic.py` | `SemanticRetriever` orchestration and replaceable `Embedder` / `VectorIndex` capabilities |
+| `retrieval/bm25.py` | Independent lexical retrieval over the same saved chunks |
+| `retrieval/fusion.py` | Pure RRF with stable deduplication and per-list score/rank provenance |
+| `retrieval/hybrid.py` | Fixed BM25 + semantic + RRF composition |
+| `retrieval/reranker.py` | Replaceable candidate scorer, independent reranking, optional composition |
+| `retrieval/cross_encoder.py` | Optional pinned CPU cross-encoder adapter |
+| `retrieval/engine.py` | Explicit mode selection and optional reranking |
+| `retrieval/snapshot.py` | Shared source/section evidence translation |
 | `retrieval/ollama.py` | Query preparation, token validation and Ollama query embedding |
 | `retrieval/qdrant.py` | Read-only Qdrant search, pinned SQLite evidence lookup and current adapter wiring |
 | `context/builder.py` | Evidence provenance, deduplication, overlap merging, budgets, and message rendering |
@@ -31,12 +38,13 @@ data records are shared by the stages that use them.
 | `schema.py` | Shared notes, chunks, search results, embedding specs, manifests, and stable identity rules |
 | `storage.py` | SQLite cache/snapshots, build states, locks, atomic publication, and shared Qdrant connection/configuration checks |
 | `generation.py` | Grounded answer generation and the Qwen generation-tokenizer adapter |
+| `retrieval_evaluation.py` | Recall@K, MRR, nDCG@K, latency, frozen-candidate reranking and comparison runner |
 | `evaluation.py` | Qdrant exact/ANN comparisons, context/citation evaluation and reproducible run artifacts |
 | `cli.py` | Command arguments, resource setup, workflow calls, and output |
 
 Use `arkb.indexing.build_index`, `arkb.retrieval.SemanticRetriever.search`, and
-`arkb.context.build_context` as the main stage APIs. `arkb.retrieval` exports only
-the shared result contracts and semantic capabilities. The current application
+`arkb.context.build_context` as the main stage APIs. `arkb.retrieval` exports
+shared contracts, each independent retrieval primitive, and `RetrievalEngine`. The current application
 adapter is `arkb.retrieval.qdrant.search_index`; direct vector searches use
 `arkb.retrieval.qdrant.search_qdrant`. Collection writes and lifecycle operations
 use `arkb.indexing.QdrantIndex`, with `arkb.indexing.QdrantConfig` settings.
@@ -47,7 +55,8 @@ has been replaced by `retrieval.contracts.SearchResult`, also exported from
 The package and command are named `arkb`. Run `uv sync --locked` after updating.
 Only `index`, `query`, and `status` are supported; the old bare-question command,
 `obsidian-rag` alias, `retrieve`, and `search_numpy` APIs have been removed.
-Qdrant is the only search backend. NumPy remains a dependency for embedding
+Qdrant is the semantic search backend; BM25 uses saved SQLite text and an
+in-memory lexical index. NumPy remains a dependency for embedding
 validation, vector serialization, snapshot verification, and evaluation statistics.
 
 The default `.obsidian-rag/index.sqlite` path, persisted identity namespaces,
@@ -67,7 +76,8 @@ Functional tests remain in `tests/test_<module>.py`. Real-service tests live in
 - Python 3.13
 - uv
 - Ollama, running locally for model operations
-- Qdrant Server, running for indexing and queries
+- Qdrant Server, running for indexing and semantic/hybrid queries
+- Optional `uv sync --locked --extra rerank` for local cross-encoder reranking
 
 ## Set up the Python environment
 
@@ -104,7 +114,8 @@ uv run --locked arkb status
 
 `index` reads Markdown files directly in the selected directory, splits long notes,
 embeds uncached inputs, writes a Qdrant collection, and publishes a snapshot.
-`query` embeds only the question and reads evidence from that saved snapshot.
+`query` defaults to semantic retrieval, embeds only the question, and reads
+evidence from that saved snapshot. `--mode bm25` reads text without embedding.
 Its default output is a structured-citation answer rendered as text; `--json`
 returns retrieved evidence without calling the generation model.
 
@@ -124,6 +135,11 @@ produces an error instead of rebuilding during a query.
 | index | `--chunk-size` / `--chunk-overlap` | `512` / `64` | Body token limit and target overlap |
 | index | `--context-length` | `8192` | Full embedding-input limit, including title and special tokens |
 | query | `--top-k` | `2` | Maximum candidates before context processing |
+| query | `--mode` | `semantic` | `semantic`, `bm25` (`lexical` alias), or `hybrid` |
+| query | `--candidate-k` / `--rrf-k` | `20` / `60` | Per-retriever hybrid depth and RRF rank constant |
+| query | `--rerank` | off | Apply the optional cross-encoder after candidate retrieval |
+| query | `--rerank-candidates` | `20` | Candidate pool scored before final top-K |
+| query | `--reranker-cache` | Hub default | Optional model cache directory |
 | query | `--source` | unset | Filter by an exact saved source path |
 | query | `--exact` | off | Request Qdrant exact search |
 | query | `--generation-model` | `qwen3.5:4b` | Answer model |
@@ -136,7 +152,7 @@ produces an error instead of rebuilding during a query.
 | index/query | `--host` | `http://127.0.0.1:11434` | Ollama endpoint |
 | index/query | `--timeout` | `180` | Request timeout in seconds |
 | index/query | `--tokenizer-cache` | Hub default | Tokenizer cache directory |
-| index/query | `--offline` | off | Prevent tokenizer downloads; local model/server calls still occur |
+| index/query | `--offline` | off | Prevent tokenizer/reranker downloads; local model/server calls still occur |
 
 The CLI validates the supported Qwen 0.6b embedding tokenizer/model pairing.
 The installed model supplies its digest, dimensions and maximum context length.
@@ -429,7 +445,7 @@ This greedy policy is deterministic; it does not claim globally optimal evidence
 selection or automatically infer which facts a question requires.
 
 The shared `SearchResult` does not require a chunk or score. This context builder
-currently consumes snapshot evidence with cosine scores, chunk IDs, source spans,
+currently consumes snapshot evidence with declared finite scores, chunk IDs, source spans,
 and `title`, `chunk_index`, `vault_id`, `document_revision`, `index_version` metadata.
 It verifies those identities before merging or citing; unsupported evidence raises
 an error. These are context-consumer constraints. Citation origins retain complete
@@ -597,6 +613,56 @@ pointer. Failed candidates cannot replace active data. The storage schema is
 versioned independently of record fingerprints; unknown versions are rejected.
 SQLite files belong in a local runtime directory, never the retrieval corpus.
 
+## Retrieval strategies
+
+Choose modes explicitly; each primitive remains independently callable:
+
+```python
+from arkb.retrieval import BM25Retriever, RetrievalEngine, Reranker
+from arkb.retrieval.cross_encoder import CrossEncoderScorer
+
+bm25 = BM25Retriever.from_snapshot(storage, vault_id="default", index_version=index.index_id)
+engine = RetrievalEngine(semantic=semantic, bm25=bm25, candidate_k=20,
+                         reranker=Reranker(CrossEncoderScorer(local_files_only=True)))
+response = engine.search("rare identifier", mode="bm25", top_k=5)
+response = engine.search("related meaning", mode="hybrid", top_k=5, rerank=True)
+```
+
+Here `semantic` and `index` refer to the adapters in the semantic example below.
+Omit the `reranker` argument to use no reranking dependency. The engine imports
+no provider SDK or model and makes no automatic mode choices or fallbacks.
+`BM25Retriever`, `rrf`, `HybridRetriever`, `Reranker`, and `RerankedRetriever`
+remain public for direct use and ablations. Reranking works with any retriever.
+
+```sh
+uv run --locked arkb query "ERR_CONNECTION_RESET" --mode bm25 --json
+uv run --locked arkb query "How do rankings combine?" --mode hybrid --top-k 5 --json
+uv run --locked --extra rerank arkb query "How do rankings combine?" \
+  --mode hybrid --rerank --top-k 5 --json
+```
+
+BM25 indexes title+body with NFC/casefold Unicode word tokens. It retains
+underscores, splits punctuation, and performs no stemming or CJK segmentation.
+A lexical query only needs the published SQLite snapshot. Hybrid queries use
+that same snapshot for both primitives and fuse ranks with RRF, never raw scores.
+The fixed depths must satisfy `top_k <= candidate_k` for hybrid and
+`top_k <= rerank_candidates <= candidate_k` for hybrid with reranking.
+
+Each hit declares `score_type`: cosine similarity, BM25, RRF, or cross-encoder
+logit. Higher is better for these implementations, but scores from different
+methods/configurations are not comparable. `metadata.fusion.contributions`
+retains input ranks, scores, semantics and provenance; `metadata.rerank` retains
+the input rank/score and scorer identity. Ties in the new stages use stable
+identity. Context and citation output preserve each origin's method and score
+semantics without recalibrating them.
+
+The optional cross-encoder is pinned to a model commit and defaults to CPU,
+512-token query/passage pairs, and raw logits. Its tokenizer truncates long pairs
+while evidence stays verbatim. Use `--reranker-model`, `--reranker-revision`, and
+`--reranker-max-length` for explicit alternatives. `--offline` prevents downloads.
+See [retrieval benchmarks](benchmarks/retrieval.md) for the shared dataset,
+commands, frozen reranker evaluation, exact formulas and measured limitations.
+
 ## Semantic retrieval
 
 `SemanticRetriever` is an independently callable primitive:
@@ -621,10 +687,9 @@ the same capabilities without changing callers.
 
 The core imports no provider SDK, storage, indexing, context builder or generation
 module. It neither rewrites queries nor selects strategies, chunks documents,
-builds indexes, writes embedding caches or generates answers. Lexical, BM25,
-hybrid/fusion, reranking, tools and agents are not implemented by this refactor.
-Future retrieval methods can return the same contracts; a future caller can
-compose them without changing semantic search.
+builds indexes, writes embedding caches or generates answers. BM25, fusion,
+hybrid and reranking are separate primitives sharing the same contract.
+Tools, agents, routing and query rewriting remain outside this subsystem.
 
 ### Result contract
 
@@ -633,14 +698,15 @@ compose them without changing semantic search.
 | `source_id` | Stable document identity, independent of chunks and revisions; current snapshots use `ChunkRecord.document_id` (vault + source path) |
 | `source` | Source address; currently a vault-relative Markdown path |
 | `content` | Source content or a verbatim snippet |
-| `method` | Retrieval method, currently `semantic` |
+| `method` | Retrieval stage: `semantic`, `bm25`, `rrf`, `hybrid`, or `reranked` |
 | `metadata` | JSON provenance; snapshots retain title, vault, document revision, index version, chunk index and Markdown section information |
 | `chunk_id` | Optional chunk identity |
+| `identity` | Computed deduplication key: document + chunk, then document + span, then document |
 | `start_char`, `end_char` | Optional end-exclusive source span; current coordinates address `Note.content` |
 | `score`, `score_type` | Optional score and its declared semantics; neither is fabricated for unscored methods |
 
 `SearchResponse` contains the original `query`, `method`, ranked `results` tuple,
-and optional `index_id`. No matches produce an empty tuple; errors propagate
+and optional `index_id`. Rank is its one-based tuple position. No matches produce an empty tuple; errors propagate
 instead of becoming empty success responses. Dataclasses serialize with `asdict`.
 For example, an unscored source needs only:
 

@@ -96,6 +96,15 @@ def _parser():
             command.add_argument('question')
             command.add_argument('--top-k', type=int, default=2)
             command.add_argument('--source')
+            command.add_argument('--mode', choices=('semantic', 'bm25', 'lexical', 'hybrid'), default='semantic')
+            command.add_argument('--candidate-k', type=int, default=20, help='Candidates per retriever for hybrid.')
+            command.add_argument('--rrf-k', type=float, default=60)
+            command.add_argument('--rerank', action='store_true')
+            command.add_argument('--rerank-candidates', type=int, default=20)
+            command.add_argument('--reranker-cache')
+            command.add_argument('--reranker-model', default='cross-encoder/ms-marco-MiniLM-L6-v2')
+            command.add_argument('--reranker-revision', default='233902d25c440f23af6f7d6e94d2946bac0bee0a')
+            command.add_argument('--reranker-max-length', type=int, default=512)
             command.add_argument('--exact', action='store_true')
             command.add_argument('--json', action='store_true', help='Print retrieval results without generation.')
             command.add_argument('--generation-model', default='qwen3.5:4b')
@@ -105,7 +114,8 @@ def _parser():
 def main(argv: Sequence[str] | None = None) -> int:
     from arkb.indexing.index import build_index
     from arkb.indexing.loaders import scan_notes
-    from arkb.retrieval.qdrant import search_index
+    from arkb.retrieval import BM25Retriever, RetrievalEngine, Reranker
+    from arkb.retrieval.qdrant import SnapshotSemanticRetriever
     from arkb.storage import SQLiteStorage
     from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
@@ -131,6 +141,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             parser.error('chunk size must be positive and overlap must be in [0, chunk size)')
     if args.command == 'query':
         _validate_context_arguments(parser, args)
+        if (args.candidate_k <= 0 or args.rerank_candidates <= 0 or args.reranker_max_length <= 0
+                or not math.isfinite(args.rrf_k) or args.rrf_k < 0):
+            parser.error('candidate/token limits must be positive; RRF k must be finite and nonnegative')
+        if args.mode == 'hybrid' and max(args.top_k, args.rerank_candidates if args.rerank else 0) > args.candidate_k:
+            parser.error('hybrid requires top-k and rerank-candidates <= candidate-k')
+        if args.rerank and args.top_k > args.rerank_candidates:
+            parser.error('reranking requires top-k <= rerank-candidates')
     if args.command == 'query' and (not args.question.strip() or args.top_k <= 0):
         parser.error('question must not be blank and --top-k must be positive')
     try:
@@ -162,27 +179,42 @@ def main(argv: Sequence[str] | None = None) -> int:
             manifest = storage.active_manifest(args.vault_id)
             if manifest is None:
                 raise ValueError('No published index; run the index command first.')
-            metadata = storage.build_metadata(manifest.index_version)['backend']
-            require_qdrant_backend(metadata)
-            qclient = resources.enter_context(closing(connect_qdrant(args.qdrant_url or metadata['url'], args.timeout)))
-            tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
-            with Client(host=args.host, timeout=args.timeout, trust_env=False) as client:
+            semantic, bm25, reranker, client = None, None, None, None
+            if args.mode in ('bm25', 'lexical', 'hybrid'):
+                bm25 = BM25Retriever.from_snapshot(storage, vault_id=args.vault_id,
+                                                   index_version=manifest.index_version)
+            if args.mode in ('semantic', 'hybrid'):
+                metadata = storage.build_metadata(manifest.index_version)['backend']
+                require_qdrant_backend(metadata)
+                qclient = resources.enter_context(closing(connect_qdrant(args.qdrant_url or metadata['url'], args.timeout)))
+                tokenizer = load_tokenizer(cache_dir=args.tokenizer_cache, local_files_only=args.offline)
+                client = resources.enter_context(Client(host=args.host, timeout=args.timeout, trust_env=False))
                 spec = resolve_embedding_spec(client, args.embedding_model or manifest.embedding_spec.model,
-                                     context_length=metadata['input']['max_tokens'])
-                response = search_index(storage, args.question, vault_id=args.vault_id, spec=spec,
-                                       tokenizer=tokenizer, client=client, top_k=args.top_k,
-                                       source=args.source, exact=args.exact, index_version=manifest.index_version,
-                                       qdrant_client=qclient)
-                if args.json:
-                    print(json.dumps({'index_version': manifest.index_version, 'question': args.question,
-                                      'results': [asdict(r) for r in response.results],
-                                      'method': response.method}, ensure_ascii=False))
+                                              context_length=metadata['input']['max_tokens'])
+                semantic = SnapshotSemanticRetriever(storage, vault_id=args.vault_id, spec=spec,
+                    tokenizer=tokenizer, client=client, exact=args.exact,
+                    index_version=manifest.index_version, qdrant_client=qclient)
+            if args.rerank:
+                from arkb.retrieval.cross_encoder import CrossEncoderScorer
+                reranker = Reranker(CrossEncoderScorer(model=args.reranker_model, revision=args.reranker_revision,
+                    max_length=args.reranker_max_length, cache_folder=args.reranker_cache, local_files_only=args.offline))
+            engine = RetrievalEngine(semantic=semantic, bm25=bm25, candidate_k=args.candidate_k,
+                                     rrf_k=args.rrf_k, reranker=reranker, rerank_candidates=args.rerank_candidates)
+            response = engine.search(args.question, mode=args.mode, top_k=args.top_k,
+                                     filters={'source': args.source} if args.source is not None else None,
+                                     rerank=args.rerank)
+            if args.json:
+                print(json.dumps({'index_version': manifest.index_version, 'question': args.question,
+                                  'results': [asdict(r) for r in response.results],
+                                  'method': response.method}, ensure_ascii=False))
+            else:
+                if client is None:
+                    client = resources.enter_context(Client(host=args.host, timeout=args.timeout, trust_env=False))
+                context = _build_cli_context(args, response.results, client)
+                if args.show_context:
+                    print(json.dumps(context.to_dict(), ensure_ascii=False))
                 else:
-                    context = _build_cli_context(args, response.results, client)
-                    if args.show_context:
-                        print(json.dumps(context.to_dict(), ensure_ascii=False))
-                    else:
-                        print(_answer_output(args, context, client))
+                    print(_answer_output(args, context, client))
         return 0
     except (OSError, ValueError, sqlite3.Error, ResponseError, HTTPError,
             ResponseHandlingException, UnexpectedResponse) as error:
