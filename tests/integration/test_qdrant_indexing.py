@@ -16,7 +16,7 @@ from arkb.knowledge.indexing import build_index
 from arkb.knowledge.models import QdrantConfig
 from arkb.knowledge.qdrant import QdrantIndex
 from arkb.knowledge.models import Note
-from arkb.retrieval.qdrant import search_index
+from arkb.runtime import search_index
 from arkb.knowledge.models import EmbeddingSpec
 from arkb.knowledge.sqlite import SQLiteStorage
 

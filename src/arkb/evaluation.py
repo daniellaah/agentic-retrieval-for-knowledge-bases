@@ -272,7 +272,7 @@ def main(argv=None) -> int:
     """Evaluate an existing snapshot and save a new, non-overwriting artifact folder."""
     from importlib.metadata import version
     from ollama import Client
-    from arkb.retrieval.qdrant import search_qdrant
+    from arkb.knowledge.qdrant import search_qdrant
     from arkb.knowledge.embeddings import resolve_embedding_spec
     from arkb.knowledge.embeddings import prepare_query, validate_input_tokens
     from arkb.knowledge.embeddings import embed_texts
@@ -346,7 +346,7 @@ def main(argv=None) -> int:
                                    search=search, top_k=args.top_k)
         context_rows, citation_rows = [], []
         if args.context or args.citations:
-            from arkb.retrieval.qdrant import snapshot_result
+            from arkb.retrieval.semantic import snapshot_result
             counter = load_generation_counter(client=ollama, model=args.generation_model,
                                               cache_dir=args.tokenizer_cache, local_files_only=args.offline)
             by_id = {record.chunk_id: record for record in records}

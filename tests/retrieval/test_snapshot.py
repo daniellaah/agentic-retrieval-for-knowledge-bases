@@ -10,7 +10,7 @@ from arkb.knowledge.chunking import whole_note_chunks
 from arkb.knowledge.models import QdrantConfig
 from arkb.knowledge.qdrant import QdrantIndex
 from arkb.knowledge.models import Note
-from arkb.retrieval.qdrant import search_qdrant
+from arkb.knowledge.qdrant import search_qdrant
 from arkb.knowledge.models import ChunkRecord, EmbeddingSpec
 
 
@@ -37,7 +37,7 @@ def published_index(tmp_path, qdrant, qdrant_config):
 
 
 def test_indexed_search_only_embeds_query_and_restores_snapshot_content(published_index):
-    from arkb.retrieval.qdrant import search_index
+    from arkb.runtime import search_index
     store, kwargs = published_index
     response = search_index(store, 'Question?', **kwargs)
     results = response.results
@@ -57,7 +57,7 @@ def test_indexed_search_only_embeds_query_and_restores_snapshot_content(publishe
 
 def test_indexed_search_rejects_model_and_tokenizer_mismatches_before_embedding(published_index):
     from dataclasses import replace
-    from arkb.retrieval.qdrant import search_index
+    from arkb.runtime import search_index
     store, kwargs = published_index
     with pytest.raises(ValueError, match='incompatible'):
         search_index(store, 'Question?', **{**kwargs, 'spec': replace(kwargs['spec'], model_revision='changed')})
@@ -69,7 +69,7 @@ def test_indexed_search_rejects_model_and_tokenizer_mismatches_before_embedding(
 
 def test_indexed_search_rejects_missing_and_unpublished_versions(published_index):
     from dataclasses import replace
-    from arkb.retrieval.qdrant import search_index
+    from arkb.runtime import search_index
     store, kwargs = published_index
     with pytest.raises(ValueError, match='No published'):
         search_index(store, 'Question?', **{**kwargs, 'vault_id': 'missing'})
@@ -81,10 +81,10 @@ def test_indexed_search_rejects_missing_and_unpublished_versions(published_index
 
 
 def test_indexed_search_rejects_unknown_backend_hits(published_index, monkeypatch):
-    from arkb.retrieval.qdrant import search_index
+    from arkb.runtime import search_index
     from arkb.knowledge.models import VectorHit
     store, kwargs = published_index
-    monkeypatch.setattr('arkb.retrieval.qdrant.search_qdrant', lambda *a, **kw: [VectorHit('orphan', 0.5)])
+    monkeypatch.setattr('arkb.knowledge.qdrant.search_qdrant', lambda *a, **kw: [VectorHit('orphan', 0.5)])
     with pytest.raises(ValueError, match='snapshot'):
         search_index(store, 'Question?', **kwargs)
 
@@ -125,7 +125,7 @@ def test_qdrant_local_contract_roundtrip_filter_and_update(tmp_path, vector_data
 
 def test_search_keeps_requested_snapshot_after_a_new_revision_is_published(published_index):
     from arkb.knowledge.indexing import build_index
-    from arkb.retrieval.qdrant import search_index
+    from arkb.runtime import search_index
     store, kwargs = published_index
     build_index(store, [Note('Title', 'Updated source text', 'a.md')],
                 spec=kwargs['spec'], vault_id='vault', tokenizer=kwargs['tokenizer'],
@@ -163,7 +163,7 @@ def test_qdrant_rejects_invalid_search_options_before_search(vector_data, option
 
 def test_empty_retired_snapshot_still_requires_rebuild(published_index):
     import json
-    from arkb.retrieval.qdrant import search_index
+    from arkb.runtime import search_index
     store, kwargs = published_index
     manifest = replace(store.get_manifest('v1'), document_count=0, chunk_count=0)
     from dataclasses import asdict
@@ -178,7 +178,7 @@ def test_empty_retired_snapshot_still_requires_rebuild(published_index):
 
 def test_query_adapter_forwards_options_and_reads_only_hit_records(published_index, monkeypatch):
     from unittest.mock import Mock
-    from arkb.retrieval.qdrant import search_index
+    from arkb.runtime import search_index
     from arkb.knowledge.sqlite import SQLiteStorage
     store, kwargs = published_index
     client = kwargs['qdrant_client']
@@ -198,7 +198,7 @@ def test_query_adapter_forwards_options_and_reads_only_hit_records(published_ind
         'source': 'a.md', 'vault_id': 'vault', 'embedding_spec': kwargs['spec'].fingerprint,
     }
     hit = response.results[0]
-    assert type(hit).__module__ == 'arkb.retrieval.contracts'
+    assert type(hit).__module__ == 'arkb.retrieval.models'
     assert hit.source_id == store.snapshot_records('v1')[0].document_id
     assert hit.metadata['index_version'] == 'v1'
 
@@ -223,21 +223,21 @@ def test_qdrant_ties_and_float32_score_tolerance_preserve_defined_cosine_semanti
 
 @pytest.mark.parametrize('corruption', ['duplicate', 'wrong_source', 'bad_score'])
 def test_snapshot_adapter_rejects_corrupt_backend_hits(published_index, monkeypatch, corruption):
-    from arkb.retrieval.qdrant import search_index
+    from arkb.runtime import search_index
     from arkb.knowledge.models import VectorHit
     store, kwargs = published_index
     record = store.snapshot_records('v1')[0]
     hits = [VectorHit(record.chunk_id, float('nan') if corruption == 'bad_score' else .5)]
     if corruption == 'duplicate':
         hits *= 2
-    monkeypatch.setattr('arkb.retrieval.qdrant.search_qdrant', lambda *a, **kw: hits)
+    monkeypatch.setattr('arkb.knowledge.qdrant.search_qdrant', lambda *a, **kw: hits)
     with pytest.raises(ValueError, match='duplicate|snapshot'):
         search_index(store, 'Q?', **kwargs, source='wrong.md' if corruption == 'wrong_source' else None)
 
 
 def test_empty_snapshot_validates_input_without_model_or_vector_search(published_index):
     from arkb.knowledge.indexing import build_index
-    from arkb.retrieval.qdrant import search_index
+    from arkb.runtime import search_index
     store, kwargs = published_index
     build_index(store, [], spec=kwargs['spec'], vault_id='vault', tokenizer=kwargs['tokenizer'],
                 max_input_tokens=100, client=kwargs['client'], qdrant_client=kwargs['qdrant_client'],
@@ -253,7 +253,8 @@ def test_empty_snapshot_validates_input_without_model_or_vector_search(published
 
 def test_opened_snapshot_stays_pinned_and_preserves_markdown_provenance(published_index):
     from arkb.knowledge.indexing import build_index
-    from arkb.retrieval.qdrant import QdrantSnapshotIndex, search_index
+    from arkb.retrieval.semantic import QdrantSnapshotIndex
+    from arkb.runtime import search_index
     store, kwargs = published_index
     pinned = QdrantSnapshotIndex(store, kwargs['qdrant_client'], vault_id='vault', exact=True)
     build_index(store, [Note('Title', '## Section\nBody facts.', 'a.md')],

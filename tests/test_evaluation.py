@@ -7,7 +7,7 @@ from arkb.knowledge.models import Chunk
 from arkb.knowledge.chunking import whole_note_chunks
 from arkb.evaluation import compare_retrieval, evidence_statistics, recall_at_k
 from arkb.knowledge.models import Note
-from arkb.retrieval.qdrant import search_qdrant
+from arkb.knowledge.qdrant import search_qdrant
 from arkb.knowledge.models import ChunkRecord, EmbeddingSpec
 
 
@@ -57,7 +57,7 @@ def test_comparison_separates_neighbor_recall_from_evidence_coverage(qdrant):
 def test_context_evaluation_measures_packed_span_union_and_coverage_retention():
     from arkb.context import ContextConfig, GenerationCounter, build_context
     from arkb.evaluation import evaluate_context
-    from arkb.retrieval.qdrant import snapshot_result
+    from arkb.retrieval.semantic import snapshot_result
     note = Note('Title', 'x' * 300, 'a.md')
     hits = []
     for index, (start, end) in enumerate([(0, 200), (150, 300)]):
@@ -83,7 +83,7 @@ def test_context_evaluation_measures_packed_span_union_and_coverage_retention():
 
 def citation_fixture():
     from arkb.context import ContextConfig, GenerationCounter, build_context
-    from arkb.retrieval.qdrant import snapshot_result
+    from arkb.retrieval.semantic import snapshot_result
     note = Note('Title', 'Only small datasets were faster.', 'a.md')
     chunk = whole_note_chunks([note])[0]
     counter = GenerationCounter('test', 'chars', lambda m: 10 + sum(len(x['content']) for x in m))

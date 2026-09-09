@@ -5,7 +5,7 @@ import pytest
 
 from arkb.knowledge.chunking import whole_note_chunks
 from arkb.retrieval import BM25Retriever, SemanticRetriever, rrf
-from arkb.retrieval.snapshot import chunk_result
+from arkb.retrieval.models import chunk_result
 from arkb.knowledge.models import ChunkRecord, EmbeddingSpec, Note
 
 
@@ -79,7 +79,7 @@ def test_three_baselines_share_one_evaluation_dataset():
 
 def test_optional_reranking_scores_full_hybrid_pool_before_final_top_k():
     from arkb.retrieval.hybrid import HybridRetriever
-    from arkb.retrieval.reranker import Reranker, RerankedRetriever
+    from arkb.retrieval.rerank import Reranker, RerankedRetriever
     from arkb.retrieval_evaluation import evaluate_retrievers
     lexical, semantic = components()
     hybrid = HybridRetriever(lexical, semantic, candidate_k=2)

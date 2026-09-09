@@ -4,7 +4,7 @@ import pytest
 
 from arkb.knowledge.models import Chunk
 from arkb.context import build_context
-from arkb.retrieval.qdrant import snapshot_result
+from arkb.retrieval.semantic import snapshot_result
 from arkb.knowledge.models import Note, ChunkRecord
 
 

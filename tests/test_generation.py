@@ -7,7 +7,7 @@ import pytest
 from arkb.knowledge.chunking import chunk_notes, whole_note_chunks
 from arkb.generation import generate_cited_answer, CitedGenerationError
 from arkb.knowledge.models import Note
-from arkb.retrieval.qdrant import snapshot_result
+from arkb.retrieval.semantic import snapshot_result
 from arkb.knowledge.models import ChunkRecord
 
 

@@ -48,7 +48,7 @@ def evaluate_retrievers(retrievers, cases: Sequence[dict], *, top_k: int = 10,
     """
     from dataclasses import asdict
     from time import perf_counter
-    from arkb.retrieval.contracts import SearchResponse, validate_request
+    from arkb.retrieval.models import SearchResponse, validate_request
     if relevance_key not in ('source', 'source_id', 'chunk_id'):
         raise ValueError('relevance_key must be source, source_id, or chunk_id.')
     if not retrievers or not cases or len({case['id'] for case in cases}) != len(cases):
@@ -149,7 +149,7 @@ def main(argv=None) -> int:
         parser.error('--timeout must be positive and finite')
     raw = args.cases.read_bytes()
     cases = [json.loads(line) for line in raw.splitlines() if line.strip()]
-    from arkb.retrieval.contracts import validate_request
+    from arkb.retrieval.models import validate_request
     from arkb.retrieval.fusion import rrf
     if not cases or len({case['id'] for case in cases}) != len(cases):
         parser.error('Cases must be nonempty with unique IDs')
@@ -178,7 +178,7 @@ def main(argv=None) -> int:
         if set(args.modes) & {'semantic', 'hybrid', 'hybrid_reranked'}:
             from ollama import Client
             from arkb.knowledge.embeddings import resolve_embedding_spec
-            from arkb.retrieval.qdrant import SnapshotSemanticRetriever
+            from arkb.runtime import SnapshotSemanticRetriever
             from arkb.knowledge.qdrant import connect_qdrant
             from arkb.knowledge.models import require_qdrant_backend
             from arkb.knowledge.embeddings import load_tokenizer
@@ -200,8 +200,8 @@ def main(argv=None) -> int:
             retrievers['hybrid'] = HybridRetriever(retrievers['bm25'], retrievers['semantic'],
                                                   candidate_k=args.candidate_k, rrf_k=args.rrf_k)
         if 'hybrid_reranked' in args.modes:
-            from arkb.retrieval.cross_encoder import CrossEncoderScorer
-            from arkb.retrieval.reranker import Reranker, RerankedRetriever
+            from arkb.retrieval.rerank import CrossEncoderScorer
+            from arkb.retrieval.rerank import Reranker, RerankedRetriever
             if args.rerank_candidates > args.candidate_k:
                 raise ValueError('rerank-candidates cannot exceed hybrid candidate-k.')
             reranker = Reranker(CrossEncoderScorer(model=args.reranker_model, revision=args.reranker_revision,

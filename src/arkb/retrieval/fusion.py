@@ -9,7 +9,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import replace
 import math
 
-from arkb.retrieval.contracts import SearchResult, validate_options
+from arkb.retrieval.models import SearchResult, validate_options
 
 
 def rrf(ranked_lists: Mapping[str, Sequence[SearchResult]] | Sequence[Sequence[SearchResult]],

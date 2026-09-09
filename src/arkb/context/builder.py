@@ -7,7 +7,7 @@ import json
 import math
 
 from arkb.context.citation import CitationOrigin, CitationSource
-from arkb.retrieval.contracts import SearchResult
+from arkb.retrieval.models import SearchResult
 from arkb.knowledge.models import Chunk, ChunkRecord
 
 

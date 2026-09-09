@@ -3,7 +3,7 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 
-from arkb.retrieval.contracts import Retriever, SearchResponse, validate_options, validate_request
+from arkb.retrieval.models import Retriever, SearchResponse, validate_options, validate_request
 from arkb.retrieval.fusion import rrf
 
 

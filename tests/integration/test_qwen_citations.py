@@ -20,7 +20,7 @@ from arkb.generation import load_generation_counter
 from arkb.knowledge.models import ChunkRecord
 from arkb.generation import CitedGenerationError, generate_cited_answer
 from arkb.knowledge.models import Note
-from arkb.retrieval.qdrant import snapshot_result
+from arkb.retrieval.semantic import snapshot_result
 
 
 pytestmark = pytest.mark.skipif(os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',

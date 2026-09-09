@@ -13,8 +13,8 @@ import math
 import re
 import unicodedata
 
-from arkb.retrieval.contracts import SearchResponse, validate_request
-from arkb.retrieval.snapshot import chunk_result
+from arkb.retrieval.models import SearchResponse, validate_request
+from arkb.retrieval.models import chunk_result
 from arkb.knowledge.models import ChunkRecord, validate_records
 
 

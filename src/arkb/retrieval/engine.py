@@ -3,9 +3,9 @@
 from collections.abc import Mapping
 from dataclasses import dataclass
 
-from arkb.retrieval.contracts import Retriever, SearchResponse, validate_request
+from arkb.retrieval.models import Retriever, SearchResponse, validate_request
 from arkb.retrieval.hybrid import HybridRetriever
-from arkb.retrieval.reranker import Reranker, RerankedRetriever
+from arkb.retrieval.rerank import Reranker, RerankedRetriever
 
 
 @dataclass(frozen=True, kw_only=True)

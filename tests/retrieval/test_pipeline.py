@@ -9,7 +9,7 @@ from tokenizers import Tokenizer, models
 from arkb.knowledge.indexing import build_index
 from arkb.retrieval import BM25Retriever, HybridRetriever, RerankedRetriever, Reranker, SemanticRetriever
 from arkb.knowledge.embeddings import OllamaQueryEmbedder
-from arkb.retrieval.qdrant import QdrantSnapshotIndex
+from arkb.retrieval.semantic import QdrantSnapshotIndex
 from arkb.retrieval_evaluation import evaluate_retrievers
 from arkb.knowledge.models import EmbeddingSpec, Note
 from arkb.knowledge.sqlite import SQLiteStorage

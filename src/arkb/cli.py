@@ -116,7 +116,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     from arkb.knowledge.indexing import build_index
     from arkb.knowledge.documents import scan_notes
     from arkb.retrieval import BM25Retriever, RetrievalEngine, Reranker
-    from arkb.retrieval.qdrant import SnapshotSemanticRetriever
+    from arkb.runtime import SnapshotSemanticRetriever
     from arkb.knowledge.sqlite import SQLiteStorage
     from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
@@ -196,7 +196,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     tokenizer=tokenizer, client=client, exact=args.exact,
                     index_version=manifest.index_version, qdrant_client=qclient)
             if args.rerank:
-                from arkb.retrieval.cross_encoder import CrossEncoderScorer
+                from arkb.retrieval.rerank import CrossEncoderScorer
                 reranker = Reranker(CrossEncoderScorer(model=args.reranker_model, revision=args.reranker_revision,
                     max_length=args.reranker_max_length, cache_folder=args.reranker_cache, local_files_only=args.offline))
             engine = RetrievalEngine(semantic=semantic, bm25=bm25, candidate_k=args.candidate_k,

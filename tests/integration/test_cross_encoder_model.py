@@ -5,8 +5,8 @@ import os
 import pytest
 
 from arkb.retrieval import SearchResult
-from arkb.retrieval.cross_encoder import CrossEncoderScorer
-from arkb.retrieval.reranker import Reranker
+from arkb.retrieval.rerank import CrossEncoderScorer
+from arkb.retrieval.rerank import Reranker
 from arkb.retrieval_evaluation import evaluate_reranker
 
 
