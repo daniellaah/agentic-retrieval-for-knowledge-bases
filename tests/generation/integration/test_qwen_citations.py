@@ -103,7 +103,7 @@ def test_citation_evaluation_cli_records_results_without_modifying_index(tmp_pat
                            cwd=repo, capture_output=True, text=True, timeout=180)
     assert built.returncode == 0, built.stderr
     before = db.read_bytes()
-    command = [sys.executable, '-B', '-m', 'arkb.evaluation', '--db', str(db), '--vault-id', vault,
+    command = [sys.executable, '-B', '-m', 'arkb.evaluation.retrieval', 'ann', '--db', str(db), '--vault-id', vault,
                '--cases', str(cases), '--output', str(out), '--offline', '--context', '--citations']
     process = subprocess.run(command, cwd=repo, capture_output=True, text=True, timeout=180)
     assert process.returncode == 0, process.stderr
