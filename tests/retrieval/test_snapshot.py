@@ -28,9 +28,9 @@ def published_index(tmp_path, qdrant, qdrant_config):
 
 
 def test_indexed_search_only_embeds_query_and_restores_snapshot_content(published_index):
-    from arkb.runtime import search_index
+    from arkb.runtime import SnapshotSemanticRetriever
     store, kwargs = published_index
-    response = search_index(store, 'Question?', **kwargs)
+    response = SnapshotSemanticRetriever(store, **kwargs).search('Question?')
     results = response.results
     assert response.query == 'Question?' and response.index_id == 'v1'
     kwargs['client'].embed.assert_called_once_with(
@@ -48,36 +48,36 @@ def test_indexed_search_only_embeds_query_and_restores_snapshot_content(publishe
 
 def test_indexed_search_rejects_model_and_tokenizer_mismatches_before_embedding(published_index):
     from dataclasses import replace
-    from arkb.runtime import search_index
+    from arkb.runtime import SnapshotSemanticRetriever
     store, kwargs = published_index
     with pytest.raises(ValueError, match='incompatible'):
-        search_index(store, 'Question?', **{**kwargs, 'spec': replace(kwargs['spec'], model_revision='changed')})
+        SnapshotSemanticRetriever(store, **{**kwargs, 'spec': replace(kwargs['spec'], model_revision='changed')}).search('Question?')
     kwargs['tokenizer'].enable_padding(length=10)
     with pytest.raises(ValueError, match='tokenizer'):
-        search_index(store, 'Question?', **kwargs)
+        SnapshotSemanticRetriever(store, **kwargs).search('Question?')
     kwargs['client'].embed.assert_not_called()
 
 
 def test_indexed_search_rejects_missing_and_unpublished_versions(published_index):
     from dataclasses import replace
-    from arkb.runtime import search_index
+    from arkb.runtime import SnapshotSemanticRetriever
     store, kwargs = published_index
     with pytest.raises(ValueError, match='No published'):
-        search_index(store, 'Question?', **{**kwargs, 'vault_id': 'missing'})
+        SnapshotSemanticRetriever(store, **{**kwargs, 'vault_id': 'missing'}).search('Question?')
     building = replace(store.get_manifest('v1'), index_version='v2', status='building')
     store.create_build(building, corpus_fingerprint='pending', backend={'kind': 'qdrant'})
     with pytest.raises(ValueError, match='ready'):
-        search_index(store, 'Question?', **kwargs, index_version='v2')
+        SnapshotSemanticRetriever(store, **kwargs, index_version='v2').search('Question?')
     kwargs['client'].embed.assert_not_called()
 
 
 def test_indexed_search_rejects_unknown_backend_hits(published_index, monkeypatch):
-    from arkb.runtime import search_index
+    from arkb.runtime import SnapshotSemanticRetriever
     from arkb.knowledge.models import VectorHit
     store, kwargs = published_index
     monkeypatch.setattr('arkb.knowledge.qdrant.search_qdrant', lambda *a, **kw: [VectorHit('orphan', 0.5)])
     with pytest.raises(ValueError, match='snapshot'):
-        search_index(store, 'Question?', **kwargs)
+        SnapshotSemanticRetriever(store, **kwargs).search('Question?')
 
 
 
@@ -88,15 +88,15 @@ def test_indexed_search_rejects_unknown_backend_hits(published_index, monkeypatc
 
 def test_search_keeps_requested_snapshot_after_a_new_revision_is_published(published_index):
     from arkb.knowledge.indexing import build_index
-    from arkb.runtime import search_index
+    from arkb.runtime import SnapshotSemanticRetriever
     store, kwargs = published_index
     build_index(store, [Note('Title', 'Updated source text', 'a.md')],
                 spec=kwargs['spec'], vault_id='vault', tokenizer=kwargs['tokenizer'],
                 max_input_tokens=100, client=kwargs['client'], chunking='none',
                 qdrant_client=kwargs['qdrant_client'], qdrant_config=QdrantConfig.from_metadata(store.build_metadata('v1')['backend']),
                 index_version='v2', query_instruction='Find evidence.')
-    old = search_index(store, 'Question?', **kwargs, index_version='v1').results[0]
-    new = search_index(store, 'Question?', **kwargs).results[0]
+    old = SnapshotSemanticRetriever(store, **kwargs, index_version='v1').search('Question?').results[0]
+    new = SnapshotSemanticRetriever(store, **kwargs).search('Question?').results[0]
     assert old.content == 'Original source text'
     assert old.metadata['index_version'] == 'v1'
     assert new.metadata['index_version'] == 'v2'
@@ -110,7 +110,7 @@ def test_search_keeps_requested_snapshot_after_a_new_revision_is_published(publi
 
 def test_empty_retired_snapshot_still_requires_rebuild(published_index):
     import json
-    from arkb.runtime import search_index
+    from arkb.runtime import SnapshotSemanticRetriever
     store, kwargs = published_index
     manifest = replace(store.get_manifest('v1'), document_count=0, chunk_count=0)
     from dataclasses import asdict
@@ -119,13 +119,13 @@ def test_empty_retired_snapshot_still_requires_rebuild(published_index):
     store.connection.execute("DELETE FROM snapshot_chunks WHERE version='v1'")
     store.connection.commit()
     with pytest.raises(ValueError, match='run arkb index'):
-        search_index(store, 'Q?', **kwargs)
+        SnapshotSemanticRetriever(store, **kwargs).search('Q?')
     kwargs['client'].embed.assert_not_called()
 
 
 def test_query_adapter_forwards_options_and_reads_only_hit_records(published_index, monkeypatch):
     from unittest.mock import Mock
-    from arkb.runtime import search_index
+    from arkb.runtime import SnapshotSemanticRetriever
     from arkb.knowledge.sqlite import SQLiteStorage
     store, kwargs = published_index
     client = kwargs['qdrant_client']
@@ -136,7 +136,7 @@ def test_query_adapter_forwards_options_and_reads_only_hit_records(published_ind
     with SQLiteStorage(store.path, read_only=True) as reader:
         for operation in ('load_snapshot', 'put_embeddings', 'get_embedding', 'snapshot_records'):
             monkeypatch.setattr(reader, operation, lambda *a, **kw: pytest.fail('retrieval accessed offline vector state'))
-        response = search_index(reader, 'Q?', **kwargs, top_k=1, source='a.md', exact=True, ef_search=37)
+        response = SnapshotSemanticRetriever(reader, **kwargs, exact=True, ef_search=37).search('Q?', top_k=1, filters={'source': 'a.md'})
     options = search.call_args.kwargs
     assert options['limit'] == 1
     assert options['search_params'].exact is True
@@ -154,7 +154,7 @@ def test_query_adapter_forwards_options_and_reads_only_hit_records(published_ind
 
 @pytest.mark.parametrize('corruption', ['duplicate', 'wrong_source', 'bad_score'])
 def test_snapshot_adapter_rejects_corrupt_backend_hits(published_index, monkeypatch, corruption):
-    from arkb.runtime import search_index
+    from arkb.runtime import SnapshotSemanticRetriever
     from arkb.knowledge.models import VectorHit
     store, kwargs = published_index
     record = store.snapshot_records('v1')[0]
@@ -163,29 +163,29 @@ def test_snapshot_adapter_rejects_corrupt_backend_hits(published_index, monkeypa
         hits *= 2
     monkeypatch.setattr('arkb.knowledge.qdrant.search_qdrant', lambda *a, **kw: hits)
     with pytest.raises(ValueError, match='duplicate|snapshot'):
-        search_index(store, 'Q?', **kwargs, source='wrong.md' if corruption == 'wrong_source' else None)
+        SnapshotSemanticRetriever(store, **kwargs).search('Q?', filters={'source': 'wrong.md'} if corruption == 'wrong_source' else None)
 
 
 def test_empty_snapshot_validates_input_without_model_or_vector_search(published_index):
     from arkb.knowledge.indexing import build_index
-    from arkb.runtime import search_index
+    from arkb.runtime import SnapshotSemanticRetriever
     store, kwargs = published_index
     build_index(store, [], spec=kwargs['spec'], vault_id='vault', tokenizer=kwargs['tokenizer'],
                 max_input_tokens=100, client=kwargs['client'], qdrant_client=kwargs['qdrant_client'],
                 qdrant_config=QdrantConfig(), index_version='empty')
-    response = search_index(store, 'Q?', **{**kwargs, 'qdrant_client': None})
+    response = SnapshotSemanticRetriever(store, **{**kwargs, 'qdrant_client': None}).search('Q?')
     assert response.results == () and response.index_id == 'empty'
     with pytest.raises(ValueError, match='nonblank'):
-        search_index(store, ' ', **kwargs)
+        SnapshotSemanticRetriever(store, **kwargs).search(' ')
     with pytest.raises(ValueError, match='maximum'):
-        search_index(store, 'word ' * 101, **kwargs)
+        SnapshotSemanticRetriever(store, **kwargs).search('word ' * 101)
     kwargs['client'].embed.assert_not_called()
 
 
 def test_opened_snapshot_stays_pinned_and_preserves_markdown_provenance(published_index):
     from arkb.knowledge.indexing import build_index
     from arkb.retrieval.semantic import QdrantSnapshotIndex
-    from arkb.runtime import search_index
+    from arkb.runtime import SnapshotSemanticRetriever
     store, kwargs = published_index
     pinned = QdrantSnapshotIndex(store, kwargs['qdrant_client'], vault_id='vault', exact=True)
     build_index(store, [Note('Title', '## Section\nBody facts.', 'a.md')],
@@ -193,7 +193,7 @@ def test_opened_snapshot_stays_pinned_and_preserves_markdown_provenance(publishe
                 max_input_tokens=100, client=kwargs['client'], qdrant_client=kwargs['qdrant_client'],
                 qdrant_config=QdrantConfig(), index_version='markdown', chunk_size=20, chunk_overlap=0)
     old = pinned.search([1, 0], top_k=1, filters={})[0]
-    new = search_index(store, 'Q?', **kwargs).results[0]
+    new = SnapshotSemanticRetriever(store, **kwargs).search('Q?').results[0]
     assert pinned.index_id == old.metadata['index_version'] == 'v1'
     assert old.content == 'Original source text'
     assert new.metadata['index_version'] == 'markdown'

@@ -295,16 +295,3 @@ class SnapshotSemanticRetriever:
             self.embedder.prepare(query)
             return SearchResponse(query=query, method='semantic', index_id=self.index.index_id)
         return self.semantic.search(query, top_k=top_k, filters=filters)
-
-
-def search_index(
-    storage: "SQLiteStorage", question: str, *, vault_id: str, spec: EmbeddingSpec,
-    tokenizer: 'Tokenizer', client: 'Client', top_k: int = 2,
-    source: str | None = None, exact: bool = False, ef_search: int | None = None,
-    index_version: str | None = None, qdrant_client=None,
-) -> SearchResponse:
-    """One-shot compatibility entry point for the current semantic adapters."""
-    filters = validate_request(question, top_k, {'source': source} if source is not None else None)
-    retriever = SnapshotSemanticRetriever(storage, vault_id=vault_id, spec=spec, tokenizer=tokenizer,
-        client=client, exact=exact, ef_search=ef_search, index_version=index_version, qdrant_client=qdrant_client)
-    return retriever.search(question, top_k=top_k, filters=filters)

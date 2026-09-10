@@ -16,7 +16,7 @@ from arkb.knowledge.indexing import build_index
 from arkb.knowledge.models import QdrantConfig
 from arkb.knowledge.qdrant import QdrantIndex
 from arkb.knowledge.models import Note
-from arkb.runtime import search_index
+from arkb.runtime import SnapshotSemanticRetriever
 from arkb.knowledge.models import EmbeddingSpec
 from arkb.knowledge.sqlite import SQLiteStorage
 
@@ -65,12 +65,10 @@ def test_qdrant_publication_hnsw_and_failure_recovery(tmp_path, monkeypatch):
             ollama.embed.side_effect = lambda **kw: EmbedResponse(embeddings=[vectors[0].tolist()])
             # Qdrant queries fetch only hit records; they must never load all cached vectors.
             monkeypatch.setattr(storage, 'load_snapshot', lambda *a: pytest.fail('loaded every vector during query'))
-            results = search_index(storage, 'find', vault_id=vault, spec=spec, client=ollama, tokenizer=tokenizer,
-                                   qdrant_client=client, index_version=first.manifest.index_version, top_k=1)
+            results = SnapshotSemanticRetriever(storage, vault_id=vault, spec=spec, client=ollama, tokenizer=tokenizer, qdrant_client=client, index_version=first.manifest.index_version).search('find', top_k=1)
             assert results.results[0].source == '000.md'
             with pytest.raises(ValueError, match='incompatible'):
-                search_index(storage, 'find', vault_id=vault, spec=replace(spec, model_revision='changed'),
-                             client=ollama, tokenizer=tokenizer, qdrant_client=client)
+                SnapshotSemanticRetriever(storage, vault_id=vault, spec=replace(spec, model_revision='changed'), client=ollama, tokenizer=tokenizer, qdrant_client=client).search('find')
         finally:
             for manifest in storage.list_builds(vault):
                 name = storage.build_metadata(manifest.index_version)['backend'].get('collection')
