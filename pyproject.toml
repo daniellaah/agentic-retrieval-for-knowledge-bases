@@ -3,6 +3,8 @@ name = "arkb"
 version = "0.1.0"
 description = "Local retrieval over Markdown notes."
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "httpx>=0.28,<1",

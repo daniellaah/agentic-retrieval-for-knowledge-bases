@@ -660,4 +660,4 @@ These items are not currently implemented.
 
 ## License
 
-No license file or license declaration is currently included in this repository.
+Licensed under the [Apache License 2.0](LICENSE).
