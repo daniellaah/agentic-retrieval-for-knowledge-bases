@@ -128,16 +128,19 @@ class QdrantIndex:
     def check_configuration(self):
         return check_qdrant_collection(self.client, self.collection, spec=self.spec, vault_id=self.vault_id)
 
+    def _payload(self, record: ChunkRecord) -> dict:
+        return {'chunk_id': record.chunk_id, 'vault_id': self.vault_id,
+                'embedding_spec': self.spec.fingerprint, 'source': record.chunk.source,
+                'document_id': record.document_id, 'document_revision': record.document_revision,
+                'chunk_index': record.chunk.chunk_index}
+
     def upsert(self, records: Sequence[ChunkRecord], vectors) -> None:
         records = list(records)
         validate_records(records, vault_id=self.vault_id)
         matrix = validate_vectors(vectors, rows=len(records), dimensions=self.spec.dimensions,
                                   dtype=self.spec.dtype, normalization=self.spec.normalization)
-        points = [models.PointStruct(id=point_id(record.chunk_id), vector=vector.tolist(), payload={
-            'chunk_id': record.chunk_id, 'vault_id': self.vault_id, 'embedding_spec': self.spec.fingerprint,
-            'source': record.chunk.source, 'document_id': record.document_id,
-            'document_revision': record.document_revision, 'chunk_index': record.chunk.chunk_index,
-        }) for record, vector in zip(records, matrix)]
+        points = [models.PointStruct(id=point_id(record.chunk_id), vector=vector.tolist(), payload=self._payload(record))
+                  for record, vector in zip(records, matrix)]
         for start in range(0, len(points), 128):
             self.client.upsert(collection_name=self.collection, points=points[start:start + 128], wait=True)
 
@@ -158,11 +161,7 @@ class QdrantIndex:
                 point = by_id.get(point_id(record.chunk_id))
                 if point is None:
                     raise ValueError('Qdrant snapshot is missing a point.')
-                expected = {'chunk_id': record.chunk_id, 'vault_id': self.vault_id,
-                            'embedding_spec': self.spec.fingerprint, 'source': record.chunk.source,
-                            'document_id': record.document_id, 'document_revision': record.document_revision,
-                            'chunk_index': record.chunk.chunk_index}
-                if point.payload != expected:
+                if point.payload != self._payload(record):
                     raise ValueError('Qdrant snapshot payload differs from source records.')
                 target = np.asarray(vectors[index], dtype=np.float64)
                 target = target / np.linalg.norm(target)

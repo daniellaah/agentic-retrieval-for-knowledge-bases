@@ -47,6 +47,12 @@ def _manifest(text: str) -> IndexManifest:
     return IndexManifest(**data)
 
 
+def _record(text: str) -> ChunkRecord:
+    data = json.loads(text)
+    data['chunk'] = Chunk(**data['chunk'])
+    return ChunkRecord(**data)
+
+
 class SQLiteStorage:
     """One connection per owner; queries can open an existing database read-only.
 
@@ -214,9 +220,7 @@ class SQLiteStorage:
                                        (version,)).fetchall()
         records = []
         for ordinal, row in enumerate(rows):
-            data = json.loads(row['record'])
-            data['chunk'] = Chunk(**data['chunk'])
-            record = ChunkRecord(**data)
+            record = _record(row['record'])
             text = prepare_document(record.chunk, document_template=spec.document_template)
             if (row['ordinal'] != ordinal or record.chunk_id != row['chunk_id']
                     or record.vault_id != manifest.vault_id or spec.embedding_key(text) != row['embedding_key']):
@@ -278,9 +282,7 @@ class SQLiteStorage:
                                       (version, chunk_id)).fetchone()
         if row is None:
             raise ValueError('Vector hit is absent from the snapshot.')
-        data = json.loads(row['record'])
-        data['chunk'] = Chunk(**data['chunk'])
-        record = ChunkRecord(**data)
+        record = _record(row['record'])
         text = prepare_document(record.chunk, document_template=manifest.embedding_spec.document_template)
         if (record.chunk_id != chunk_id or record.vault_id != manifest.vault_id
                 or manifest.embedding_spec.embedding_key(text) != row['embedding_key']):
