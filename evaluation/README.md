@@ -85,7 +85,7 @@ remain separate from those tests.
 
 ## Deterministic metrics
 
-`arkb.evaluation.agent.evaluate_case(case, trace)` returns an `AgentEvalResult`.
+`arkb.evaluation.agent_metrics.evaluate_case(case, trace)` returns an `AgentEvalResult`.
 `extract_retrieved_sources` unions exact `source` values from every successful
 `match/search` observation's `results` array and `read` observation's `result`.
 Repeated chunks, sources and calls contribute once to coverage. Tool arguments,
@@ -137,7 +137,7 @@ to mean model_error or tool_error: the current trace has no explicit error stage
 
 ```python
 from pathlib import Path
-from arkb.evaluation.agent_runner import run_agent_evaluation
+from arkb.evaluation.runs import run_agent_evaluation
 from arkb.evaluation.models import AgentEvalConfig
 
 run = run_agent_evaluation(AgentEvalConfig(
@@ -153,7 +153,7 @@ print(run.summary['task_success_rate'])
 The existing evaluation convention also supplies a thin module CLI:
 
 ```sh
-uv run --locked python -m arkb.evaluation.agent_runner \
+uv run --locked python -m arkb.evaluation.runs \
   --dataset evaluation/data/agent_v1.jsonl \
   --notes-dir example_notes --db .arkb/index.sqlite \
   --generation-model qwen3.5:4b --max-turns 8 --num-trials 2 \
@@ -212,7 +212,7 @@ Saved rows can be scored again without a model or index:
 ```python
 import json
 from arkb.agent.state import AgentToolTrace, AgentTrace
-from arkb.evaluation.agent import evaluate_case
+from arkb.evaluation.agent_metrics import evaluate_case
 from arkb.evaluation.models import AgentEvalCase
 
 row = json.loads((run.output_dir / 'results.jsonl').read_text().splitlines()[0])

@@ -616,7 +616,7 @@ The design keeps deterministic knowledge processing and retrieval independent fr
 
 `evaluation/` and `benchmarks/` contain experiment inputs, configurations, and reports.
 
-The MCP module currently exists as a placeholder and does not yet expose a complete MCP server.
+MCP support is planned; the repository does not yet expose an MCP server.
 
 ## Development
 
