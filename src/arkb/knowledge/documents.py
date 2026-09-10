@@ -36,6 +36,17 @@ def _load_note(path: Path) -> Note:
     return Note(title=title, content=content.strip(), source=path.name)
 
 
+def note_paths(directory: Path) -> Iterator[Path]:
+    """Enumerate the existing flat, case-sensitive Markdown file scope in order.
+
+    Loading/indexing follow file symlinks. Live tools and evaluation fingerprints
+    additionally exclude paths outside their knowledge root.
+    """
+    for path in sorted(directory.iterdir()):
+        if path.suffix == '.md' and path.is_file():
+            yield path
+
+
 def load_notes(directory: Path) -> list[Note]:
     """Read UTF-8 .md files in filename order without visiting subdirectories.
 
@@ -45,12 +56,7 @@ def load_notes(directory: Path) -> list[Note]:
 
     Filesystem and decoding errors propagate to the caller.
     """
-    notes = []
-    for path in sorted(directory.iterdir()):
-        if path.suffix != ".md" or not path.is_file():
-            continue
-        notes.append(_load_note(path))
-    return notes
+    return [_load_note(path) for path in note_paths(directory)]
 
 
 class DocumentAccess:
@@ -145,10 +151,9 @@ def scan_notes(directory: Path) -> list[Note]:
     """Read the existing flat Markdown scope; fail if it changes during scanning."""
     def inventory():
         result = {}
-        for path in sorted(directory.iterdir()):
-            if path.suffix == '.md' and path.is_file():
-                stat = path.stat()
-                result[path.name] = (stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
+        for path in note_paths(directory):
+            stat = path.stat()
+            result[path.name] = (stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
         return result
     before = inventory()
     notes = load_notes(directory)

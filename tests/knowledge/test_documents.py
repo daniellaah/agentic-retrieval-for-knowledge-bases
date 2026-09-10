@@ -171,6 +171,7 @@ def test_access_tracks_new_deleted_renamed_files_without_retaining_bodies(tmp_pa
 
 
 def test_access_preserves_flat_scope_and_excludes_external_symlinks(tmp_path):
+    from arkb.knowledge.documents import scan_notes
     root = tmp_path / 'notes'
     root.mkdir()
     (root / 'a.md').write_text('inside', encoding='utf-8')
@@ -180,6 +181,9 @@ def test_access_preserves_flat_scope_and_excludes_external_symlinks(tmp_path):
     outside = tmp_path / 'private.md'
     outside.write_text('outside', encoding='utf-8')
     (root / 'link.md').symlink_to(outside)
+    # Indexing retains its existing symlink scope; live tools stay confined.
+    assert [note.source for note in load_notes(root)] == ['a.md', 'link.md']
+    assert scan_notes(root) == load_notes(root)
     access = DocumentAccess(root, vault_id='v')
     assert [r.chunk.source for r in access.records()] == ['a.md']
     assert list(access.records(source='../private.md')) == []

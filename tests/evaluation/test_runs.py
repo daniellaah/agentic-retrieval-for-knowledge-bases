@@ -52,6 +52,23 @@ def config(tmp_path):
                            model='fake-model', max_turns=3, num_trials=2, think=False)
 
 
+def test_live_knowledge_fingerprints_keep_flat_scope_and_symlink_confinement(config, tmp_path):
+    outside = tmp_path / 'outside.md'
+    outside.write_text('outside')
+    (config.notes_dir / 'external.md').symlink_to(outside)
+    (config.notes_dir / 'alias.md').symlink_to(config.notes_dir / 'a.md')
+    nested = config.notes_dir / 'nested'
+    nested.mkdir()
+    (nested / 'hidden.md').write_text('nested')
+    (config.notes_dir / 'ignored.MD').write_text('uppercase')
+    run = run_agent_evaluation(config, runtime=FakeRuntime([trace()] * 6))
+    metadata = json.loads((run.output_dir / 'run_metadata.json').read_text())
+    hashes = metadata['knowledge_before']['notes_sha256']
+    assert set(hashes) == {'a.md', 'b.md', 'alias.md'}
+    assert hashes['a.md'] == hashes['alias.md']
+    assert metadata['knowledge_changed'] is False
+
+
 def test_every_versioned_case_and_multiple_trials_execute_independently(config):
     config = replace(config, dataset_path=DATASET, notes_dir=NOTES)
     cases = load_agent_eval_dataset(DATASET)

@@ -56,11 +56,12 @@ def _write_json(path: Path, value):
 def _knowledge_metadata(config: AgentEvalConfig | BaselineEvalConfig, *, index_version=None) -> dict:
     """Record live file hashes and the published snapshot without loading models."""
     from arkb.knowledge.sqlite import SQLiteStorage
+    from arkb.knowledge.documents import note_paths
 
     root = config.notes_dir.resolve()
     notes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
-             for p in sorted(root.glob('*.md'))
-             if p.is_file() and p.resolve().is_relative_to(root)}
+             for p in (note_paths(root) if root.is_dir() else ())
+             if p.resolve().is_relative_to(root)}
     snapshot = None
     if config.db.exists():
         with SQLiteStorage(config.db, read_only=True) as storage:
