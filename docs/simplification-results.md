@@ -71,8 +71,19 @@ Knowledge 准备、持久化并读取知识。Retrieval 执行可独立测试的
 | 原始基线 `7bbf4ce` 与最终代码的固定检索/context/tool JSON 比较 | 完全一致，包含 BM25/semantic/hybrid、重排、过滤、重复与重叠证据、两种引用模式和工具 schema/read/search/match |
 | 源码分发包及 wheel | `uv build --offline` 成功；wheel 安装到独立临时目录 |
 | 仓库外从 wheel 加载 CLI 与评估入口 | 产品 CLI、runs、retrieval baseline/ann、generation、model_ablation 共 6 个 `--help` 入口通过；评估指南导入通过 |
-| 旧模块与语法检查 | 42 个 Python 源文件解析通过；当前 source/tests/入口文档没有退休模块引用；`git diff --check` 通过 |
+| 旧模块与语法检查 | 42 个 Python 源文件解析通过；当前 source/tests/入口文档没有退休模块引用；全量重构范围的空白检查见下方独立复核补充 |
 
 全部真实集成包含 4 个原本可选的 Qwen reranker 测试，使用独立的 160-chunk example_notes 快照，并核对 BM25、semantic、hybrid 的候选、过滤和真实重排分数。真实 Agent 探索场景正常结束；明确限制轮次的测试仍按预期返回 max_turns。模型行为只按这些实际用例的断言验证，不据此声称所有任意问题都能稳定结束。
 
 验证使用已缓存本地模型和本任务独立创建的 Qdrant 容器，没有修改用户索引或下载模型。JUnit XML、固定输出对照和最终 Agent 轨迹另存本地 `.arkb/refactor/final-validation/`（忽略提交的测试产物）；本文件保留可随代码审阅的结论。原始验证目录为 `/private/tmp/arkb-refactor-validation/`。
+
+## 独立复核补充（2026-09-10）
+
+独立复核以 git merge-base 确认 `7bbf4ce` 为基线，审阅 `7bbf4ce..5cda3ce` 的全部 16 个提交、48 个变更文件及相关调用者，未发现已证实的 P0、P1 或 P2 问题。
+
+- 独立重跑：969 个常规测试、63 个真实集成测试全部通过，均无失败、错误或跳过。真实集成使用新建的 160-chunk 快照和独立 Qdrant 容器，容器已清理。
+- 重新构造的 1,768 个确定性比较用例在基线与最终代码之间逐字节一致，覆盖检索诊断、过滤、重排、工具 schema/read/search/match、重叠证据、预算和两种引用模式。
+- 从临时源码副本构建源码包及 wheel，并在仓库外验证 42 个模块导入、6 个 CLI/评估帮助入口、已安装控制台入口的 live match，以及可选 reranker 依赖缺失时的行为。安装验证复用了现有依赖，没有重新进行联网依赖解析。
+- 原表中未限定范围的“`git diff --check` 通过”表述已更正：`git diff --check 7bbf4ce..5cda3ce` 会报告 `src/arkb/evaluation/agent_metrics.py:203` 的文件末尾多余空行。该项不影响运行行为，未列为实质审查问题；工作区检查不能替代完整提交范围检查。
+
+上述测试结果对应代码提交 `5cda3ce`。本次发布说明收尾仅修改文档。
