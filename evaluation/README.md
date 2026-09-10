@@ -1,5 +1,10 @@
 # Agent Evaluation v1
 
+For the September 2026 audit, external evaluation research, and proposed v2
+dataset/metrics/experiment roadmap, see the
+[Evaluation optimization plan](eval-optimization-plan.md).
+The plan preserves v1 scores and distinguishes proposed work from measured results.
+
 The dataset and metric contracts remain v1. Index storage and identities now use
 schema v2: rebuild pre-v2 indexes into a fresh database before running current
 code. Historical reports retain their original measurements and artifact IDs;

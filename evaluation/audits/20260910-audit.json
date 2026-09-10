@@ -1,0 +1,1051 @@
+{
+  "audit_date": "2026-09-10",
+  "source_commit": "0a3e89d584d5548366954d24d0b617fb4c07d6a0",
+  "audit_script_sha256": "bf628d6c2f3b89061f3ab8b2d6d129725b73d003b55593664b574c4f7b82e878",
+  "evaluator_source_hashes": {
+    "evaluation/__init__.py": "ed672304ea66b7d921ff7c1ae71a3a167a24ee098f3e832105699c7c0aa3d1df",
+    "evaluation/ablation_analysis.py": "7b61258f843f2b075f9d3e79146105e48d361c012722160ef6df1037632457c8",
+    "evaluation/agent_metrics.py": "1ad9458846de04beaea7e9d3ceb0d427def25cb1ec020c533ba4f356b4f83526",
+    "evaluation/baselines.py": "a2c6f86bbcb123b81cbcdde97909aa454c35e5585738b34bfb20039e66f57975",
+    "evaluation/datasets.py": "8d0008470fe3e6e15ce3dac051cd979117daf9cc7f6473ec327e83b2a6ccb5ee",
+    "evaluation/generation.py": "6e2618c2a5d99cc30c8f8cecb7d1ff8740ebf4871ad953cd7f1d6060a2ab54a5",
+    "evaluation/metrics.py": "2e3f77ef6852516fbd5c6940b44cceb7b37ff410b5475a80a7cc8a3a78bbab93",
+    "evaluation/model_ablation.py": "bcbe82df79220846140ea9500bdfb868697fd21fad7dfc4f1a9cde100944c4bc",
+    "evaluation/models.py": "df3d0d5affcc934fe0ab03c736e06dd07dffc7e06ba492e0db5cf285983d09c2",
+    "evaluation/retrieval.py": "65266504c092256229f409a2f717134e4834b456c22ec40486ec81b0deed6e79",
+    "evaluation/runs.py": "eb00e59f9f0d633b5474a8551085b629807bad968c6c5c3dc936180b24308c95"
+  },
+  "scope": "Offline v1 score replay; no live inference, answer grading, or index/vector verification.",
+  "dataset": {
+    "sha256": "8babda40f2a74506c3fefe5159a9094a91c86e4e5562443a09c7b35790a0e8af",
+    "cases": 40,
+    "by_task_type": {
+      "exact_lookup": 6,
+      "semantic_discovery": 6,
+      "direct_read": 6,
+      "exploratory_retrieval": 10,
+      "knowledge_qa": 6,
+      "no_retrieval": 6
+    },
+    "queries_containing_han": 39,
+    "positive_labeled_documents": 33,
+    "documents_without_positive_labels": [
+      "08_think_tool.md",
+      "10_mcp_connections.md",
+      "18_embedding_benchmarks.md",
+      "22_process_supervision.md",
+      "23_weak_to_strong_generalization.md",
+      "24_deliberative_alignment.md",
+      "25_hallucination_incentives.md"
+    ],
+    "positive_label_frequency": {
+      "40_query_planning_and_compression.md": 9,
+      "34_agent_memory_lifecycle.md": 7,
+      "32_document_ingestion_and_structure.md": 5,
+      "14_cross_encoder_reranking.md": 5,
+      "06_context_compaction.md": 5,
+      "37_multimodal_evidence_retrieval.md": 4,
+      "13_hybrid_rank_fusion.md": 4,
+      "07_long_running_harnesses.md": 4,
+      "30_retrieval_and_fine_tuning.md": 3,
+      "16_matryoshka_embeddings.md": 3,
+      "27_agent_trial_reliability.md": 3,
+      "38_agent_evaluation_and_observability.md": 3,
+      "33_graph_search_strategies.md": 2,
+      "12_contextual_retrieval.md": 2,
+      "15_chunk_boundaries.md": 2,
+      "17_embedding_quantization.md": 2,
+      "01_workflows_and_agents.md": 2,
+      "02_tool_interface_design.md": 2,
+      "26_simpleqa_factuality.md": 1,
+      "29_learned_sparse_retrieval.md": 1,
+      "28_graph_retrieval.md": 1,
+      "03_dynamic_tool_discovery.md": 1,
+      "04_code_execution_for_tools.md": 1,
+      "05_agent_skills.md": 1,
+      "11_prompt_caching.md": 1,
+      "31_multi_agent_coordination.md": 1,
+      "21_speculative_decoding.md": 1,
+      "35_llm_serving_and_kv_cache.md": 1,
+      "09_agent_sandboxing.md": 1,
+      "36_prompt_injection_and_monitors.md": 1,
+      "19_parameter_efficient_tuning.md": 1,
+      "20_direct_preference_optimization.md": 1,
+      "39_synthetic_data_quality.md": 1
+    }
+  },
+  "corpus": {
+    "documents": 40,
+    "raw_markdown_characters": 80700,
+    "raw_character_length_min_median_max": [
+      606,
+      733.0,
+      6240
+    ],
+    "documents_containing_han": 0
+  },
+  "agent": {
+    "4b": {
+      "replayed_rows": 120,
+      "all_case_metrics_and_summary_match": true,
+      "summary": {
+        "total_cases": 40,
+        "total_trials": 120,
+        "success_count": 93,
+        "failure_count": 27,
+        "task_success_rate": 0.775,
+        "no_retrieval_trials": 18,
+        "missing_trace_trials": 0,
+        "average_source_recall": 0.8588235294117647,
+        "source_recall_defined_trials": 102,
+        "average_tool_calls": 3.025,
+        "tool_call_count_defined_trials": 120,
+        "average_turns": 3.55,
+        "turn_count_defined_trials": 120,
+        "max_turn_failure_rate": 0.075,
+        "max_turn_failure_defined_trials": 120,
+        "unnecessary_retrieval_rate": 0,
+        "unnecessary_retrieval_defined_trials": 18,
+        "tool_usage_distribution": {
+          "match": 18,
+          "read": 168,
+          "search": 177
+        },
+        "stop_reason_distribution": {
+          "error": 3,
+          "final": 108,
+          "max_turns": 9,
+          "other": 0,
+          "unavailable": 0
+        },
+        "by_task_type": {
+          "direct_read": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 18,
+            "failure_count": 0,
+            "task_success_rate": 1,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 1.0,
+            "source_recall_defined_trials": 18,
+            "average_tool_calls": 1,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 2,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 18,
+              "search": 0
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "exact_lookup": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 15,
+            "failure_count": 3,
+            "task_success_rate": 0.8333333333333334,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 0.9,
+            "source_recall_defined_trials": 18,
+            "average_tool_calls": 1,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 2,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 18,
+              "read": 0,
+              "search": 0
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "exploratory_retrieval": {
+            "total_cases": 10,
+            "total_trials": 30,
+            "success_count": 12,
+            "failure_count": 18,
+            "task_success_rate": 0.4,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 0.7533333333333333,
+            "source_recall_defined_trials": 30,
+            "average_tool_calls": 6.6,
+            "tool_call_count_defined_trials": 30,
+            "average_turns": 6.1,
+            "turn_count_defined_trials": 30,
+            "max_turn_failure_rate": 0.2,
+            "max_turn_failure_defined_trials": 30,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 75,
+              "search": 123
+            },
+            "stop_reason_distribution": {
+              "error": 3,
+              "final": 21,
+              "max_turns": 6,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "knowledge_qa": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 15,
+            "failure_count": 3,
+            "task_success_rate": 0.8333333333333334,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 0.9166666666666666,
+            "source_recall_defined_trials": 18,
+            "average_tool_calls": 2.6666666666666665,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 3.6666666666666665,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 27,
+              "search": 21
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "no_retrieval": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 18,
+            "failure_count": 0,
+            "task_success_rate": 1,
+            "no_retrieval_trials": 18,
+            "missing_trace_trials": 0,
+            "average_source_recall": null,
+            "source_recall_defined_trials": 0,
+            "average_tool_calls": 0,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 1,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": 0,
+            "unnecessary_retrieval_defined_trials": 18,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 0,
+              "search": 0
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "semantic_discovery": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 15,
+            "failure_count": 3,
+            "task_success_rate": 0.8333333333333334,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 0.7944444444444444,
+            "source_recall_defined_trials": 18,
+            "average_tool_calls": 4.5,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 4.833333333333333,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0.16666666666666666,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 48,
+              "search": 33
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 15,
+              "max_turns": 3,
+              "other": 0,
+              "unavailable": 0
+            }
+          }
+        }
+      },
+      "cases_with_identical_metrics_and_call_arguments": 40,
+      "semantic_explore_qa_recall": 0.8090909090909091,
+      "mean_elapsed_ms_all_tasks": 14253.44193885588,
+      "failed_case_ids": [
+        "exact_001",
+        "explore_001",
+        "explore_002",
+        "explore_004",
+        "explore_005",
+        "explore_006",
+        "explore_007",
+        "qa_006",
+        "semantic_005"
+      ]
+    },
+    "9b": {
+      "replayed_rows": 120,
+      "all_case_metrics_and_summary_match": true,
+      "summary": {
+        "total_cases": 40,
+        "total_trials": 120,
+        "success_count": 102,
+        "failure_count": 18,
+        "task_success_rate": 0.85,
+        "no_retrieval_trials": 18,
+        "missing_trace_trials": 0,
+        "average_source_recall": 0.8960784313725491,
+        "source_recall_defined_trials": 102,
+        "average_tool_calls": 3.375,
+        "tool_call_count_defined_trials": 120,
+        "average_turns": 3.2,
+        "turn_count_defined_trials": 120,
+        "max_turn_failure_rate": 0.05,
+        "max_turn_failure_defined_trials": 120,
+        "unnecessary_retrieval_rate": 0,
+        "unnecessary_retrieval_defined_trials": 18,
+        "tool_usage_distribution": {
+          "match": 18,
+          "read": 195,
+          "search": 192
+        },
+        "stop_reason_distribution": {
+          "error": 3,
+          "final": 111,
+          "max_turns": 6,
+          "other": 0,
+          "unavailable": 0
+        },
+        "by_task_type": {
+          "direct_read": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 18,
+            "failure_count": 0,
+            "task_success_rate": 1,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 1.0,
+            "source_recall_defined_trials": 18,
+            "average_tool_calls": 1,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 2,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 18,
+              "search": 0
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "exact_lookup": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 15,
+            "failure_count": 3,
+            "task_success_rate": 0.8333333333333334,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 0.9,
+            "source_recall_defined_trials": 18,
+            "average_tool_calls": 1,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 2,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 18,
+              "read": 0,
+              "search": 0
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "exploratory_retrieval": {
+            "total_cases": 10,
+            "total_trials": 30,
+            "success_count": 24,
+            "failure_count": 6,
+            "task_success_rate": 0.8,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 0.7966666666666666,
+            "source_recall_defined_trials": 30,
+            "average_tool_calls": 7.6,
+            "tool_call_count_defined_trials": 30,
+            "average_turns": 4.8,
+            "turn_count_defined_trials": 30,
+            "max_turn_failure_rate": 0.1,
+            "max_turn_failure_defined_trials": 30,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 105,
+              "search": 123
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 27,
+              "max_turns": 3,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "knowledge_qa": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 15,
+            "failure_count": 3,
+            "task_success_rate": 0.8333333333333334,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 0.9166666666666666,
+            "source_recall_defined_trials": 18,
+            "average_tool_calls": 3,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 3.8333333333333335,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 27,
+              "search": 27
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "no_retrieval": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 18,
+            "failure_count": 0,
+            "task_success_rate": 1,
+            "no_retrieval_trials": 18,
+            "missing_trace_trials": 0,
+            "average_source_recall": null,
+            "source_recall_defined_trials": 0,
+            "average_tool_calls": 0,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 1,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": 0,
+            "unnecessary_retrieval_defined_trials": 18,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 0,
+              "search": 0
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "semantic_discovery": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 12,
+            "failure_count": 6,
+            "task_success_rate": 0.6666666666666666,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 0.9333333333333333,
+            "source_recall_defined_trials": 18,
+            "average_tool_calls": 4.833333333333333,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 4.5,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0.16666666666666666,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 45,
+              "search": 42
+            },
+            "stop_reason_distribution": {
+              "error": 3,
+              "final": 12,
+              "max_turns": 3,
+              "other": 0,
+              "unavailable": 0
+            }
+          }
+        }
+      },
+      "cases_with_identical_metrics_and_call_arguments": 40,
+      "semantic_explore_qa_recall": 0.8666666666666667,
+      "mean_elapsed_ms_all_tasks": 21842.030473593815,
+      "failed_case_ids": [
+        "exact_001",
+        "explore_002",
+        "explore_007",
+        "qa_006",
+        "semantic_002",
+        "semantic_004"
+      ]
+    },
+    "27b": {
+      "replayed_rows": 120,
+      "all_case_metrics_and_summary_match": true,
+      "summary": {
+        "total_cases": 40,
+        "total_trials": 120,
+        "success_count": 114,
+        "failure_count": 6,
+        "task_success_rate": 0.95,
+        "no_retrieval_trials": 18,
+        "missing_trace_trials": 0,
+        "average_source_recall": 0.8852941176470588,
+        "source_recall_defined_trials": 102,
+        "average_tool_calls": 3.075,
+        "tool_call_count_defined_trials": 120,
+        "average_turns": 2.925,
+        "turn_count_defined_trials": 120,
+        "max_turn_failure_rate": 0,
+        "max_turn_failure_defined_trials": 120,
+        "unnecessary_retrieval_rate": 0,
+        "unnecessary_retrieval_defined_trials": 18,
+        "tool_usage_distribution": {
+          "match": 18,
+          "read": 207,
+          "search": 144
+        },
+        "stop_reason_distribution": {
+          "error": 0,
+          "final": 120,
+          "max_turns": 0,
+          "other": 0,
+          "unavailable": 0
+        },
+        "by_task_type": {
+          "direct_read": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 18,
+            "failure_count": 0,
+            "task_success_rate": 1,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 1.0,
+            "source_recall_defined_trials": 18,
+            "average_tool_calls": 1,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 2,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 18,
+              "search": 0
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "exact_lookup": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 15,
+            "failure_count": 3,
+            "task_success_rate": 0.8333333333333334,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 0.9,
+            "source_recall_defined_trials": 18,
+            "average_tool_calls": 1,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 2,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 18,
+              "read": 0,
+              "search": 0
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "exploratory_retrieval": {
+            "total_cases": 10,
+            "total_trials": 30,
+            "success_count": 30,
+            "failure_count": 0,
+            "task_success_rate": 1,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 0.8433333333333334,
+            "source_recall_defined_trials": 30,
+            "average_tool_calls": 7.2,
+            "tool_call_count_defined_trials": 30,
+            "average_turns": 4.2,
+            "turn_count_defined_trials": 30,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 30,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 111,
+              "search": 105
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 30,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "knowledge_qa": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 15,
+            "failure_count": 3,
+            "task_success_rate": 0.8333333333333334,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 0.9166666666666666,
+            "source_recall_defined_trials": 18,
+            "average_tool_calls": 2.5,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 3.5,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 27,
+              "search": 18
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "no_retrieval": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 18,
+            "failure_count": 0,
+            "task_success_rate": 1,
+            "no_retrieval_trials": 18,
+            "missing_trace_trials": 0,
+            "average_source_recall": null,
+            "source_recall_defined_trials": 0,
+            "average_tool_calls": 0,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 1,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": 0,
+            "unnecessary_retrieval_defined_trials": 18,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 0,
+              "search": 0
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          },
+          "semantic_discovery": {
+            "total_cases": 6,
+            "total_trials": 18,
+            "success_count": 18,
+            "failure_count": 0,
+            "task_success_rate": 1,
+            "no_retrieval_trials": 0,
+            "missing_trace_trials": 0,
+            "average_source_recall": 0.7944444444444444,
+            "source_recall_defined_trials": 18,
+            "average_tool_calls": 4,
+            "tool_call_count_defined_trials": 18,
+            "average_turns": 4,
+            "turn_count_defined_trials": 18,
+            "max_turn_failure_rate": 0,
+            "max_turn_failure_defined_trials": 18,
+            "unnecessary_retrieval_rate": null,
+            "unnecessary_retrieval_defined_trials": 0,
+            "tool_usage_distribution": {
+              "match": 0,
+              "read": 51,
+              "search": 21
+            },
+            "stop_reason_distribution": {
+              "error": 0,
+              "final": 18,
+              "max_turns": 0,
+              "other": 0,
+              "unavailable": 0
+            }
+          }
+        }
+      },
+      "cases_with_identical_metrics_and_call_arguments": 40,
+      "semantic_explore_qa_recall": 0.85,
+      "mean_elapsed_ms_all_tasks": 66863.39097220625,
+      "failed_case_ids": [
+        "exact_001",
+        "qa_006"
+      ]
+    }
+  },
+  "baseline": {
+    "bm25": {
+      "scored_cases": 34,
+      "not_applicable": 6,
+      "error_cases": 0,
+      "all_row_metrics_and_overall_metric_means_match": true,
+      "metrics": {
+        "recall_at_1": 0.2142156862745098,
+        "ndcg_at_1": 0.29411764705882354,
+        "mrr": 0.32107843137254904,
+        "recall_at_3": 0.24803921568627452,
+        "ndcg_at_3": 0.26924588682822254,
+        "recall_at_5": 0.2980392156862745,
+        "ndcg_at_5": 0.2836558996754044,
+        "recall_at_10": 0.30392156862745096,
+        "ndcg_at_10": 0.287209173284213
+      },
+      "semantic_explore_qa_recall": 0.1606060606060606,
+      "unique_sources_min_mean_max": [
+        0,
+        1.6176470588235294,
+        9
+      ],
+      "mean_latency_ms": 0.21247429471901236
+    },
+    "hybrid": {
+      "scored_cases": 34,
+      "not_applicable": 6,
+      "error_cases": 0,
+      "all_row_metrics_and_overall_metric_means_match": true,
+      "metrics": {
+        "recall_at_1": 0.5848039215686275,
+        "ndcg_at_1": 0.9411764705882353,
+        "mrr": 0.9470588235294117,
+        "recall_at_3": 0.7794117647058824,
+        "ndcg_at_3": 0.8649994966471962,
+        "recall_at_5": 0.8235294117647058,
+        "ndcg_at_5": 0.846630232750784,
+        "recall_at_10": 0.846078431372549,
+        "ndcg_at_10": 0.8580625706030368
+      },
+      "semantic_explore_qa_recall": 0.7621212121212121,
+      "unique_sources_min_mean_max": [
+        2,
+        5.323529411764706,
+        8
+      ],
+      "mean_latency_ms": 77.27121563477661
+    },
+    "hybrid_rerank": {
+      "scored_cases": 34,
+      "not_applicable": 6,
+      "error_cases": 0,
+      "all_row_metrics_and_overall_metric_means_match": true,
+      "metrics": {
+        "recall_at_1": 0.5465686274509803,
+        "ndcg_at_1": 0.9117647058823529,
+        "mrr": 0.9411764705882353,
+        "recall_at_3": 0.8009803921568628,
+        "ndcg_at_3": 0.8762833789179848,
+        "recall_at_5": 0.8509803921568627,
+        "ndcg_at_5": 0.8589957950780661,
+        "recall_at_10": 0.8730392156862745,
+        "ndcg_at_10": 0.8686931044474392
+      },
+      "semantic_explore_qa_recall": 0.8037878787878788,
+      "unique_sources_min_mean_max": [
+        2,
+        4.911764705882353,
+        8
+      ],
+      "mean_latency_ms": 2815.568825812079
+    },
+    "semantic": {
+      "scored_cases": 34,
+      "not_applicable": 6,
+      "error_cases": 0,
+      "all_row_metrics_and_overall_metric_means_match": true,
+      "metrics": {
+        "recall_at_1": 0.5612745098039216,
+        "ndcg_at_1": 0.9411764705882353,
+        "mrr": 0.9558823529411765,
+        "recall_at_3": 0.778921568627451,
+        "ndcg_at_3": 0.8694453596510738,
+        "recall_at_5": 0.8112745098039216,
+        "ndcg_at_5": 0.838474072744577,
+        "recall_at_10": 0.8279411764705882,
+        "ndcg_at_10": 0.8463531369880212
+      },
+      "semantic_explore_qa_recall": 0.7659090909090909,
+      "unique_sources_min_mean_max": [
+        2,
+        5.235294117647059,
+        8
+      ],
+      "mean_latency_ms": 99.24831732367987
+    }
+  },
+  "inputs": {
+    "evaluation/results/agent_model_ablation/20260909-phase1-formal/qwen3.5-4b": {
+      "results_sha256": "b0ebd13ae9f669b1adb64efb167739281526d9aa2d3e6680d1919dac1aea0022",
+      "run_metadata_sha256": "784d5270e744ac14fb2a689a478908874f202f3e3e3fd5a717a787fd16a14fdb",
+      "dataset_matches": true,
+      "live_corpus_hashes_match": true,
+      "historical_boundary_fingerprints_match": true,
+      "snapshot_id": "facaea4136d1421389ca640051e1e55c",
+      "snapshot_chunks": 160,
+      "historical_paths_changed_or_moved": [
+        "agent/loop.py",
+        "agent/tools.py",
+        "config.py",
+        "evaluation/ablation_analysis.py",
+        "evaluation/agent.py",
+        "evaluation/agent_runner.py",
+        "evaluation/generation.py",
+        "evaluation/model_ablation.py",
+        "evaluation/models.py",
+        "evaluation/retrieval.py",
+        "generation/context.py",
+        "generation/generate.py",
+        "generation/models.py",
+        "interfaces/cli.py",
+        "interfaces/mcp.py",
+        "knowledge/documents.py",
+        "knowledge/indexing.py",
+        "knowledge/models.py",
+        "knowledge/qdrant.py",
+        "knowledge/sqlite.py",
+        "retrieval/__init__.py",
+        "retrieval/fusion.py",
+        "retrieval/hybrid.py",
+        "retrieval/rerank.py",
+        "retrieval/semantic.py",
+        "runtime.py"
+      ]
+    },
+    "evaluation/results/agent_model_ablation/20260909-phase1-formal/qwen3.5-9b": {
+      "results_sha256": "1eae36de8e5193766f9f0fdedaac35603180cabf82a71364be65ff4b73a522b2",
+      "run_metadata_sha256": "ee877647cadfca6805617d435984ac790cf5022e17c9d7b440d17c6eb89da1e6",
+      "dataset_matches": true,
+      "live_corpus_hashes_match": true,
+      "historical_boundary_fingerprints_match": true,
+      "snapshot_id": "facaea4136d1421389ca640051e1e55c",
+      "snapshot_chunks": 160,
+      "historical_paths_changed_or_moved": [
+        "agent/loop.py",
+        "agent/tools.py",
+        "config.py",
+        "evaluation/ablation_analysis.py",
+        "evaluation/agent.py",
+        "evaluation/agent_runner.py",
+        "evaluation/generation.py",
+        "evaluation/model_ablation.py",
+        "evaluation/models.py",
+        "evaluation/retrieval.py",
+        "generation/context.py",
+        "generation/generate.py",
+        "generation/models.py",
+        "interfaces/cli.py",
+        "interfaces/mcp.py",
+        "knowledge/documents.py",
+        "knowledge/indexing.py",
+        "knowledge/models.py",
+        "knowledge/qdrant.py",
+        "knowledge/sqlite.py",
+        "retrieval/__init__.py",
+        "retrieval/fusion.py",
+        "retrieval/hybrid.py",
+        "retrieval/rerank.py",
+        "retrieval/semantic.py",
+        "runtime.py"
+      ]
+    },
+    "evaluation/results/agent_model_ablation/20260909-phase1-formal/qwen3.5-27b": {
+      "results_sha256": "6d085af6dcfa260cc1119809beeaa5ae899ee5af14621649208f0fcb8640c6f2",
+      "run_metadata_sha256": "4bd7f858ad731bd82e144ba62f5d476863ccdf7dbae5c351f0a1a5abb01fed60",
+      "dataset_matches": true,
+      "live_corpus_hashes_match": true,
+      "historical_boundary_fingerprints_match": true,
+      "snapshot_id": "facaea4136d1421389ca640051e1e55c",
+      "snapshot_chunks": 160,
+      "historical_paths_changed_or_moved": [
+        "agent/loop.py",
+        "agent/tools.py",
+        "config.py",
+        "evaluation/ablation_analysis.py",
+        "evaluation/agent.py",
+        "evaluation/agent_runner.py",
+        "evaluation/generation.py",
+        "evaluation/model_ablation.py",
+        "evaluation/models.py",
+        "evaluation/retrieval.py",
+        "generation/context.py",
+        "generation/generate.py",
+        "generation/models.py",
+        "interfaces/cli.py",
+        "interfaces/mcp.py",
+        "knowledge/documents.py",
+        "knowledge/indexing.py",
+        "knowledge/models.py",
+        "knowledge/qdrant.py",
+        "knowledge/sqlite.py",
+        "retrieval/__init__.py",
+        "retrieval/fusion.py",
+        "retrieval/hybrid.py",
+        "retrieval/rerank.py",
+        "retrieval/semantic.py",
+        "runtime.py"
+      ]
+    },
+    "evaluation/results/deterministic-baselines-20260909": {
+      "results_sha256": "86b93888516d1900da43e1b0952ed2c54abe8d1b3cfec80b141661605facd47f",
+      "run_metadata_sha256": "653b9e82fdf3b0ad2fc43d408e3f7126d9cbf434dba9be569197f962b27fc465",
+      "dataset_matches": true,
+      "live_corpus_hashes_match": true,
+      "historical_boundary_fingerprints_match": true,
+      "snapshot_id": "facaea4136d1421389ca640051e1e55c",
+      "snapshot_chunks": 160,
+      "historical_paths_changed_or_moved": [
+        "agent/loop.py",
+        "agent/tools.py",
+        "config.py",
+        "evaluation/ablation_analysis.py",
+        "evaluation/agent.py",
+        "evaluation/agent_runner.py",
+        "evaluation/generation.py",
+        "evaluation/model_ablation.py",
+        "evaluation/models.py",
+        "evaluation/retrieval.py",
+        "generation/context.py",
+        "generation/generate.py",
+        "generation/models.py",
+        "interfaces/mcp.py",
+        "knowledge/documents.py",
+        "knowledge/indexing.py",
+        "knowledge/models.py",
+        "knowledge/qdrant.py",
+        "knowledge/sqlite.py",
+        "retrieval/__init__.py",
+        "retrieval/fusion.py",
+        "retrieval/hybrid.py",
+        "retrieval/rerank.py",
+        "retrieval/semantic.py",
+        "runtime.py"
+      ]
+    }
+  },
+  "all_four_run_metadata_snapshots_match": true,
+  "score_replay_total_rows": 520,
+  "synthetic_metric_contract_probes": {
+    "qa_001": {
+      "synthetic_only": true,
+      "v1_success": true,
+      "meaning": "v1 verifies source membership and behavior, not evidence/answer semantics"
+    },
+    "read_001": {
+      "synthetic_only": true,
+      "v1_success": true,
+      "meaning": "v1 verifies source membership and behavior, not evidence/answer semantics"
+    }
+  }
+}
