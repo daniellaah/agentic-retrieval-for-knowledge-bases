@@ -12,7 +12,7 @@ def hit(name, *, method='test', score=None):
 
 
 def test_rrf_adds_rank_votes_without_mixing_raw_scores_and_keeps_provenance():
-    from arkb.retrieval.fusion import rrf
+    from arkb.retrieval.hybrid import rrf
     a, b, c = hit('a', score=9000), hit('b', score=-12), hit('c')
     result = rrf({'lexical': [a, b], 'semantic': [replace(b, method='semantic', score=.2), c]}, k=0)
     assert [r.chunk_id for r in result] == ['b', 'a', 'c']
@@ -24,7 +24,7 @@ def test_rrf_adds_rank_votes_without_mixing_raw_scores_and_keeps_provenance():
 
 
 def test_duplicates_vote_once_at_first_original_rank_and_parent_identity_is_scoped():
-    from arkb.retrieval.fusion import rrf
+    from arkb.retrieval.hybrid import rrf
     a, b = hit('a'), hit('b')
     other = replace(a, source_id='another-document')
     result = rrf([[a, a, b], [other]], k=1)
@@ -37,7 +37,7 @@ def test_duplicates_vote_once_at_first_original_rank_and_parent_identity_is_scop
 
 
 def test_disjoint_ties_and_list_order_are_deterministic_with_top_k_and_empty_inputs():
-    from arkb.retrieval.fusion import rrf
+    from arkb.retrieval.hybrid import rrf
     lists = {'z': [hit('b')], 'a': [hit('a')]}
     expected = rrf(lists)
     assert [h.chunk_id for h in expected] == ['a', 'b']
@@ -50,13 +50,13 @@ def test_disjoint_ties_and_list_order_are_deterministic_with_top_k_and_empty_inp
 
 @pytest.mark.parametrize('options', [{'k': -1}, {'k': float('inf')}, {'k': True}, {'top_k': 0}])
 def test_invalid_rrf_parameters_fail(options):
-    from arkb.retrieval.fusion import rrf
+    from arkb.retrieval.hybrid import rrf
     with pytest.raises(ValueError):
         rrf([], **options)
 
 
 def test_unknown_provenance_does_not_hide_conflicting_known_snapshots():
-    from arkb.retrieval.fusion import rrf
+    from arkb.retrieval.hybrid import rrf
     a = hit('a')
     with pytest.raises(ValueError, match='conflicting'):
         rrf([[a], [replace(a, metadata={'index_version': 'v1'})],

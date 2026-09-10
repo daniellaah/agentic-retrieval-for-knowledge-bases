@@ -223,7 +223,7 @@ class BaselineEvalConfig:
             raise ValueError('Expected RuntimeConfig and RetrievalConfig settings.')
         settings = self.retrieval_config
         if set(self.baselines) & {'hybrid', 'hybrid_rerank'}:
-            from arkb.retrieval.fusion import rrf
+            from arkb.retrieval.hybrid import rrf
             validate_options(settings.candidate_k, None)
             rrf([], k=settings.rrf_k)
             if self.top_k > settings.candidate_k:

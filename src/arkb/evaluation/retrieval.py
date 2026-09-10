@@ -199,7 +199,7 @@ def baseline_main(argv=None) -> int:
         parser.error('--timeout must be positive and finite')
     raw, cases = load_cases(args.cases)
     from arkb.retrieval.models import validate_request
-    from arkb.retrieval.fusion import rrf
+    from arkb.retrieval.hybrid import rrf
     if not cases or len({case['id'] for case in cases}) != len(cases):
         parser.error('Cases must be nonempty with unique IDs')
     for case in cases:
