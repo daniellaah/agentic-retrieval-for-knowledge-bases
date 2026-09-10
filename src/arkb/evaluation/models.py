@@ -6,7 +6,11 @@ from pathlib import Path
 from typing import Literal, get_args
 
 from arkb.agent.state import AgentTrace
-from arkb.config import DEFAULT_AGENT_THINK, DEFAULT_DB, DEFAULT_GENERATION_MODEL, DEFAULT_NOTES_DIR, RuntimeConfig
+from arkb.config import (
+    DEFAULT_AGENT_THINK, DEFAULT_DB, DEFAULT_GENERATION_MODEL, DEFAULT_NOTES_DIR,
+    RetrievalConfig, RuntimeConfig,
+)
+from arkb.retrieval.models import SearchResponse, validate_options
 
 
 TaskType = Literal['exact_lookup', 'semantic_discovery', 'direct_read',
@@ -167,4 +171,94 @@ class AgentEvalTrial:
 class AgentEvalRun:
     output_dir: Path
     results: tuple[AgentEvalTrial, ...]
+    summary: dict
+
+
+BASELINE_MODES = {
+    'bm25': ('bm25', False),
+    'semantic': ('semantic', False),
+    'hybrid': ('hybrid', False),
+    'hybrid_rerank': ('hybrid', True),
+}
+
+
+@dataclass(frozen=True, kw_only=True)
+class BaselineEvalConfig:
+    """One engine request per applicable case/method on a pinned snapshot.
+
+    top_k is the engine's chunk/result limit, not a promise of K unique sources.
+    Metrics use source cutoffs 1/3/5/10 up to that limit, plus the limit itself.
+    """
+    dataset_path: Path = AgentEvalConfig.dataset_path
+    output_dir: Path | None = None
+    db: Path = DEFAULT_DB
+    notes_dir: Path = DEFAULT_NOTES_DIR
+    vault_id: str = 'default'
+    index_version: str | None = None
+    baselines: tuple[str, ...] = tuple(BASELINE_MODES)
+    top_k: int = 10
+    exact: bool = False
+    retrieval_config: RetrievalConfig = RetrievalConfig()
+    runtime_config: RuntimeConfig = RuntimeConfig()
+
+    def __post_init__(self):
+        for name in ('dataset_path', 'output_dir', 'db', 'notes_dir'):
+            value = getattr(self, name)
+            if name == 'output_dir' and value is None:
+                continue
+            if not isinstance(value, (str, Path)) or not str(value).strip():
+                raise ValueError(f'{name} must be a nonblank path.')
+            object.__setattr__(self, name, Path(value))
+        if not isinstance(self.vault_id, str) or not self.vault_id.strip():
+            raise ValueError('vault_id must be nonblank.')
+        if self.index_version is not None and (not isinstance(self.index_version, str) or not self.index_version.strip()):
+            raise ValueError('index_version must be nonblank or null.')
+        object.__setattr__(self, 'baselines', _strings(self.baselines, 'baselines'))
+        if not self.baselines or set(self.baselines) - BASELINE_MODES.keys():
+            raise ValueError(f'baselines must select from {tuple(BASELINE_MODES)}.')
+        validate_options(self.top_k, None)
+        if type(self.exact) is not bool:
+            raise ValueError('exact must be boolean.')
+        if not isinstance(self.runtime_config, RuntimeConfig) or not isinstance(self.retrieval_config, RetrievalConfig):
+            raise ValueError('Expected RuntimeConfig and RetrievalConfig settings.')
+        settings = self.retrieval_config
+        if set(self.baselines) & {'hybrid', 'hybrid_rerank'}:
+            from arkb.retrieval.fusion import rrf
+            validate_options(settings.candidate_k, None)
+            rrf([], k=settings.rrf_k)
+            if self.top_k > settings.candidate_k:
+                raise ValueError('top_k cannot exceed hybrid candidate_k.')
+        if 'hybrid_rerank' in self.baselines:
+            validate_options(settings.rerank_candidates, None)
+            validate_options(settings.reranker_max_length, None)
+            if not self.top_k <= settings.rerank_candidates <= settings.candidate_k:
+                raise ValueError('Require top_k <= rerank_candidates <= candidate_k.')
+
+    @property
+    def metric_ks(self) -> tuple[int, ...]:
+        return tuple(sorted({k for k in (1, 3, 5, 10) if k <= self.top_k} | {self.top_k}))
+
+
+@dataclass(frozen=True, kw_only=True)
+class BaselineEvalResult:
+    case_id: str
+    query: str
+    task_type: TaskType
+    expected_sources: tuple[str, ...]
+    baseline: str
+    mode: str
+    rerank: bool
+    status: Literal['ok', 'error', 'not_applicable']
+    retrieved_sources: tuple[str, ...] | None
+    ranked_sources: tuple[str, ...] | None
+    metrics: dict[str, float | None]
+    latency_ms: float | None
+    response: SearchResponse | None
+    error: dict[str, str] | None = None
+
+
+@dataclass(frozen=True, kw_only=True)
+class BaselineEvalRun:
+    output_dir: Path
+    results: tuple[BaselineEvalResult, ...]
     summary: dict

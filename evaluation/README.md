@@ -6,6 +6,9 @@ The completed 360-run experiment is documented in the
 [Phase 1 measured results](phase1-agent-model-ablation-results.md).
 The current fixed reranker is verified in
 [Qwen3 Reranker integration results](reranker-integration.md).
+Fixed BM25, Semantic, Hybrid, and Hybrid + Rerank controls use the same v1 input:
+[Deterministic Retrieval Baselines](deterministic-retrieval-baselines.md), with
+[measured results on the shared snapshot](deterministic-baseline-results.md).
 
 The versioned input is `data/agent_v1.jsonl`: one UTF-8 JSON object per line,
 ordered by task type and case ID, with no model output or runtime state.
