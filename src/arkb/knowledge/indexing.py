@@ -140,8 +140,7 @@ def build_index(
             max_retries=max_retries, context_length=max_input_tokens,
         ):
             storage.put_embeddings(spec, missing[start:start + len(vectors)], vectors)
-        for ordinal, record in enumerate(records):
-            storage.add_chunk(manifest.index_version, record, ordinal=ordinal)
+        storage.add_chunks(manifest.index_version, records)
         _, loaded, vectors = storage.load_snapshot(manifest.index_version)
         if len(loaded) != len(records):
             raise ValueError('Candidate snapshot count does not match source records.')

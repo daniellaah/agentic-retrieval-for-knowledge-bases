@@ -1,6 +1,7 @@
 """Snapshot persistence, embedding cache, and shared Qdrant connection checks."""
 
 from contextlib import contextmanager
+from collections.abc import Sequence
 from dataclasses import asdict, replace
 import fcntl
 import hashlib
@@ -199,19 +200,19 @@ class SQLiteStorage:
             raise ValueError("Only building snapshots may be changed.")
         return manifest
 
-    def add_chunk(self, version: str, record: ChunkRecord, *, ordinal: int) -> None:
-        if type(ordinal) is not int or ordinal < 0:
-            raise ValueError("ordinal must be a nonnegative integer.")
+    def add_chunks(self, version: str, records: Sequence[ChunkRecord]) -> None:
+        """Write ordered snapshot records atomically; cached embeddings remain durable."""
         with self._transaction():
             manifest = self._building(version)
-            if record.vault_id != manifest.vault_id:
-                raise ValueError("Chunk belongs to a different vault.")
             spec = manifest.embedding_spec
-            text = prepare_document(record.chunk, document_template=spec.document_template)
-            if self.get_embedding(spec, text) is None:
-                raise ValueError("Chunk embedding is missing from the cache.")
-            self.connection.execute("INSERT INTO snapshot_chunks VALUES (?, ?, ?, ?, ?)",
-                                    (version, ordinal, record.chunk_id, _json(asdict(record)), spec.embedding_key(text)))
+            for ordinal, record in enumerate(records):
+                if record.vault_id != manifest.vault_id:
+                    raise ValueError("Chunk belongs to a different vault.")
+                text = prepare_document(record.chunk, document_template=spec.document_template)
+                if self.get_embedding(spec, text) is None:
+                    raise ValueError("Chunk embedding is missing from the cache.")
+                self.connection.execute("INSERT INTO snapshot_chunks VALUES (?, ?, ?, ?, ?)",
+                                        (version, ordinal, record.chunk_id, _json(asdict(record)), spec.embedding_key(text)))
 
     def snapshot_records(self, version: str) -> list[ChunkRecord]:
         manifest = self.get_manifest(version)

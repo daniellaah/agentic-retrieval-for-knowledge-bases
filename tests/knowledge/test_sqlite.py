@@ -26,7 +26,7 @@ def populate(store, sample):
     spec, record, manifest = sample
     store.put_embeddings(spec, [prepare_document(record.chunk)], [[0.6, 0.8]])
     store.create_build(manifest, corpus_fingerprint='corpus', backend={'kind': 'qdrant'})
-    store.add_chunk(manifest.index_version, record, ordinal=0)
+    store.add_chunks(manifest.index_version, [record])
 
 
 def test_snapshot_survives_reopening_and_restores_exact_sources(tmp_path, sample):
@@ -54,7 +54,21 @@ def test_failed_publication_rolls_back_and_preserves_active_version(tmp_path, sa
         store.mark_failed('v2', 'incomplete')
         assert store.build_metadata('v2')['error'] == 'incomplete'
         with pytest.raises(ValueError):
-            store.add_chunk('v1', sample[1], ordinal=1)
+            store.add_chunks('v1', [sample[1]])
+
+
+def test_failed_record_batch_rolls_back_without_losing_cached_embeddings(tmp_path, sample):
+    spec, record, manifest = sample
+    with SQLiteStorage(tmp_path / 'db') as store:
+        text = prepare_document(record.chunk)
+        store.put_embeddings(spec, [text], [[0.6, 0.8]])
+        store.create_build(manifest, corpus_fingerprint='corpus', backend={'kind': 'qdrant'})
+        with pytest.raises(sqlite3.IntegrityError):
+            store.add_chunks('v1', [record, record])
+        np.testing.assert_array_equal(store.get_embedding(spec, text), [0.6, 0.8])
+        store.add_chunks('v1', [record])
+        store.publish('v1')
+        assert store.snapshot_records('v1') == [record]
 
 
 def test_cache_batch_conflict_rolls_back_all_new_entries(tmp_path, sample):
