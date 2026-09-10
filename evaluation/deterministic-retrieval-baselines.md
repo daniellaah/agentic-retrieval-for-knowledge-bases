@@ -100,11 +100,11 @@ from arkb.evaluation.models import BaselineEvalConfig
 
 config = BaselineEvalConfig(
     dataset_path=Path('evaluation/data/agent_v1.jsonl'),
-    db=Path('.obsidian-rag/index.sqlite'),
+    db=Path('.arkb/index.sqlite'),
     notes_dir=Path('example_notes'),
     vault_id='default',
     top_k=10,
-    retrieval_config=RetrievalConfig(reranker_cache='.obsidian-rag/models'),
+    retrieval_config=RetrievalConfig(reranker_cache='.arkb/models'),
     runtime_config=RuntimeConfig(offline=True),
 )
 run = run_evaluation(config)
@@ -121,7 +121,7 @@ uv run --locked python -m arkb.evaluation.agent_runner \
 # 全部 baseline：本机需运行 embedding/Qdrant，并准备 Qwen reranker 缓存。
 uv run --locked --extra rerank python -m arkb.evaluation.agent_runner \
   --baselines bm25 semantic hybrid hybrid_rerank --top-k 10 \
-  --reranker-cache .obsidian-rag/models --offline \
+  --reranker-cache .arkb/models --offline \
   --output /tmp/arkb-baselines-new
 ```
 

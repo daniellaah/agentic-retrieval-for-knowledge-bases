@@ -10,7 +10,7 @@
 仍然继承了这一设置，因此跨文档任务再次出现相同行为。此次排查最初没有先
 复用已有报告，重复了已完成的诊断。
 
-[原始诊断与对照证据](../.obsidian-rag/agent-diagnosis/run-20260909-01/report.md)
+[原始诊断与对照证据](../.arkb/agent-diagnosis/run-20260909-01/report.md)
 保留原状；这里记录后续配置落地和验证，避免把“已定位”误当作“已修复”。
 
 ## 已落地的调用关系
@@ -89,8 +89,8 @@ index、Ollama embedding、Retrieval Engine、Agent tools 和模型。跨文档�
 实际 engine capability 列出策略及含义。保留严格报错，不将错误策略替换为默认值。
 新增真实 SDK 边界回归检查，先复现受限 engine 的声明冲突，再验证修正。
 
-首轮证据：[汇总](../.obsidian-rag/agent-thinking/run-f6cnxc5m/summary.json)、
-[JUnit](../.obsidian-rag/agent-thinking/run-f6cnxc5m/junit.xml)。
+首轮证据：[汇总](../.arkb/agent-thinking/run-f6cnxc5m/summary.json)、
+[JUnit](../.arkb/agent-thinking/run-f6cnxc5m/junit.xml)。
 
 ## 最终代码的测试结果
 
@@ -135,13 +135,13 @@ CLI 正确返回 exit 1、`response=null` 和 `stop_reason="max_turns"`；模型
 4 轮预算复现相同轨迹并返回 `max_turns`（7.78 秒）；8 轮预算保持相同的四次工具
 调用，在第 5 轮返回 `final`（9.08 秒）。这证明默认预算下该场景可以完成，
 也确认最终回答自身占用一轮；它不消除多余检索的质量问题。
-[预算对照原始结果](../.obsidian-rag/agent-thinking/budget-c95zf1rm/summary.json)
+[预算对照原始结果](../.arkb/agent-thinking/budget-c95zf1rm/summary.json)
 与两次完整 JSON 均保留，临时集合和容器已清理。
 
-最终证据：[汇总](../.obsidian-rag/agent-thinking/run-bduu7xn1/summary.json)、
-[完整测试输出](../.obsidian-rag/agent-thinking/run-bduu7xn1/pytest.log)、
-[JUnit](../.obsidian-rag/agent-thinking/run-bduu7xn1/junit.xml)、
-[真实 CLI 结果](../.obsidian-rag/agent-thinking/run-bduu7xn1/agent/CLI-materials.json)。
+最终证据：[汇总](../.arkb/agent-thinking/run-bduu7xn1/summary.json)、
+[完整测试输出](../.arkb/agent-thinking/run-bduu7xn1/pytest.log)、
+[JUnit](../.arkb/agent-thinking/run-bduu7xn1/junit.xml)、
+[真实 CLI 结果](../.arkb/agent-thinking/run-bduu7xn1/agent/CLI-materials.json)。
 两轮均确认临时 Qdrant 集合清空、独立容器停止并自动删除，真实测试没有写入
 默认知识库数据库。最终运行环境为 Ollama 0.33.2。
 
@@ -157,6 +157,6 @@ CLI 正确返回 exit 1、`response=null` 和 `stop_reason="max_turns"`；模型
   `error.agent_result.trace` 保留部分轨迹；CLI `--trace` 也会显示该调用摘要。
 - 本次是小规模、同一任务的重复对照，不是独立查询集成功率或通用性能基准。
 
-原始数据保存在本地被 Git 忽略的 `.obsidian-rag/agent-thinking/` 中；本文件及
+原始数据保存在本地被 Git 忽略的 `.arkb/agent-thinking/` 中；本文件及
 测试代码可随本次变更提交。保留的 SQLite 用于诊断，临时向量集合清理后需重新索引
 才能再次执行向量查询。

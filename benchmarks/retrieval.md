@@ -79,7 +79,7 @@ fixed in code; importing retrieval does not import PyTorch or load weights.
 ```sh
 uv sync --locked --extra rerank
 ARKB_RUN_RERANKER_TESTS=1 ARKB_RERANKER_OFFLINE=0 \
-  ARKB_RERANKER_CACHE=.obsidian-rag/models \
+  ARKB_RERANKER_CACHE=.arkb/models \
   uv run --locked --extra rerank python -m pytest -q tests/retrieval/integration/test_qwen_reranker_model.py
 ```
 
@@ -98,7 +98,7 @@ uv run --locked --extra rerank python -m arkb.evaluation.retrieval baseline \
   --cases benchmarks/retrieval-cases.jsonl --output /tmp/retrieval-four-way.json \
   --modes semantic bm25 hybrid hybrid_reranked --top-k 5 \
   --candidate-k 20 --rerank-candidates 20 \
-  --reranker-cache .obsidian-rag/models --offline
+  --reranker-cache .arkb/models --offline
 ```
 
 `--reranker-max-length` sets the input budget; `--reranker-cache` selects the

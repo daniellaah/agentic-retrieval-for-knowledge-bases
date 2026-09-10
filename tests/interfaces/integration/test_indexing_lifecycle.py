@@ -14,15 +14,15 @@ from qdrant_client import QdrantClient
 from arkb.knowledge.sqlite import SQLiteStorage
 
 
-pytestmark = pytest.mark.skipif(os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',
+pytestmark = pytest.mark.skipif(os.environ.get('ARKB_RUN_MODEL_TESTS') != '1',
                                reason='Enable real model integration tests explicitly.')
 pytestmark = [pytest.mark.integration, pytestmark]
 
 
 def test_new_process_search_and_incremental_cli_lifecycle(tmp_path):
-    url = os.environ.get('OBSIDIAN_RAG_QDRANT_URL')
+    url = os.environ.get('ARKB_QDRANT_URL')
     if not url:
-        pytest.skip('Set OBSIDIAN_RAG_QDRANT_URL for the real server lifecycle.')
+        pytest.skip('Set ARKB_QDRANT_URL for the real server lifecycle.')
     notes = tmp_path / 'notes'
     notes.mkdir()
     (notes / 'a.md').write_text('# Cache\nStore completed vectors for reuse.')
@@ -49,9 +49,10 @@ def test_new_process_search_and_incremental_cli_lifecycle(tmp_path):
         matched = run('match', 'vectors', '--source', 'a.md')
         assert matched['results'][0]['source'] == 'a.md'
         assert run('status')['active_version'] == first['manifest']['index_version']
+        # Exercise the production turn budget; exhaustion has separate coverage.
         generated = subprocess.run([sys.executable, '-B', '-m', 'arkb.interfaces.cli',
                                     'ask', 'Read a.md and explain why cache vectors.', '--offline',
-                                    '--db', str(db), '--vault-id', vault, '--max-turns', '4', '--json', '--trace'],
+                                    '--db', str(db), '--vault-id', vault, '--json', '--trace'],
                                    capture_output=True, text=True, timeout=180)
         assert generated.returncode == 0, generated.stderr
         assert json.loads(generated.stdout)['stop_reason'] == 'final'

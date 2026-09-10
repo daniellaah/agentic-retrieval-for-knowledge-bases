@@ -26,8 +26,8 @@ from arkb.config import RuntimeConfig
 from arkb.runtime import Runtime
 
 
-pytestmark = pytest.mark.skipif(os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',
-                              reason='Set OBSIDIAN_RAG_RUN_MODEL_TESTS=1 with Qwen cached and Ollama running.')
+pytestmark = pytest.mark.skipif(os.environ.get('ARKB_RUN_MODEL_TESTS') != '1',
+                              reason='Set ARKB_RUN_MODEL_TESTS=1 with Qwen cached and Ollama running.')
 pytestmark = [pytest.mark.integration, pytestmark]
 
 
@@ -141,9 +141,9 @@ def snapshot_hit(body):
 
 @pytest.fixture
 def server_index(tmp_path):
-    url = os.environ.get('OBSIDIAN_RAG_QDRANT_URL')
+    url = os.environ.get('ARKB_QDRANT_URL')
     if not url:
-        pytest.skip('Set OBSIDIAN_RAG_QDRANT_URL for the real server CLI workflow.')
+        pytest.skip('Set ARKB_QDRANT_URL for the real server CLI workflow.')
     db = tmp_path / 'index.sqlite'
     vault = 'citation-test-' + uuid4().hex
     try:

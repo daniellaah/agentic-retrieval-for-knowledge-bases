@@ -22,7 +22,7 @@ from arkb.runtime import Runtime
 
 
 pytestmark = [pytest.mark.integration, pytest.mark.skipif(
-    os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',
+    os.environ.get('ARKB_RUN_MODEL_TESTS') != '1',
     reason='Enable real model integration tests explicitly.')]
 
 MATERIAL_QUERY = (
@@ -66,10 +66,10 @@ def trajectory_metrics(messages):
 
 @pytest.fixture(scope='module')
 def persisted_knowledge(tmp_path_factory):
-    url = os.environ.get('OBSIDIAN_RAG_QDRANT_URL')
+    url = os.environ.get('ARKB_QDRANT_URL')
     if not url:
-        pytest.skip('Set OBSIDIAN_RAG_QDRANT_URL to a real Qdrant Server.')
-    output = os.environ.get('OBSIDIAN_RAG_AGENT_REPORT_DIR')
+        pytest.skip('Set ARKB_QDRANT_URL to a real Qdrant Server.')
+    output = os.environ.get('ARKB_AGENT_REPORT_DIR')
     if output:
         root = Path(output).resolve()
         root.mkdir(parents=True, exist_ok=False)  # Never overwrite a previous run.
@@ -102,7 +102,7 @@ def persisted_knowledge(tmp_path_factory):
 
     report = {'started_at': datetime.now(timezone.utc).isoformat(), 'database': str(db),
               'notes_directory': str(notes), 'vault_id': vault, 'qdrant_url': url,
-              'agent_model': os.environ.get('OBSIDIAN_RAG_AGENT_MODEL', DEFAULT_GENERATION_MODEL),
+              'agent_model': os.environ.get('ARKB_AGENT_MODEL', DEFAULT_GENERATION_MODEL),
               'default_think': DEFAULT_AGENT_THINK,
               'retrieval_mode': 'hybrid', 'expected_code': code, 'collections_cleaned': []}
     try:

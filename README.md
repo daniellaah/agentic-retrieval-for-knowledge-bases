@@ -129,7 +129,7 @@ Indexing uses section-aware, token-budgeted chunking, reuses compatible embeddin
 The default database is:
 
 ```text
-.obsidian-rag/index.sqlite
+.arkb/index.sqlite
 ```
 
 The default vault ID is:
@@ -362,7 +362,11 @@ As a result, saved locations can become stale when files change after indexing.
 
 `status` reports saved state but does not verify live freshness or external-service health.
 
-Legacy NumPy indexes require rebuilding with `arkb index`. Existing paths and identity namespaces currently retain their legacy names.
+ARKB uses `.arkb/` for local state, `ARKB_*` for project-specific environment variables, and `arkb_*` for generated Qdrant collections.
+
+Storage and identity schemas are now version 2. Rebuild pre-v2 and retired NumPy indexes into a new database with `arkb index --notes-dir <notes-directory> --db <new-database-path>`.
+
+Renaming a database or collection does not migrate its IDs or embedding-cache keys. Previous databases and Qdrant collections remain untouched; model files can still be reused.
 
 ## Agentic Retrieval
 
@@ -635,8 +639,8 @@ Exact matching tests require `rg` on `PATH`.
 Real-model and external-service tests use the `integration` marker and explicit environment gates, including:
 
 ```text
-OBSIDIAN_RAG_RUN_MODEL_TESTS
-OBSIDIAN_RAG_QDRANT_URL
+ARKB_RUN_MODEL_TESTS
+ARKB_QDRANT_URL
 ARKB_RUN_RERANKER_TESTS
 ```
 

@@ -35,6 +35,8 @@ def test_complete_build_preserves_duplicate_occurrences_and_reuses_cache(setup):
     notes = [Note(title='Title', content='body', source=f'{n}.md') for n in range(2)]
     report = build_index(storage, notes, **options, index_version='first')
     assert report.manifest.status == 'ready'
+    assert report.manifest.schema_version == 2
+    assert storage.build_metadata('first')['backend']['collection'].startswith('arkb_')
     assert report.embedded_inputs == 1
     assert len(storage.load_snapshot('first')[1]) == 2
     again = build_index(storage, notes, **options, index_version='second')

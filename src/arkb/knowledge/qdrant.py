@@ -9,19 +9,19 @@ from uuid import NAMESPACE_URL, uuid5
 from qdrant_client import QdrantClient, models
 from arkb.knowledge.embeddings import validate_vectors
 from arkb.knowledge.models import (
-    ChunkRecord, EmbeddingSpec, QdrantConfig, VectorHit, validate_records,
+    SCHEMA_VERSION, ChunkRecord, EmbeddingSpec, QdrantConfig, VectorHit, validate_records,
 )
 
 def point_id(chunk_id: str) -> str:
     if not isinstance(chunk_id, str) or re.fullmatch('[0-9a-f]{64}', chunk_id) is None:
         raise ValueError('Expected a SHA-256 chunk ID.')
-    # Preserve the UUID mapping used by existing Qdrant collections.
-    return str(uuid5(NAMESPACE_URL, 'obsidian-rag/chunk/' + chunk_id))
+    # Chunk IDs already encode the current schema; use the ARKB UUID namespace.
+    return str(uuid5(NAMESPACE_URL, 'arkb/chunk/' + chunk_id))
 
 
 def qdrant_identity(spec: EmbeddingSpec, vault_id: str) -> dict:
     """Metadata identifying one owned Qdrant collection's embedding space."""
-    return {'owner': 'obsidian-rag', 'schema': 1, 'embedding_spec': spec.fingerprint, 'vault_id': vault_id}
+    return {'owner': 'arkb', 'schema': SCHEMA_VERSION, 'embedding_spec': spec.fingerprint, 'vault_id': vault_id}
 
 def check_qdrant_collection(client, collection: str, *, spec: EmbeddingSpec, vault_id: str):
     """Validate identity when opening a snapshot, before embedding or querying it."""

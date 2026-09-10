@@ -162,7 +162,7 @@ def test_index_reuse_force_and_empty_directory_preserve_lifecycle(workspace, per
 def test_match_uses_saved_directory_and_live_content_from_another_cwd(
     indexed_client, workspace, monkeypatch, client_factory, capsys,
 ):
-    db = workspace / '.obsidian-rag/index.sqlite'
+    db = workspace / '.arkb/index.sqlite'
     (workspace / 'example_notes/habits.md').write_text('# Edited\nRAG live RAG', encoding='utf-8')
     elsewhere = workspace / 'elsewhere'
     elsewhere.mkdir()
@@ -182,7 +182,7 @@ def test_ask_runs_multiple_agent_selected_modes_on_one_snapshot(indexed_client, 
     from arkb.retrieval import BM25Retriever
     from tests.agent.helpers import ScriptedModel, reply, tool_call
 
-    db = workspace / '.obsidian-rag/index.sqlite'
+    db = workspace / '.arkb/index.sqlite'
     captured_versions = []
 
     def semantic(runtime, storage, manifest, **kwargs):
@@ -362,7 +362,7 @@ def test_index_offline_cache_option(persistent_client, tokenizer_download):
 
 def test_search_rejects_retired_snapshot_before_loading_models(indexed_client, client_factory, capsys):
     from arkb.knowledge.sqlite import SQLiteStorage
-    with SQLiteStorage(Path('.obsidian-rag/index.sqlite')) as storage:
+    with SQLiteStorage(Path('.arkb/index.sqlite')) as storage:
         manifest = storage.active_manifest('default')
         storage.connection.execute("UPDATE builds SET backend=? WHERE version=?",
                                    (json.dumps({'kind': 'numpy'}), manifest.index_version))

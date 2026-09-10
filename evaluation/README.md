@@ -1,5 +1,10 @@
 # Agent Evaluation v1
 
+The dataset and metric contracts remain v1. Index storage and identities now use
+schema v2: rebuild pre-v2 indexes into a fresh database before running current
+code. Historical reports retain their original measurements and artifact IDs;
+updated command examples use current ARKB paths and environment variables.
+
 For the controlled three-model, three-trial experiment, see
 [Phase 1: Agent Model Ablation](agent-model-ablation.md).
 The completed 360-run experiment is documented in the
@@ -138,7 +143,7 @@ from arkb.evaluation.models import AgentEvalConfig
 run = run_agent_evaluation(AgentEvalConfig(
     dataset_path=Path('evaluation/data/agent_v1.jsonl'),
     notes_dir=Path('example_notes'),
-    db=Path('.obsidian-rag/index.sqlite'),
+    db=Path('.arkb/index.sqlite'),
     model='qwen3.5:4b', max_turns=8, num_trials=2,
     output_dir=Path('evaluation/results/my-first-run'),
 ))
@@ -150,7 +155,7 @@ The existing evaluation convention also supplies a thin module CLI:
 ```sh
 uv run --locked python -m arkb.evaluation.agent_runner \
   --dataset evaluation/data/agent_v1.jsonl \
-  --notes-dir example_notes --db .obsidian-rag/index.sqlite \
+  --notes-dir example_notes --db .arkb/index.sqlite \
   --generation-model qwen3.5:4b --max-turns 8 --num-trials 2 \
   --output evaluation/results/my-first-run
 ```

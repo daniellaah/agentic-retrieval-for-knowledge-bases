@@ -17,20 +17,20 @@ from arkb.knowledge.qdrant import search_qdrant
 from arkb.knowledge.models import ChunkRecord, EmbeddingSpec
 
 
-pytestmark = pytest.mark.skipif(not os.environ.get('OBSIDIAN_RAG_QDRANT_URL'),
-                               reason='Set OBSIDIAN_RAG_QDRANT_URL to a test Qdrant Server.')
+pytestmark = pytest.mark.skipif(not os.environ.get('ARKB_QDRANT_URL'),
+                               reason='Set ARKB_QDRANT_URL to a test Qdrant Server.')
 pytestmark = [pytest.mark.integration, pytestmark]
 
 
 def test_server_persistence_filters_and_scores():
-    name = 'obsidian_rag_test_' + uuid4().hex
+    name = 'arkb_test_' + uuid4().hex
     spec = EmbeddingSpec(model='test', model_revision='fixed', dimensions=2,
                          document_template='title-body-v1', normalization='none')
     records = []
     for i in range(3):
         note = Note(title='Title', content='body', source=f'{i}.md')
         records.append(ChunkRecord.from_note(whole_note_chunks([note])[0], note=note, vault_id='test'))
-    url = os.environ['OBSIDIAN_RAG_QDRANT_URL']
+    url = os.environ['ARKB_QDRANT_URL']
     with closing(QdrantClient(url=url, timeout=15, trust_env=False)) as client:
         try:
             store = QdrantIndex(client, name, spec, vault_id='test', create=True)

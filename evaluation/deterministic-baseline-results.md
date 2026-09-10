@@ -68,7 +68,7 @@ OMP_NUM_THREADS=4 uv run --locked --extra rerank python -m arkb.evaluation.agent
   --db evaluation/results/integration-20260909T190858Z-089e02/index.sqlite \
   --notes-dir example_notes --vault-id agent-eval-integration \
   --index-version facaea4136d1421389ca640051e1e55c \
-  --qdrant-url http://127.0.0.1:32776 --reranker-cache .obsidian-rag/models --offline \
+  --qdrant-url http://127.0.0.1:32776 --reranker-cache .arkb/models --offline \
   --output /tmp/arkb-baselines-new
 ```
 

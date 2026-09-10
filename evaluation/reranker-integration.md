@@ -14,7 +14,7 @@
   默认 CPU float32、512 tokens、batch size 16；返回证据原文不截断。
 - 删除消融 runner、专用测试和协议文档、未完成实验及预检/试跑产物、旧 MiniLM
   benchmark 示例结果与两处本地 MiniLM 模型缓存。Qwen 权重保存在
-  `.obsidian-rag/models`。
+  `.arkb/models`。
 - 移除 `sentence-transformers` 及 6 个闲置传递依赖，更新 lockfile、安装环境和
   benchmark 依赖版本记录。已完成的 Agent Model Ablation 历史结果单独保留。
 
@@ -56,7 +56,7 @@ semantic rankings?”，首位均为 `13_hybrid_rank_fusion.md`。测试记录�
 uv sync --locked --extra rerank
 ARKB_RUN_RERANKER_TESTS=1 \
 ARKB_RERANKER_OFFLINE=1 \
-ARKB_RERANKER_CACHE=.obsidian-rag/models \
+ARKB_RERANKER_CACHE=.arkb/models \
 ARKB_RERANKER_TEST_DB=evaluation/results/integration-20260909T190858Z-089e02/index.sqlite \
 ARKB_RERANKER_TEST_VAULT=agent-eval-integration \
 ARKB_RERANKER_TEST_QDRANT_URL=http://127.0.0.1:32776 \

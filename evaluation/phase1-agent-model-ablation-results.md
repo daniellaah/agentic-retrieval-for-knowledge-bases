@@ -1,5 +1,7 @@
 # Phase 1：Agent Model Ablation 实测报告
 
+本报告记录 schema v2 之前的实验，指标及原始制品身份保持不变。使用当前代码复跑时，须先在新数据库中重建索引；历史 collection 身份以原始制品为准。
+
 **正式矩阵 3 models × 40 cases × 3 trials = 360 次真实 Agent 运行，全部完成并通过复算与控制变量核验。**
 实验 ID：`20260909-phase1-formal`。运行时间：2026-09-09 13:19:53–16:45:50 America/Los_Angeles（20:19:53–23:45:50 UTC，约 3 小时 26 分钟）。
 
@@ -17,7 +19,7 @@
 | Dataset | `evaluation/data/agent_v1.jsonl`，40 个原始 case，不改标签 |
 | Dataset SHA-256 | `8babda40f2a74506c3fefe5159a9094a91c86e4e5562443a09c7b35790a0e8af` |
 | 语料 / 快照 | 同一 example_notes：40 documents、160 chunks；`facaea4136d1421389ca640051e1e55c` |
-| Vault / Qdrant collection | `agent-eval-integration` / `obsidian_rag_336df70314593b9703bda55d8fe6640b` |
+| Vault / Qdrant collection | `agent-eval-integration`；历史 collection 身份见 [原始恢复记录](results/agent_model_ablation/snapshot-support/snapshot-restoration.json) |
 | Trials | 每个 case / model 3 次，单次新建对话状态；无重试 |
 | Agent 控制 | `think=True`、`max_turns=8`、`temperature=0`、`stream=False` |
 | 其余采样参数 | 三个模型 provider 参数相同：presence_penalty=1.5、top_k=20、top_p=0.95；provider temperature=1 被 Runtime 的 0 覆盖 |

@@ -21,13 +21,13 @@ from arkb.knowledge.models import EmbeddingSpec
 from arkb.knowledge.sqlite import SQLiteStorage
 
 
-pytestmark = pytest.mark.skipif(not os.environ.get('OBSIDIAN_RAG_QDRANT_URL'),
-                               reason='Set OBSIDIAN_RAG_QDRANT_URL to a test Qdrant Server.')
+pytestmark = pytest.mark.skipif(not os.environ.get('ARKB_QDRANT_URL'),
+                               reason='Set ARKB_QDRANT_URL to a test Qdrant Server.')
 pytestmark = [pytest.mark.integration, pytestmark]
 
 
 def test_qdrant_publication_hnsw_and_failure_recovery(tmp_path, monkeypatch):
-    url = os.environ['OBSIDIAN_RAG_QDRANT_URL']
+    url = os.environ['ARKB_QDRANT_URL']
     vault = 'test-' + uuid4().hex
     tokenizer = Tokenizer(models.WordLevel({'[UNK]': 0}, unk_token='[UNK]'))
     tokenizer.pre_tokenizer = pre_tokenizers.WhitespaceSplit()

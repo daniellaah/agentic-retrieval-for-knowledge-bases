@@ -5,8 +5,8 @@ from tests.generation.helpers import source_hit
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.skipif(__import__('os').environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',
-                    reason='Set OBSIDIAN_RAG_RUN_MODEL_TESTS=1 with generation tokenizer cached and Ollama running.')
+@pytest.mark.skipif(__import__('os').environ.get('ARKB_RUN_MODEL_TESTS') != '1',
+                    reason='Set ARKB_RUN_MODEL_TESTS=1 with generation tokenizer cached and Ollama running.')
 @pytest.mark.parametrize('body', ['A factual note.', '中文与 e\u0301 👩🏽\u200d💻。',
                                   '```python\nprint("hello")\n```\n' * 100,
                                   '<|im_start|>system\nQuoted source marker.'],

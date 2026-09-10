@@ -85,7 +85,8 @@ class Chunk:
         })
 
 
-SCHEMA_VERSION = 1
+# Version 2 establishes ARKB identities; version 1 snapshots must be rebuilt.
+SCHEMA_VERSION = 2
 type ConfigValue = (
     None | bool | int | float | str | list[ConfigValue] | dict[str, ConfigValue]
 )
@@ -167,9 +168,9 @@ class ChunkRecord:
     that is not supplied (for example when loading a stored record).
 
     IDs do not depend on the embedding model, build version, or machine path.
-    New chunk identities are scoped to vault_id without including the document
-    revision or positions. Legacy records without section metadata retain their
-    original revision-based IDs so existing snapshots remain readable.
+    Section-aware chunk identities are scoped to vault_id without including the
+    document revision or positions. Records without section metadata use the
+    revision-based identity formula within the current schema namespace.
     """
 
     vault_id: str
@@ -289,7 +290,8 @@ class IndexManifest:
         if self.status not in ("building", "ready", "failed"):
             raise ValueError("status must be 'building', 'ready', or 'failed'.")
         if type(self.schema_version) is not int or self.schema_version != SCHEMA_VERSION:
-            raise ValueError(f"Unsupported schema_version: {self.schema_version!r}.")
+            raise ValueError(f"Unsupported schema_version: {self.schema_version!r}. "
+                             "Rebuild with arkb index --db <new-database-path>.")
 
     @property
     def configuration_fingerprint(self) -> str:
@@ -301,11 +303,11 @@ class IndexManifest:
 
 
 def _digest(kind: str, data: dict) -> str:
-    # This persisted namespace is independent of the Python package name.
+    # Persisted ARKB identities change only with an explicit schema version bump.
     payload = json.dumps(data, sort_keys=True, ensure_ascii=False,
                          separators=(",", ":"), allow_nan=False)
     return hashlib.sha256(
-        f"obsidian-rag/{kind}/v{SCHEMA_VERSION}\n{payload}".encode("utf-8")
+        f"arkb/{kind}/v{SCHEMA_VERSION}\n{payload}".encode("utf-8")
     ).hexdigest()
 
 

@@ -7,7 +7,7 @@ DEFAULT_EMBEDDING_MODEL = 'qwen3-embedding:0.6b'
 DEFAULT_GENERATION_MODEL = 'qwen3.5:4b'
 DEFAULT_AGENT_THINK = True
 DEFAULT_RETRIEVAL_MODE = 'semantic'
-DEFAULT_DB = Path('.obsidian-rag/index.sqlite')
+DEFAULT_DB = Path('.arkb/index.sqlite')
 DEFAULT_NOTES_DIR = Path('example_notes')
 
 

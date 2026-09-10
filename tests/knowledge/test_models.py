@@ -72,9 +72,9 @@ def test_ids_are_stable_across_processes_and_python_hash_seeds(note: Note) -> No
     # These are persisted-format fixtures: changing them requires a schema
     # version/migration decision, even if IDs remain deterministic in one run.
     assert [record.document_id, record.document_revision, record.chunk_id] == [
-        "2f46502aa584138f3967787d1df39b71abec7ceefb88be824bbb339abb393cb6",
-        "94e3551b6a3f6636c1dc6c392b4dda631665eb881bf72411a5f2ebb6cf957cd1",
-        "0c77bf8396a483e0586ec8b01d18db9f006e69cf9ec8107ca00f005a8bab6159",
+        "945792753dedd35ee3ff551d590933985af5b559a2a78a57539aa4068b185be5",
+        "e2b1352593a39e0321789de39b0be70eab6d62447a2acd2616272f800a090808",
+        "6d4a6ca156a150a6dad2192f9856c647538c7c0aba98a2ef8a263d53187b2fd6",
     ]
     script = """
 from arkb.knowledge.models import Chunk, ChunkRecord
@@ -252,7 +252,7 @@ def test_manifest_can_describe_empty_snapshots(manifest: IndexManifest, status: 
     {"chunking_fingerprint": "invalid"}, {"document_count": -1}, {"chunk_count": True},
     {"document_count": 0}, {"chunk_count": 0}, {"document_count": 4},
     {"query_instruction": None}, {"status": "published"},
-    {"schema_version": True}, {"schema_version": 1.0}, {"schema_version": 999},
+    {"schema_version": True}, {"schema_version": 1}, {"schema_version": 1.0}, {"schema_version": 999},
 ])
 def test_manifest_rejects_invalid_metadata(manifest: IndexManifest, changes: dict) -> None:
     with pytest.raises(ValueError):

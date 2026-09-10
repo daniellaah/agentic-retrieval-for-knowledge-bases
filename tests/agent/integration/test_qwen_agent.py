@@ -11,8 +11,8 @@ from arkb.runtime import Runtime
 
 
 pytestmark = [pytest.mark.integration, pytest.mark.skipif(
-    os.environ.get('OBSIDIAN_RAG_RUN_MODEL_TESTS') != '1',
-    reason='Set OBSIDIAN_RAG_RUN_MODEL_TESTS=1 with a tool-capable model cached and Ollama running.')]
+    os.environ.get('ARKB_RUN_MODEL_TESTS') != '1',
+    reason='Set ARKB_RUN_MODEL_TESTS=1 with a tool-capable model cached and Ollama running.')]
 
 
 @pytest.mark.parametrize('query,allowed_first_tools', [
@@ -35,7 +35,7 @@ def test_real_model_selects_tools_and_finishes(tmp_path, query, allowed_first_to
     with Runtime(RuntimeConfig(timeout=120)) as runtime:
         tools = runtime.agent_tools(engine=engine, directory=tmp_path, vault_id='agent-test', mode='bm25')
         result = runtime.run_agent(query, tools=tools, max_turns=8,
-                                   model=os.environ.get('OBSIDIAN_RAG_AGENT_MODEL', DEFAULT_GENERATION_MODEL))
+                                   model=os.environ.get('ARKB_AGENT_MODEL', DEFAULT_GENERATION_MODEL))
     names = [c['function']['name'] for c in result.state.tool_calls]
     assert result.stop_reason == 'final', names
     assert result.response and result.response.strip()

@@ -3,11 +3,11 @@ import warnings
 
 import numpy as np
 import pytest
-from qdrant_client import QdrantClient
+from qdrant_client import QdrantClient, models
 
 from arkb.knowledge.chunking import whole_note_chunks
 from arkb.knowledge.models import ChunkRecord, EmbeddingSpec, Note
-from arkb.knowledge.qdrant import QdrantIndex, search_qdrant
+from arkb.knowledge.qdrant import QdrantIndex, point_id, search_qdrant
 
 
 @pytest.fixture
@@ -25,11 +25,18 @@ def create_qdrant_index(client, spec):
         return QdrantIndex(client, 'test', spec, vault_id='vault', create=True)
 
 
+def test_point_id_uses_the_persisted_arkb_namespace():
+    assert point_id('a' * 64) == 'fc2a1fb4-bb6a-5ff0-83b5-ed60047c819f'
+
+
 @pytest.mark.filterwarnings('ignore:Local mode performs exact.*:UserWarning')
 def test_qdrant_local_contract_roundtrip_filter_and_update(tmp_path, vector_data):
     spec, records = vector_data
     with closing(QdrantClient(path=str(tmp_path / 'qdrant'))) as client:
         store = create_qdrant_index(client, spec)
+        assert client.get_collection('test').config.metadata == {
+            'owner': 'arkb', 'schema': 2, 'embedding_spec': spec.fingerprint, 'vault_id': 'vault',
+        }
         store.upsert(records, [[0, 1], [3, 4], [1, 0]])
         assert store.count() == 3
         hits = search_qdrant(client, 'test', [1, 0], spec=spec, vault_id='vault', top_k=3, exact=True)
@@ -42,6 +49,18 @@ def test_qdrant_local_contract_roundtrip_filter_and_update(tmp_path, vector_data
         store.upsert([records[2]], [[-1, 0]])
         assert store.count() == 3
         assert search_qdrant(client, 'test', [1, 0], spec=spec, vault_id='vault', source='missing.md') == []
+
+
+@pytest.mark.parametrize('owner,schema', [('arkb', 1), ('another-project', 2)])
+def test_qdrant_rejects_incompatible_collection_without_modifying_it(qdrant, vector_data, owner, schema):
+    spec, _ = vector_data
+    metadata = {'owner': owner, 'schema': schema, 'embedding_spec': spec.fingerprint, 'vault_id': 'vault'}
+    qdrant.create_collection('existing',
+        vectors_config=models.VectorParams(size=spec.dimensions, distance=models.Distance.COSINE),
+        metadata=metadata)
+    with pytest.raises(ValueError, match='configuration'):
+        QdrantIndex(qdrant, 'existing', spec, vault_id='vault')
+    assert qdrant.get_collection('existing').config.metadata == metadata
 
 
 @pytest.mark.parametrize('query', [[1, 0, 0], [0, 0], [float('nan'), 0], [[1, 0]]])

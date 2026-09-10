@@ -14,8 +14,9 @@ from arkb.knowledge.embeddings import prepare_document, validate_vectors
 from arkb.knowledge.models import Chunk, ChunkRecord, EmbeddingSpec, IndexManifest
 
 
-STORAGE_VERSION = 1
-_DDL = """
+# Version 2 stores ARKB identities and cache keys; older databases remain untouched.
+STORAGE_VERSION = 2
+_DDL = f"""
 CREATE TABLE embeddings (
     key TEXT PRIMARY KEY, spec TEXT NOT NULL, vector BLOB NOT NULL, checksum TEXT NOT NULL
 );
@@ -32,7 +33,7 @@ CREATE TABLE snapshot_chunks (
 CREATE TABLE active_indexes (
     vault_id TEXT PRIMARY KEY, version TEXT NOT NULL REFERENCES builds(version)
 );
-PRAGMA user_version = 1;
+PRAGMA user_version = {STORAGE_VERSION};
 """
 
 
@@ -75,7 +76,8 @@ class SQLiteStorage:
                 self.connection.executescript("BEGIN IMMEDIATE;\n" + _DDL + "COMMIT;")
                 version = STORAGE_VERSION
             if version != STORAGE_VERSION:
-                raise ValueError(f"Unsupported storage version: {version}.")
+                raise ValueError(f"Unsupported storage version: {version}. "
+                                 "Rebuild with arkb index --db <new-database-path>.")
             if not read_only:
                 self.connection.execute("PRAGMA journal_mode=WAL")
         except BaseException:

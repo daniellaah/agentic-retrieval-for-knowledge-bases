@@ -39,7 +39,7 @@ def main(argv=None):
                         default=['semantic', 'bm25', 'hybrid', 'hybrid_reranked'])
     parser.add_argument('--host', default='http://127.0.0.1:11434')
     parser.add_argument('--tokenizer-cache', type=Path, default=Path('.uv-cache/tokenizers'))
-    parser.add_argument('--reranker-cache', default='.obsidian-rag/models')
+    parser.add_argument('--reranker-cache', default='.arkb/models')
     parser.add_argument('--offline', action='store_true')
     parser.add_argument('--top-k', type=int, default=5)
     parser.add_argument('--candidate-k', type=int, default=20)

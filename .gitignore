@@ -31,7 +31,7 @@ htmlcov/
 !/.env.example
 
 # Local index state
-.obsidian-rag/
+.arkb/
 
 # Local agent evaluation runs (versioned input lives in evaluation/data/)
 /evaluation/results/

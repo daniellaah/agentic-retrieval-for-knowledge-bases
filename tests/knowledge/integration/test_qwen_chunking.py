@@ -12,8 +12,8 @@ from arkb.knowledge.embeddings import count_tokens, load_tokenizer
 
 
 pytestmark = pytest.mark.skipif(
-    os.environ.get("OBSIDIAN_RAG_RUN_MODEL_TESTS") != "1",
-    reason="Set OBSIDIAN_RAG_RUN_MODEL_TESTS=1 with the pinned Qwen tokenizer cached.",
+    os.environ.get("ARKB_RUN_MODEL_TESTS") != "1",
+    reason="Set ARKB_RUN_MODEL_TESTS=1 with the pinned Qwen tokenizer cached.",
 )
 pytestmark = [pytest.mark.integration, pytestmark]
 

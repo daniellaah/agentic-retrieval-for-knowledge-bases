@@ -93,14 +93,19 @@ def test_empty_snapshot_and_readonly_restrictions(tmp_path, sample):
             store.create_build(replace(manifest, index_version='v2'), corpus_fingerprint='empty', backend={'kind': 'qdrant'})
 
 
-def test_storage_rejects_unknown_schema_without_reinitializing(tmp_path):
+@pytest.mark.parametrize('version', [1, 99])
+@pytest.mark.parametrize('read_only', [False, True])
+def test_storage_rejects_incompatible_schema_without_reinitializing(tmp_path, version, read_only):
     path = tmp_path / 'db'
     with sqlite3.connect(path) as connection:
-        connection.execute('PRAGMA user_version=99')
-    with pytest.raises(ValueError, match='version'):
-        SQLiteStorage(path)
+        connection.execute(f'PRAGMA user_version={version}')
+        connection.execute('CREATE TABLE preserved (value TEXT)')
+        connection.execute("INSERT INTO preserved VALUES ('original data')")
+    with pytest.raises(ValueError, match='Rebuild with arkb index --db'):
+        SQLiteStorage(path, read_only=read_only)
     with sqlite3.connect(path) as connection:
-        assert connection.execute('PRAGMA user_version').fetchone()[0] == 99
+        assert connection.execute('PRAGMA user_version').fetchone()[0] == version
+        assert connection.execute('SELECT value FROM preserved').fetchone()[0] == 'original data'
 
 
 def test_cache_validates_shape_and_normalization_before_writing(tmp_path, sample):

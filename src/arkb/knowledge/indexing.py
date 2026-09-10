@@ -127,7 +127,7 @@ def build_index(
     added = len(new.keys() - old.keys())
     modified = sum(old[source] != new[source] for source in new.keys() & old.keys())
     deleted = len(old.keys() - new.keys())
-    metadata['collection'] = 'obsidian_rag_' + fingerprint_config({'version': manifest.index_version, 'vault': vault_id})[:32]
+    metadata['collection'] = 'arkb_' + fingerprint_config({'version': manifest.index_version, 'vault': vault_id})[:32]
     storage.create_build(manifest, corpus_fingerprint=corpus, backend=metadata)
     try:
         remote = _qdrant_index(qdrant_client, metadata, manifest, create=True)

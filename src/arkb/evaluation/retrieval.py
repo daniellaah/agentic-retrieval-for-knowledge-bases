@@ -15,7 +15,7 @@ from time import perf_counter
 
 import numpy as np
 
-from arkb.config import RuntimeConfig, RetrievalConfig, DEFAULT_GENERATION_MODEL
+from arkb.config import DEFAULT_DB, RuntimeConfig, RetrievalConfig, DEFAULT_GENERATION_MODEL
 from arkb.knowledge.embeddings import validate_vectors
 from arkb.runtime import Runtime
 from arkb.evaluation.datasets import load_cases, source_hashes, corpus_manifest
@@ -172,7 +172,7 @@ def baseline_main(argv=None) -> int:
     from arkb.knowledge.sqlite import SQLiteStorage
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--db', type=Path, default=Path('.obsidian-rag/index.sqlite'))
+    parser.add_argument('--db', type=Path, default=DEFAULT_DB)
     parser.add_argument('--vault-id', default='default')
     parser.add_argument('--index-version')
     parser.add_argument('--cases', type=Path, required=True)
