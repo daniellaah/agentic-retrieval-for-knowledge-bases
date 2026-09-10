@@ -14,6 +14,11 @@ def evaluate_context(question, results, case, *, config, counter) -> dict:
     started = perf_counter()
     context = build_context(question, results, config=config, counter=counter)
     elapsed = (perf_counter() - started) * 1000
+    return _context_report(context, results, case, build_ms=elapsed)
+
+
+def _context_report(context, results, case, *, build_ms) -> dict:
+    """Score already packed evidence; the snapshot runner can reuse it for generation."""
     blocks = context.evidence_blocks
     groups = {}
     for block in blocks:
@@ -32,8 +37,8 @@ def evaluate_context(question, results, case, *, config, counter) -> dict:
         'metrics': {'prompt_tokens': context.prompt_tokens, 'block_count': len(blocks),
                     'body_characters': chars, 'unique_span_characters': unique_chars,
                     'duplicate_span_fraction': (chars - unique_chars) / chars if chars else 0.0,
-                    'fits_budget': context.prompt_tokens <= config.input_budget,
-                    'build_ms': elapsed, **evidence_statistics(blocks, case)},
+                    'fits_budget': context.prompt_tokens <= context.config.input_budget,
+                    'build_ms': build_ms, **evidence_statistics(blocks, case)},
     }
     reference = evidence_statistics(results, case)['section_coverage']
     coverage = result['metrics']['section_coverage']

@@ -330,7 +330,8 @@ def ann_main(argv=None) -> int:
         context_rows, citation_rows = [], []
         if args.context or args.citations:
             from arkb.retrieval.semantic import snapshot_result
-            from arkb.evaluation.generation import evaluate_context, evaluate_citation_case
+            from arkb.generation.context import build_context
+            from arkb.evaluation.generation import _context_report, evaluate_citation_context, evaluate_citation_case
             counter = load_generation_counter(client=ollama, model=args.generation_model,
                                               cache_dir=args.tokenizer_cache, local_files_only=args.offline)
             by_id = {record.chunk_id: record for record in records}
@@ -338,12 +339,17 @@ def ann_main(argv=None) -> int:
                 hits = [snapshot_result(by_id[h['chunk_id']], h['score'], manifest.index_version)
                         for h in row['modes']['qdrant_exact']['hits']]
                 if args.context:
+                    started = perf_counter()
+                    context = build_context(case['question'], hits, config=context_config, counter=counter)
+                    build_ms = (perf_counter() - started) * 1000
                     context_rows.append({'id': case['id'], 'question': case['question'],
-                                         'result': evaluate_context(case['question'], hits, case, config=context_config, counter=counter)})
+                                         'result': _context_report(context, hits, case, build_ms=build_ms)})
                 if args.citations:
+                    citation = (evaluate_citation_context(context, client=ollama) if args.context else
+                                evaluate_citation_case(case['question'], hits, config=context_config,
+                                                       counter=counter, client=ollama))
                     citation_rows.append({'id': case['id'], 'question': case['question'],
-                                          **evaluate_citation_case(case['question'], hits, config=context_config,
-                                                                  counter=counter, client=ollama)})
+                                          **citation})
         if citation_rows:
             report['citations'] = {'config': asdict(context_config), 'counter': counter.identity,
                                    'summary': summarize_citations(citation_rows),
