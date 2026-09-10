@@ -3,9 +3,6 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from arkb.retrieval.rerank import DEFAULT_MODEL, DEFAULT_REVISION
-
-
 DEFAULT_EMBEDDING_MODEL = 'qwen3-embedding:0.6b'
 DEFAULT_GENERATION_MODEL = 'qwen3.5:4b'
 DEFAULT_AGENT_THINK = True
@@ -30,8 +27,6 @@ class RetrievalConfig:
     candidate_k: int = 20
     rrf_k: float = 60
     rerank_candidates: int = 20
-    reranker_model: str = DEFAULT_MODEL
-    reranker_revision: str = DEFAULT_REVISION
     reranker_max_length: int = 512
     reranker_cache: str | None = None
     bm25_k1: float = 1.2

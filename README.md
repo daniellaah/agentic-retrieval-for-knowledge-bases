@@ -16,7 +16,7 @@ packs that evidence into context and produces validated citations.
 | Capability in `src/arkb/` | Modules and responsibility |
 | --- | --- |
 | `knowledge/` | `models.py`: notes, chunks, manifests and stable identities; `documents.py`: Markdown loading, scans and live document access; `chunking.py`: the single chunker; `embeddings.py`: input preparation, embedding tokenizer and model adapters; `indexing.py`: builds and publication; `sqlite.py` / `qdrant.py`: persistence and raw data access |
-| `retrieval/` | `models.py`: source-based contracts; `bm25.py` / `semantic.py`: independent retrieval; `hybrid.py` / `fusion.py`: fixed composition and RRF; `rerank.py`: reranking and the optional cross-encoder; `engine.py`: explicit mode selection; `exact.py`: literal/regex matching over live source text |
+| `retrieval/` | `models.py`: source-based contracts; `bm25.py` / `semantic.py`: independent retrieval; `hybrid.py` / `fusion.py`: fixed composition and RRF; `rerank.py`: reranking contracts; `qwen_rerank.py`: the fixed Qwen3 scorer; `engine.py`: explicit mode selection; `exact.py`: literal/regex matching over live source text |
 | `generation/` | `models.py`: context/citation contracts; `context.py`: evidence packing and budgets; `citations.py`: parsing, validation and rendering; `generate.py`: answer generation and generation token counting |
 | `agent/` | `tools.py`: thin `match`, `search`, `read` adapters and provider-independent tool definitions; `state.py`: conversation and turn count; `loop.py`: bounded model/tool orchestration |
 | `interfaces/` | `cli.py`: argument parsing, Runtime calls and output formatting; `mcp.py`: protocol placeholder |
@@ -84,7 +84,7 @@ need no network or running services. Exact lexical matching tests require `rg`
 - ripgrep (`rg` on `PATH`) for the `match` tool
 - Ollama, running locally for model operations
 - Qdrant Server, running for indexing and semantic/hybrid queries
-- Optional `uv sync --locked --extra rerank` for local cross-encoder reranking
+- Optional `uv sync --locked --extra rerank` for local Qwen3 reranking
 
 ## Set up the Python environment
 
@@ -183,7 +183,7 @@ arkb ask "帮我核对关联笔记中的事实" --no-think --json
 ```
 
 Search retains explicit advanced controls: `--candidate-k` (20), `--rrf-k` (60),
-`--rerank`, `--rerank-candidates` (20), `--reranker-model`, `--reranker-revision`,
+`--rerank`, `--rerank-candidates` (20),
 `--reranker-cache`, `--reranker-max-length` (512), and `--exact` (Qdrant exact vector
 search). Algorithms, fusion and reranking remain in Retrieval. BM25 needs no model
 or vector service. Semantic/hybrid may call the embedding model; neither calls a
@@ -947,11 +947,11 @@ Choose modes explicitly; each primitive remains independently callable:
 
 ```python
 from arkb.retrieval import BM25Retriever, RetrievalEngine, Reranker
-from arkb.retrieval.rerank import CrossEncoderScorer
+from arkb.retrieval.qwen_rerank import QwenRerankerScorer
 
 bm25 = BM25Retriever.from_snapshot(storage, vault_id="default", index_version=index.index_id)
 engine = RetrievalEngine(semantic=semantic, bm25=bm25, candidate_k=20,
-                         reranker=Reranker(CrossEncoderScorer(local_files_only=True)))
+                         reranker=Reranker(QwenRerankerScorer(local_files_only=True)))
 response = engine.search("rare identifier", mode="bm25", top_k=5)
 response = engine.search("related meaning", mode="hybrid", top_k=5, rerank=True)
 ```
@@ -976,18 +976,23 @@ that same snapshot for both primitives and fuse ranks with RRF, never raw scores
 The fixed depths must satisfy `top_k <= candidate_k` for hybrid and
 `top_k <= rerank_candidates <= candidate_k` for hybrid with reranking.
 
-Each hit declares `score_type`: cosine similarity, BM25, RRF, or cross-encoder
-logit. Higher is better for these implementations, but scores from different
+Each hit declares `score_type`: cosine similarity, BM25, RRF, or the Qwen
+yes/no logit difference (`yes_no_logit_difference`). Higher is better for these implementations, but scores from different
 methods/configurations are not comparable. `metadata.fusion.contributions`
 retains input ranks, scores, semantics and provenance; `metadata.rerank` retains
 the input rank/score and scorer identity. Ties in the new stages use stable
 identity. Context and citation output preserve each origin's method and score
 semantics without recalibrating them.
 
-The optional cross-encoder is pinned to a model commit and defaults to CPU,
-512-token query/passage pairs, and raw logits. Its tokenizer truncates long pairs
-while evidence stays verbatim. Use `--reranker-model`, `--reranker-revision`, and
-`--reranker-max-length` for explicit alternatives. `--offline` prevents downloads.
+The only supported reranker is `Qwen/Qwen3-Reranker-0.6B`, pinned to commit
+`e61197ed45024b0ed8a2d74b80b4d909f1255473`. It runs on CPU in float32, with
+16 candidates per batch and a default 512-token input budget. The official
+instruction and yes/no scoring suffix are reserved before query/title+body
+truncation; returned evidence stays verbatim. `--reranker-max-length` adjusts
+that budget, and `--reranker-cache` selects the Hugging Face cache directory.
+`--offline` prevents downloads. Locally retained weights are in `.obsidian-rag/models`;
+pass `--reranker-cache .obsidian-rag/models --offline` to reuse them.
+See the [reranker integration results](evaluation/reranker-integration.md).
 See [retrieval benchmarks](benchmarks/retrieval.md) for the shared dataset,
 commands, frozen reranker evaluation, exact formulas and measured limitations.
 

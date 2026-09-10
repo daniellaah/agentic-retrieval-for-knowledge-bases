@@ -200,7 +200,7 @@ class Runtime:
         """Prepare only requested capabilities; algorithms remain independently callable."""
         self._require_open()
         from arkb.retrieval import BM25Retriever, RetrievalEngine, Reranker
-        from arkb.retrieval.rerank import CrossEncoderScorer
+        from arkb.retrieval.qwen_rerank import QwenRerankerScorer
         modes = set(modes)
         if not modes or modes - {'semantic', 'bm25', 'lexical', 'hybrid', 'hybrid_reranked'}:
             raise ValueError('Unknown or empty retrieval modes.')
@@ -215,8 +215,7 @@ class Runtime:
         if modes & {'semantic', 'hybrid', 'hybrid_reranked'}:
             semantic = self.semantic(storage, manifest, exact=exact)
         if rerank or 'hybrid_reranked' in modes:
-            reranker = Reranker(CrossEncoderScorer(model=settings.reranker_model,
-                revision=settings.reranker_revision, max_length=settings.reranker_max_length,
+            reranker = Reranker(QwenRerankerScorer(max_length=settings.reranker_max_length,
                 cache_folder=settings.reranker_cache, local_files_only=self.config.offline))
         return RetrievalEngine(semantic=semantic, bm25=bm25, reranker=reranker,
             candidate_k=settings.candidate_k, rrf_k=settings.rrf_k,

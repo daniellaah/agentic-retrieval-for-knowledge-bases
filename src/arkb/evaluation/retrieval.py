@@ -181,8 +181,6 @@ def baseline_main(argv=None) -> int:
     parser.add_argument('--candidate-k', type=int, default=20)
     parser.add_argument('--rerank-candidates', type=int, default=20)
     parser.add_argument('--reranker-cache')
-    parser.add_argument('--reranker-model', default=RetrievalConfig.reranker_model)
-    parser.add_argument('--reranker-revision', default=RetrievalConfig.reranker_revision)
     parser.add_argument('--reranker-max-length', type=int, default=512)
     parser.add_argument('--rrf-k', type=float, default=60)
     parser.add_argument('--top-k', type=int, default=10)
@@ -217,8 +215,7 @@ def baseline_main(argv=None) -> int:
     runtime_config = RuntimeConfig(host=args.host, timeout=args.timeout, offline=args.offline,
                                    tokenizer_cache=args.tokenizer_cache, qdrant_url=args.qdrant_url)
     retrieval_config = RetrievalConfig(candidate_k=args.candidate_k, rrf_k=args.rrf_k,
-        rerank_candidates=args.rerank_candidates, reranker_model=args.reranker_model,
-        reranker_revision=args.reranker_revision, reranker_max_length=args.reranker_max_length,
+        rerank_candidates=args.rerank_candidates, reranker_max_length=args.reranker_max_length,
         reranker_cache=args.reranker_cache, bm25_k1=args.bm25_k1, bm25_b=args.bm25_b)
     with Runtime(runtime_config) as runtime, SQLiteStorage(args.db, read_only=True) as storage:
         manifest = storage.get_manifest(args.index_version) if args.index_version else storage.active_manifest(args.vault_id)

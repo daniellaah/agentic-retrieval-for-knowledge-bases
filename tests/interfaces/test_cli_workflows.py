@@ -401,25 +401,31 @@ def test_cli_bm25_runs_without_model_or_vector_connections(indexed_client, clien
     connect.assert_not_called()
 
 
-@pytest.mark.parametrize('mode', ['semantic', 'bm25', 'hybrid'])
-def test_cli_modes_support_optional_reranking_without_generation(indexed_client, mode, monkeypatch, capsys):
-    import sys
+@pytest.fixture
+def qwen_scorer(monkeypatch):
     from types import SimpleNamespace
-    import numpy as np
+    scorer = SimpleNamespace(identity='Qwen/Qwen3-Reranker-0.6B/test-scorer',
+        score_type='yes_no_logit_difference',
+        score=lambda query, hits: [5. if 'habit' in hit.content else -1. for hit in hits])
+    factory = Mock(return_value=scorer)
+    monkeypatch.setattr('arkb.retrieval.qwen_rerank.QwenRerankerScorer', factory)
+    return factory
+
+
+@pytest.mark.parametrize('mode', ['semantic', 'bm25', 'hybrid'])
+def test_cli_modes_support_optional_reranking_without_generation(indexed_client, mode, qwen_scorer, capsys):
     capsys.readouterr()
-    model = SimpleNamespace(config=SimpleNamespace(num_labels=1),
-        predict=lambda pairs, **kw: np.array([5. if 'habit' in passage else -1. for _, passage in pairs]))
-    monkeypatch.setitem(sys.modules, 'sentence_transformers', SimpleNamespace(CrossEncoder=lambda *a, **kw: model))
-    monkeypatch.setitem(sys.modules, 'torch.nn', SimpleNamespace(Identity=lambda: None))
     args = ['search', 'habit', '--mode', mode, '--json', '--top-k', '1', '--offline']
     assert main(args) == 0
     before = json.loads(capsys.readouterr().out)
     assert before['method'] == mode
+    qwen_scorer.assert_not_called()
     assert main(args + ['--rerank']) == 0
     after = json.loads(capsys.readouterr().out)
     assert after['method'] == before['method'] + '+rerank'
     hit = after['results'][0]
-    assert hit['source'] == 'habits.md' and hit['score_type'] == 'cross_encoder_logit'
+    assert hit['source'] == 'habits.md' and hit['score_type'] == 'yes_no_logit_difference'
+    qwen_scorer.assert_called_once_with(max_length=512, cache_folder=None, local_files_only=True)
     assert hit['metadata']['rerank']['input_method'] == before['method']
     if mode == 'hybrid':
         assert hit['metadata']['fusion']['contributions']
@@ -439,19 +445,12 @@ def test_invalid_retrieval_depths_fail_before_model_calls(options, client_factor
 
 @pytest.mark.filterwarnings('ignore:Local mode performs exact.*')
 def test_four_way_benchmark_runner_uses_saved_adapters_and_preserves_artifacts(indexed_client, tmp_path,
-                                                                            monkeypatch, capsys):
-    import sys
-    from types import SimpleNamespace
-    import numpy as np
+                                                                            monkeypatch, qwen_scorer, capsys):
     from qdrant_client import QdrantClient
     from arkb.evaluation.retrieval import baseline_main as compare
     capsys.readouterr()
     monkeypatch.setattr('ollama.Client', lambda **kw: indexed_client)
     monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', lambda *a: QdrantClient(path=str(tmp_path / 'qdrant')))
-    model = SimpleNamespace(config=SimpleNamespace(num_labels=1),
-        predict=lambda pairs, **kw: np.array([5. if 'habit' in text else -1. for _, text in pairs]))
-    monkeypatch.setitem(sys.modules, 'sentence_transformers', SimpleNamespace(CrossEncoder=lambda *a, **kw: model))
-    monkeypatch.setitem(sys.modules, 'torch.nn', SimpleNamespace(Identity=lambda: None))
     cases, output = tmp_path / 'cases.jsonl', tmp_path / 'results.json'
     cases.write_text(json.dumps({'id': 'habit', 'question': 'habit', 'relevance': {'habits.md': 3}}))
     args = ['--cases', str(cases), '--output', str(output), '--offline', '--top-k', '2',

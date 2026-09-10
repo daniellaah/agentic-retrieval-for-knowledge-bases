@@ -136,7 +136,7 @@ def test_primitive_import_and_search_are_independent_of_providers_context_and_in
 import sys
 class BlockDependencies:
     def find_spec(self, fullname, *args):
-        if fullname.split('.')[0] in ('ollama', 'qdrant_client', 'numpy', 'tokenizers', 'torch', 'sentence_transformers') or fullname in (
+        if fullname.split('.')[0] in ('ollama', 'qdrant_client', 'numpy', 'tokenizers', 'torch', 'transformers') or fullname in (
             'arkb.generation', 'arkb.knowledge.indexing', 'arkb.knowledge.sqlite', 'arkb.knowledge.embeddings'
         ):
             raise AssertionError('Unexpected dependency: ' + fullname)

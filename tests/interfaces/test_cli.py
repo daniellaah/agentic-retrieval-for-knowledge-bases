@@ -83,6 +83,15 @@ def test_search_uses_project_default(runtime):
     assert fake.search.call_args.kwargs['mode'] == DEFAULT_RETRIEVAL_MODE == 'semantic'
 
 
+@pytest.mark.parametrize('option', ['--reranker-model', '--reranker-revision'])
+def test_search_rejects_removed_reranker_overrides(runtime, option):
+    _, factory = runtime
+    with pytest.raises(SystemExit) as error:
+        main(['search', 'query', '--rerank', option, 'unsupported'])
+    assert error.value.code == 2
+    factory.assert_not_called()
+
+
 @pytest.mark.parametrize('command,arguments', [
     ('match', ['RAG']), ('search', ['Agent Memory']), ('ask', ['帮我找素材']), ('index', []), ('status', []),
     ('ask', ['帮我找素材', '--think']), ('ask', ['帮我找素材', '--no-think']),

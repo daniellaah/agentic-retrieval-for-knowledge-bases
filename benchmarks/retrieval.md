@@ -65,20 +65,22 @@ unchanged, and `metadata.rerank` retains the input rank, method, and raw score.
 `evaluate_reranker` measures before/after metrics, rank movement and latency on
 one frozen list; it does not perform candidate retrieval.
 
-The optional [Sentence Transformers cross-encoder](https://www.sbert.net/docs/package_reference/cross_encoder/model.html)
-adapter runs `cross-encoder/ms-marco-MiniLM-L6-v2` on CPU at pinned revision
-`233902d25c440f23af6f7d6e94d2946bac0bee0a`. Other single-logit models can be supplied
-with an explicit commit revision. It scores query/title+body pairs, explicitly
-requests raw logits, and declares `cross_encoder_logit` semantics. The tokenizer
-truncates pairs to 512 tokens by default; source evidence remains unmodified.
-There is no remote code execution, generation, query rewriting or strategy choice.
-Loading is explicit; importing the retrieval package never imports PyTorch.
+The fixed [Qwen3 reranker](https://huggingface.co/Qwen/Qwen3-Reranker-0.6B)
+runs `Qwen/Qwen3-Reranker-0.6B` on CPU in float32 at pinned revision
+`e61197ed45024b0ed8a2d74b80b4d909f1255473`. The native Transformers adapter
+uses the official instruction and yes/no template, left padding, and
+`logit(yes) - logit(no)` scoring (`yes_no_logit_difference`). This produces the
+same rank ordering as the official two-token softmax without probability
+saturation. The 512-token default budget includes the reserved prefix/suffix;
+query/title+body text is truncated, while returned evidence remains verbatim.
+There is no generation or remote code execution. The model and revision are
+fixed in code; importing retrieval does not import PyTorch or load weights.
 
 ```sh
 uv sync --locked --extra rerank
 ARKB_RUN_RERANKER_TESTS=1 ARKB_RERANKER_OFFLINE=0 \
-  ARKB_RERANKER_CACHE=.uv-cache/reranker-models \
-  uv run --locked --extra rerank python -m pytest -q tests/retrieval/integration/test_cross_encoder_model.py
+  ARKB_RERANKER_CACHE=.obsidian-rag/models \
+  uv run --locked --extra rerank python -m pytest -q tests/retrieval/integration/test_qwen_reranker_model.py
 ```
 
 After caching, use `ARKB_RERANKER_OFFLINE=1` to verify entirely offline. CPU
@@ -96,11 +98,11 @@ uv run --locked --extra rerank python -m arkb.evaluation.retrieval baseline \
   --cases benchmarks/retrieval-cases.jsonl --output /tmp/retrieval-four-way.json \
   --modes semantic bm25 hybrid hybrid_reranked --top-k 5 \
   --candidate-k 20 --rerank-candidates 20 \
-  --reranker-cache .uv-cache/reranker-models --offline
+  --reranker-cache .obsidian-rag/models --offline
 ```
 
-`--reranker-model`, `--reranker-revision`, and `--reranker-max-length` select an
-explicit reranker configuration. Relevance and latency use the same questions
+`--reranker-max-length` sets the input budget; `--reranker-cache` selects the
+cache directory. The model and revision have no overrides. Relevance and latency use the same questions
 and snapshot for every mode. Full input ranks in reranked hit metadata show
 which candidates moved; isolated `evaluate_reranker` diagnostics measure just
 reranking latency. Whole-pipeline timings include all retrieval and scoring calls.
@@ -118,7 +120,7 @@ engine.search("query", mode="hybrid", rerank=True, top_k=5)
 reranker model is loaded. The independent benchmark runner continues to call the
 primitives directly so engine composition does not hide baseline behavior.
 
-For an isolated build with real Ollama embeddings and a cross-encoder, without
+For an isolated build with real Ollama embeddings and the Qwen3 reranker, without
 Qdrant Server, use the example runner:
 
 ```sh
@@ -128,9 +130,9 @@ uv run --locked --extra rerank python -B benchmarks/run_local_retrieval.py \
 
 The output directory must be new. It contains the SQLite snapshot, Qdrant Local
 index, and `report.json` with complete responses, source hashes, corpus identity,
-model configuration, and frozen-candidate reranker ablations. It indexes the same
+model configuration, and frozen-candidate reranking diagnostics. It indexes the same
 Markdown chunks as production. `--offline` requires both tokenizers and reranker
 artifacts to be cached. Ollama still runs locally. `--modes` can select individual
 baselines. Qdrant Local runs exact search; its timings cannot establish server or
-ANN performance. The checked-in [example measurement](retrieval-example.md)
-records a real run and its limits.
+ANN performance. The [Qwen reranker integration report](../evaluation/reranker-integration.md)
+records the current integration checks and their limits.

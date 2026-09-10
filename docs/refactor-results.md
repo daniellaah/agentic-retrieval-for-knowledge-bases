@@ -2,6 +2,9 @@
 
 已按[目录重构方案](directory-refactor-plan.md)完成五个阶段。分支：`refactor/capability-layout`；迁移前基线：`9d47667`。
 
+本文记录该次目录迁移。后续 reranker 已改为固定 Qwen3，当前适配器位于
+`retrieval/qwen_rerank.py`，见 [reranker 集成验证](../evaluation/reranker-integration.md)。
+
 ## 交付结构
 
 生产包按 Knowledge、Retrieval、Generation、Agent、Interfaces、Evaluation 六个能力组织，根部只保留 `__init__.py`、`runtime.py` 和 `config.py`。

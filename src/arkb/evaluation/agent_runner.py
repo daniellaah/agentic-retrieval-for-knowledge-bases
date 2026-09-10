@@ -1,6 +1,7 @@
 """Run agent evaluation through Runtime.ask and preserve inspectable artifacts."""
 
 import argparse
+from collections.abc import Callable
 from contextlib import ExitStack
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -117,6 +118,8 @@ def _failed_trial(row: AgentEvalTrial) -> dict:
 
 def run_agent_evaluation(
     config: AgentEvalConfig, *, runtime: AgentEvalRuntime | None = None, client=None,
+    trial_metadata: dict | None = None,
+    trial_annotations: Callable[[AgentEvalTrial], dict] | None = None,
 ) -> AgentEvalRun:
     """Run every case/trial with fresh runtime conversation state and no retries.
 
@@ -124,6 +127,8 @@ def run_agent_evaluation(
     Ordinary per-trial runtime exceptions retain partial traces and do not stop
     later trials. Interruptions and artifact I/O errors propagate; each completed
     row is flushed, and metadata marks incomplete runs instead of reporting success.
+    Optional experiment metadata and deterministic annotations are namespaced in
+    saved rows; neither is passed to Runtime or used in v1 scoring.
     """
     raw = config.dataset_path.read_bytes()
     cases = parse_agent_eval_dataset(raw, notes_dir=config.notes_dir)
@@ -157,7 +162,13 @@ def run_agent_evaluation(
                     for trial in range(config.num_trials):
                         row = _run_trial(case, trial, runtime=runtime, config=config,
                                          metadata=metadata, client=client)
-                        stream.write(_json({'schema_version': SCHEMA_VERSION, **asdict(row)}) + '\n')
+                        if trial_metadata:
+                            # Experiment context is namespaced; it cannot override v1 fields.
+                            row.runtime_metadata['experiment'] = dict(trial_metadata)
+                        payload = {'schema_version': SCHEMA_VERSION, **asdict(row)}
+                        if trial_annotations is not None:
+                            payload['analysis'] = trial_annotations(row)
+                        stream.write(_json(payload) + '\n')
                         stream.flush()
                         results.append(row)
             summary = {

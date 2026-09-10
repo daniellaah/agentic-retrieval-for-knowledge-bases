@@ -81,8 +81,6 @@ def _add_search_arguments(command):
     command.add_argument('--rerank', action='store_true')
     command.add_argument('--rerank-candidates', type=_positive_int, default=RetrievalConfig.rerank_candidates)
     command.add_argument('--reranker-cache')
-    command.add_argument('--reranker-model', default=RetrievalConfig.reranker_model)
-    command.add_argument('--reranker-revision', default=RetrievalConfig.reranker_revision)
     command.add_argument('--reranker-max-length', type=_positive_int, default=RetrievalConfig.reranker_max_length)
     command.add_argument('--exact', action='store_true', help='Use Qdrant exact vector search.')
 
@@ -162,8 +160,7 @@ def _execute(runtime, args):
                              top_k=args.top_k, source=args.source)
     if args.command == 'search':
         settings = RetrievalConfig(candidate_k=args.candidate_k, rrf_k=args.rrf_k,
-            rerank_candidates=args.rerank_candidates, reranker_model=args.reranker_model,
-            reranker_revision=args.reranker_revision, reranker_max_length=args.reranker_max_length,
+            rerank_candidates=args.rerank_candidates, reranker_max_length=args.reranker_max_length,
             reranker_cache=args.reranker_cache)
         return runtime.search(args.query, **scope, mode=args.mode, top_k=args.top_k, source=args.source,
                               settings=settings, rerank=args.rerank, exact=args.exact)

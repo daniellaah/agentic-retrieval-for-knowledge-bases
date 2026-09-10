@@ -23,7 +23,7 @@ from arkb.knowledge.models import QdrantConfig
 from arkb.knowledge.indexing import build_index
 from arkb.knowledge.documents import scan_notes
 from arkb.retrieval import BM25Retriever, HybridRetriever, RerankedRetriever, Reranker
-from arkb.retrieval.rerank import CrossEncoderScorer
+from arkb.retrieval.qwen_rerank import QwenRerankerScorer
 from arkb.runtime import SnapshotSemanticRetriever
 from arkb.evaluation.retrieval import evaluate_retrievers, evaluate_reranker
 from arkb.knowledge.sqlite import SQLiteStorage
@@ -39,7 +39,7 @@ def main(argv=None):
                         default=['semantic', 'bm25', 'hybrid', 'hybrid_reranked'])
     parser.add_argument('--host', default='http://127.0.0.1:11434')
     parser.add_argument('--tokenizer-cache', type=Path, default=Path('.uv-cache/tokenizers'))
-    parser.add_argument('--reranker-cache', default='.uv-cache/reranker-models')
+    parser.add_argument('--reranker-cache', default='.obsidian-rag/models')
     parser.add_argument('--offline', action='store_true')
     parser.add_argument('--top-k', type=int, default=5)
     parser.add_argument('--candidate-k', type=int, default=20)
@@ -71,7 +71,7 @@ def main(argv=None):
         setup_started = perf_counter()
         reranker = None
         if 'hybrid_reranked' in args.modes:
-            reranker = Reranker(CrossEncoderScorer(cache_folder=args.reranker_cache, local_files_only=args.offline))
+            reranker = Reranker(QwenRerankerScorer(cache_folder=args.reranker_cache, local_files_only=args.offline))
             retrievers['hybrid_reranked'] = RerankedRetriever(hybrid, reranker, candidate_k=args.candidate_k)
         setup_ms = (perf_counter() - setup_started) * 1000
         report = evaluate_retrievers({name: retrievers[name] for name in dict.fromkeys(args.modes)}, cases,
@@ -86,7 +86,7 @@ def main(argv=None):
             'cases_sha256': hashlib.sha256(raw).hexdigest(), 'platform': platform.platform(),
             'packages': {name: version(name) for name in ('qdrant-client', 'ollama', 'numpy')},
             'reranker': reranker.scorer.identity if reranker else None, 'reranker_setup_ms': setup_ms,
-            'model_packages': {name: version(name) for name in ('sentence-transformers', 'transformers', 'torch')} if reranker else {},
+            'model_packages': {name: version(name) for name in ('transformers', 'torch')} if reranker else {},
             'candidate_k': args.candidate_k, 'rrf_k': 60, 'bm25': {'k1': 1.2, 'b': .75},
             'source_hashes': {p.relative_to(package).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
                               for p in sorted(package.rglob('*.py'))},

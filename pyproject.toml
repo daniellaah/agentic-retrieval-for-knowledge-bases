@@ -18,7 +18,8 @@ arkb = "arkb.interfaces.cli:main"
 
 [project.optional-dependencies]
 rerank = [
-    "sentence-transformers>=5,<7",
+    "torch>=2.6,<3",
+    "transformers>=5,<6",
 ]
 
 [dependency-groups]

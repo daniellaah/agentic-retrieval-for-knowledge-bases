@@ -57,7 +57,8 @@ src/arkb/
 │   ├── semantic.py         # semantic 流程与后端命中适配
 │   ├── hybrid.py
 │   ├── fusion.py
-│   ├── rerank.py           # reranker、组合器、可选 cross-encoder scorer
+│   ├── rerank.py           # reranker 契约、排序、组合器
+│   ├── qwen_rerank.py      # 固定 Qwen3 reranker，按需加载
 │   └── engine.py
 │
 ├── generation/
@@ -109,7 +110,7 @@ QdrantConfig 是现有能力配置，建议作为纯配置类型归 knowledge.mo
 - semantic.py：保留 Embedder、VectorIndex 协议与 SemanticRetriever；接纳 QdrantSnapshotIndex 及对应结果翻译。SDK/具体存储依赖只在需要该适配器时加载，不能让导入 SemanticRetriever 就导入完整 Knowledge 构建器或模型客户端。
 - bm25.py：保持现有内存 postings、评分和 snapshot 初始化路径。初始化查询实例的内存结构不等于发布新的知识库索引，本轮不额外拆出 lexical indexing 框架。
 - hybrid.py、fusion.py、engine.py：保持现有算法和组合边界。
-- rerank.py：合并 Reranker、RerankedRetriever、CandidateScorer 与 CrossEncoderScorer。后者仅在显式构造时加载可选模型依赖；合并文件不改变依赖可选性。
+- rerank.py：保留 Reranker、RerankedRetriever、CandidateScorer。后续模型适配已收敛为 qwen_rerank.py 中的 QwenRerankerScorer，仅在显式构造时加载可选模型依赖，见 [reranker 集成验证](../evaluation/reranker-integration.md)。
 - exact.py：本轮仅占位。它未来表示对源文档的字面/正则等精确检索，不能拿现有 Qdrant exact 向量查询冒充这项能力。
 
 SnapshotSemanticRetriever 和一次性 search_index 是应用组装，迁入 runtime.py。空快照仍校验输入并跳过模型调用，调用方拥有客户端等现有接口语义需保留。
