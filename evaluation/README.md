@@ -10,6 +10,9 @@ Fixed BM25, Semantic, Hybrid, and Hybrid + Rerank controls use the same v1 input
 [Deterministic Retrieval Baselines](deterministic-retrieval-baselines.md), with
 [measured results on the shared snapshot](deterministic-baseline-results.md).
 
+For matched-case Agent coverage/latency and the role of rg-backed match, see
+[Agent vs Baselines](agent-vs-baselines.md).
+
 The versioned input is `data/agent_v1.jsonl`: one UTF-8 JSON object per line,
 ordered by task type and case ID, with no model output or runtime state.
 Annotations were curated against the local `example_notes` bodies, including

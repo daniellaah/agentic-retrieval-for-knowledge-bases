@@ -6,6 +6,8 @@
 已回放全部结构化结果的指标，并验证 query、binary ground truth、dataset SHA-256 和知识库
 快照与已完成的 4B/9B/27B Agent Model Ablation 三组输入完全一致。
 
+Agent 对照与 rg 能力的位置见 [Agent vs Baselines](agent-vs-baselines.md)。
+
 ## 固定配置
 
 - 数据集：`evaluation/data/agent_v1.jsonl`；SHA-256 `8babda40f2a74506c3fefe5159a9094a91c86e4e5562443a09c7b35790a0e8af`。
