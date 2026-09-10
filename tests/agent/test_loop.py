@@ -6,7 +6,15 @@ import pytest
 
 from arkb.agent import AgentState, AgentTools, TOOL_DEFINITIONS, run_agent
 from arkb.agent.loop import SYSTEM_INSTRUCTION
+from arkb.knowledge.models import Chunk, ChunkRecord, Note
+from arkb.retrieval import BM25Retriever, ExactRetriever, RetrievalEngine
 from tests.agent.helpers import ScriptedModel, reply, tool_call
+
+
+@pytest.fixture
+def bm25_tools(documents):
+    engine = RetrievalEngine(bm25=BM25Retriever(list(documents.records()), index_id='test'))
+    return AgentTools(documents=documents, exact=ExactRetriever(documents), engine=engine, mode='bm25')
 
 
 @pytest.mark.parametrize('query,call,observation', [
@@ -104,7 +112,7 @@ def test_multiple_calls_in_one_turn_preserve_order_and_are_all_observed(tools):
     assert result.state.tool_calls == calls
 
 
-@pytest.mark.parametrize('max_turns', [1, 3])
+@pytest.mark.parametrize('max_turns', [1, 3, 4])
 def test_repeated_calls_stop_at_exact_turn_limit_without_an_extra_model_request(tools, max_turns):
     call = tool_call('search', query='question')
     model = Mock()
@@ -127,6 +135,77 @@ def test_empty_results_remain_observations_and_allow_a_followup(tools):
     result = run_agent('Find notes', client=model, tools=tools, model='fake')
     assert result.stop_reason == 'final'
     assert [c['function']['name'] for c in result.state.tool_calls] == ['search', 'match']
+
+
+def test_repeated_search_evidence_is_reported_without_blocking_a_known_source(bm25_tools):
+    def after_repeated_search(messages):
+        observations = [m for m in messages if m['role'] == 'tool']
+        first, second, third = [json.loads(m['content']) for m in observations]
+        assert len({first['query'], second['query'], third['query']}) == 3
+        assert first['results'] and second['results'] and third['results']
+        assert all(hit in first['results'] for response in (second, third) for hit in response['results'])
+        assert messages[-1]['role'] == 'system'
+        assert 'no new evidence' in messages[-1]['content']
+        return reply(calls=[tool_call('read', source='a.md')])
+
+    def after_read(messages):
+        assert messages[-1]['tool_name'] == 'read'
+        assert json.loads(messages[-1]['content'])['result']['source'] == 'a.md'
+        assert len([m for m in messages if m['role'] == 'system']) == 2
+        return reply('  final from the model\n')
+
+    model = ScriptedModel(reply(calls=[tool_call('search', query='foo')]),
+                          reply(calls=[tool_call('search', query='foo rare')]),
+                          reply(calls=[tool_call('search', query='foo idea')]),
+                          after_repeated_search, after_read)
+    result = run_agent('Find material, then read the relevant source', client=model,
+                       tools=bm25_tools, model='fake', max_turns=5)
+    assert result.response == '  final from the model\n'
+    assert result.stop_reason == 'final' and result.state.turn == 5
+    assert model.requests[2]['messages'][-1]['role'] == 'tool'
+    assert [call.name for call in result.trace.tool_calls] == ['search', 'search', 'search', 'read']
+    assert all(call.result is not None for call in result.trace.tool_calls)
+    assert all(request['tools'] == model.requests[0]['tools'] for request in model.requests)
+
+
+@pytest.mark.parametrize('first,followups,stalled', [
+    ({'query': 'missing'}, [{'query': 'also_missing'}], True),
+    ({'query': 'missing'}, [{'query': 'foo'}], False),
+    ({'query': 'foo'}, [{'query': 'missing'}], True),
+    ({'query': 'foo'}, [{'query': 'foo', 'source': 'a.md'}], True),
+    ({'query': 'foo', 'source': 'a.md'}, [
+        {'query': 'foo', 'source': 'b.md'}, {'query': 'foo', 'source': 'a.md'}], False),
+])
+def test_search_progress_accounts_for_empty_results_and_the_entire_turn(bm25_tools, first, followups, stalled):
+    model = ScriptedModel(reply(calls=[tool_call('search', **first)]),
+                          reply(calls=[tool_call('search', **first)]),
+                          reply(calls=[tool_call('search', **options) for options in followups]),
+                          reply('finished'))
+    result = run_agent('Find notes', client=model, tools=bm25_tools, model='fake', max_turns=4)
+    # An empty first search can be reformulated. Later reminders never split a
+    # batch of observations or overlook new evidence from an earlier batch call.
+    assert model.requests[1]['messages'][-1]['role'] == 'tool'
+    assert model.requests[2]['messages'][-1]['role'] == 'tool'
+    assert (model.requests[3]['messages'][-1]['role'] == 'system') is stalled
+    assert result.response == 'finished' and result.state.turn == 4
+    assert len(result.trace.tool_calls) == 2 + len(followups)
+    assert all(call.result is not None for call in result.trace.tool_calls)
+
+
+def test_new_chunk_in_a_known_source_is_search_progress(documents):
+    note = Note('Facts', 'alpha\nbeta', 'a.md')
+    chunks = [Chunk('alpha', note.title, note.source, 0, 0, 5),
+              Chunk('beta', note.title, note.source, 1, 6, 10)]
+    records = [ChunkRecord.from_note(chunk, note=note, vault_id='v') for chunk in chunks]
+    engine = RetrievalEngine(bm25=BM25Retriever(records, index_id='test'))
+    tools = AgentTools(documents=documents, exact=ExactRetriever(documents), engine=engine, mode='bm25')
+    model = ScriptedModel(reply(calls=[tool_call('search', query='alpha')]),
+                          reply(calls=[tool_call('search', query='alpha')]),
+                          reply(calls=[tool_call('search', query='beta')]), reply('both facts'))
+    result = run_agent('Find both facts', client=model, tools=tools, model='fake', max_turns=4)
+    assert [call.result['results'][0]['content'] for call in result.trace.tool_calls] == ['alpha', 'alpha', 'beta']
+    assert all(m['role'] != 'system' for m in model.requests[3]['messages'][1:])
+    assert result.response == 'both facts'
 
 
 def test_runs_have_independent_conversations(tools):
