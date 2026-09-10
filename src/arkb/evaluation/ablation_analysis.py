@@ -1,7 +1,7 @@
 """Replayable model comparisons over unchanged Agent Evaluation v1 outcomes."""
 
 from collections import Counter
-from dataclasses import asdict, replace
+from dataclasses import replace
 from statistics import mean
 
 from arkb.evaluation.agent import evaluate_case, summarize_agent_results

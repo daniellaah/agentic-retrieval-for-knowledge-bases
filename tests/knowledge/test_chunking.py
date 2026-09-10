@@ -245,7 +245,7 @@ def test_heading_boundaries_and_ancestor_paths_are_preserved_even_with_a_large_b
     ]
     for chunk in chunks:
         assert chunk.note_id == note.note_id
-        assert chunk.path == note.path == "folder/note.md"
+        assert chunk.source == note.source == "folder/note.md"
         assert chunk.title == "Title"
         assert chunk.parent_id == chunk.section_id
         assert (chunk.section_start_char, chunk.section_end_char) == (chunk.start_char, chunk.end_char)

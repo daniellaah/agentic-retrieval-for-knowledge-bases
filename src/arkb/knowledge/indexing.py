@@ -172,18 +172,15 @@ def _qdrant_index(client, metadata: dict, manifest: IndexManifest, *, create: bo
                        config=QdrantConfig.from_metadata(metadata))
 
 
-def _cleanup_failed_qdrant(storage: SQLiteStorage, *, vault_id: str, client, url: str) -> int:
+def _cleanup_failed_qdrant(storage: SQLiteStorage, *, vault_id: str, client, url: str) -> None:
     """Under the writer lock, remove only owned failed candidates on this server.
 
     Historical READY collections are retained for rollback and in-flight readers.
     Failed build records and their successful embedding caches remain available.
     """
-    count = 0
     for manifest in storage.list_builds(vault_id):
         metadata = storage.build_metadata(manifest.index_version)['backend']
         collection = metadata.get('collection')
         if (manifest.status == 'failed' and metadata.get('kind') == 'qdrant'
                 and metadata.get('url') == url and collection and client.collection_exists(collection)):
             _qdrant_index(client, metadata, manifest, create=False).drop()
-            count += 1
-    return count

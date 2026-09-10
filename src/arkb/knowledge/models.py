@@ -27,10 +27,6 @@ class Note:
         """Stable identity within a source collection; a path rename changes it."""
         return _digest("note-id", {"path": self.source})
 
-    @property
-    def path(self) -> str:
-        return self.source
-
 
 @dataclass(frozen=True)
 class Chunk:
@@ -58,10 +54,6 @@ class Chunk:
         # JSON stores tuples as arrays; restore immutable metadata on decoding.
         if isinstance(self.heading_path, list):
             object.__setattr__(self, "heading_path", tuple(self.heading_path))
-
-    @property
-    def path(self) -> str:
-        return self.source
 
     @property
     def note_id(self) -> str:

@@ -136,7 +136,7 @@ class QdrantSnapshotIndex:
         results = []
         for hit in hits:
             record = self.storage.get_record(self.index_id, hit.chunk_id)
-            if (record is None or not math.isfinite(hit.score) or not -1 <= hit.score <= 1
+            if (not math.isfinite(hit.score) or not -1 <= hit.score <= 1
                     or ('source' in filters and record.chunk.source != filters['source'])):
                 raise ValueError('Vector hit does not match the snapshot, filter, or cosine score contract.')
             results.append(snapshot_result(record, hit.score, self.index_id))
