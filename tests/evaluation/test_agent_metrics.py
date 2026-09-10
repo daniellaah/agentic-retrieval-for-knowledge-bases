@@ -4,7 +4,7 @@ import json
 import pytest
 
 from arkb.agent.state import AgentToolTrace, AgentTrace
-from arkb.evaluation.agent import evaluate_case, extract_retrieved_sources, summarize_agent_results
+from arkb.evaluation.agent_metrics import evaluate_case, extract_retrieved_sources, summarize_agent_results
 from arkb.evaluation.models import AgentEvalCase
 
 

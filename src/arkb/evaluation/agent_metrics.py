@@ -1,11 +1,12 @@
-"""Pure deterministic agent evidence, behavior, and aggregate metrics."""
+"""Score and report agent evidence and behavior without running experiments."""
 
 from collections import Counter
 from collections.abc import Iterable, Sequence
+from html import escape
 from statistics import mean
 
 from arkb.agent.state import AgentTrace
-from arkb.evaluation.models import AgentEvalCase, AgentEvalResult, KNOWLEDGE_TOOLS
+from arkb.evaluation.models import AgentEvalCase, AgentEvalResult, AgentEvalTrial, KNOWLEDGE_TOOLS
 
 
 def extract_retrieved_sources(
@@ -145,3 +146,58 @@ def summarize_agent_results(results: Sequence[AgentEvalResult]) -> dict:
         task_type: _summary([r for r in results if r.task_type == task_type])
         for task_type in sorted(types)
     }}
+
+
+def _failed_trial(row: AgentEvalTrial) -> dict:
+    return {'case_id': row.case.id, 'trial': row.trial, 'query': row.case.query,
+            'task_type': row.case.task_type, 'expected_sources': row.metrics.expected_sources,
+            'retrieved_sources': row.metrics.retrieved_sources, 'tool_sequence': row.metrics.tool_calls,
+            'stop_reason': row.metrics.stop_reason, 'failure_reasons': row.metrics.failure_reasons,
+            'error': row.error}
+
+
+def _cell(value) -> str:
+    if value is None:
+        return 'unavailable / undefined'
+    if isinstance(value, (tuple, list)):
+        value = ', '.join(value) if value else '(none)'
+    return escape(str(value)).replace('|', '\\|').replace('\n', '<br>')
+
+
+def render_agent_report(summary: dict) -> str:
+    """Human-readable aggregate and explicit failed-trial details; no judge."""
+    lines = ['# Agent Evaluation v1', '', f'Run: {_cell(summary["run_id"])}', '',
+             'Source coverage and tool behavior only; answer quality is not graded.', '',
+             '| Metric | Value |', '| --- | ---: |']
+    for key in ('total_cases', 'total_trials', 'task_success_rate', 'average_source_recall',
+                'average_tool_calls', 'average_turns', 'max_turn_failure_rate',
+                'unnecessary_retrieval_rate', 'missing_trace_trials'):
+        value = summary[key]
+        lines.append(f'| {key} | {value:.4f} |' if isinstance(value, float) else f'| {key} | {_cell(value)} |')
+    lines += ['', 'Recall excludes no-retrieval and unavailable traces. Unnecessary retrieval uses only',
+              'observed no-retrieval trials. Other behavior means use observed traces.',
+              'Exact denominators are recorded in summary.json.', '',
+              '## Task types', '', '| Task type | Trials | Success rate | Mean recall |', '| --- | ---: | ---: | ---: |']
+    for name, group in summary['by_task_type'].items():
+        recall = group['average_source_recall']
+        lines.append(f'| {name} | {group["total_trials"]} | {group["task_success_rate"]:.4f} | '
+                     + (f'{recall:.4f}' if recall is not None else 'undefined') + ' |')
+    for heading, key in (('Tool requests', 'tool_usage_distribution'), ('Stop reasons', 'stop_reason_distribution')):
+        lines += ['', f'## {heading}', '', '| Name | Count |', '| --- | ---: |']
+        lines += [f'| {_cell(name)} | {count} |' for name, count in summary[key].items()]
+    if summary['knowledge_changed']:
+        lines += ['', 'Knowledge inputs changed during this run. See before/after fingerprints in run_metadata.json.']
+    lines += ['', '## Failed trials', '']
+    if not summary['failed_trials']:
+        lines.append('No failed trials.')
+    for failed in summary['failed_trials']:
+        lines += [f'### {_cell(failed["case_id"])} / trial {failed["trial"]}', '',
+                  '| Field | Value |', '| --- | --- |']
+        for key in ('query', 'task_type', 'expected_sources', 'retrieved_sources', 'tool_sequence',
+                    'stop_reason', 'failure_reasons'):
+            lines.append(f'| {key} | {_cell(failed[key])} |')
+        if failed['error'] is not None:
+            lines.append(f'| runtime error | {_cell(failed["error"]["type"] + ": " + failed["error"]["message"])} |')
+        lines.append('')
+    return '\n'.join(lines).rstrip() + '\n'
+

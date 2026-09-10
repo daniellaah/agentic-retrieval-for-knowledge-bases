@@ -8,7 +8,7 @@ import pytest
 
 from arkb.agent.state import AgentResult, AgentState, AgentToolTrace
 from arkb.evaluation.ablation_analysis import compare_models, summarize_trials, trial_behavior
-from arkb.evaluation.agent import evaluate_case
+from arkb.evaluation.agent_metrics import evaluate_case
 from arkb.evaluation.model_ablation import (
     AgentModelAblationConfig, DEFAULT_MODELS, inspect_environment, load_trial_results,
     main, run_agent_model_ablation,
@@ -188,7 +188,7 @@ def test_missing_models_block_formal_without_substitution_but_allow_labeled_smok
 
 
 def test_runner_level_failure_does_not_block_other_models(config, monkeypatch):
-    from arkb.evaluation.agent_runner import run_agent_evaluation
+    from arkb.evaluation.runs import run_agent_evaluation
     seen = []
     def runner(config, **options):
         seen.append(config.model)

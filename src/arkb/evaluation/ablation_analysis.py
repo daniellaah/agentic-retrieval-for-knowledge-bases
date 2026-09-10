@@ -4,8 +4,7 @@ from collections import Counter
 from dataclasses import replace
 from statistics import mean
 
-from arkb.evaluation.agent import evaluate_case, summarize_agent_results
-from arkb.evaluation.agent_runner import _cell
+from arkb.evaluation.agent_metrics import _cell, evaluate_case, summarize_agent_results
 
 
 FOCUSED_CASES = ('semantic_005', 'explore_001', 'explore_002', 'explore_004',

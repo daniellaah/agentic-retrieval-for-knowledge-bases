@@ -11,7 +11,7 @@ import pytest
 from tokenizers import Tokenizer, models
 
 from arkb.config import RetrievalConfig, RuntimeConfig
-from arkb.evaluation.agent_runner import main, run_baseline_evaluation, run_evaluation
+from arkb.evaluation.runs import main, run_baseline_evaluation, run_evaluation
 from arkb.evaluation.baselines import execute_baseline
 from arkb.evaluation.datasets import load_agent_eval_dataset
 from arkb.evaluation.metrics import ranking_metrics
@@ -229,7 +229,7 @@ def test_interruptions_and_artifact_failures_preserve_flushed_rows(snapshot_fact
             return original(query, **options)
         engine.search.side_effect = search
     else:
-        import arkb.evaluation.agent_runner as runner
+        import arkb.evaluation.runs as runner
         original_json = runner._json
         def write(value, **options):
             if value.get('case_id') == snapshot.cases[1].id:

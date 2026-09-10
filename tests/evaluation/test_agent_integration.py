@@ -7,7 +7,7 @@ they deliberately do not use the repository's external-service integration marke
 import pytest
 
 from arkb.evaluation.datasets import load_agent_eval_dataset
-from arkb.evaluation.agent import evaluate_case, summarize_agent_results
+from arkb.evaluation.agent_metrics import evaluate_case, summarize_agent_results
 from arkb.knowledge.documents import DocumentAccess
 from arkb.retrieval.exact import ExactRetriever
 from arkb.runtime import Runtime
@@ -101,7 +101,7 @@ def test_complete_runner_loop_uses_published_index_real_runtime_and_all_task_typ
     from ollama import Client, EmbedResponse
     from tokenizers import Tokenizer, models
 
-    from arkb.evaluation.agent_runner import run_agent_evaluation
+    from arkb.evaluation.runs import run_agent_evaluation
     from arkb.evaluation.models import AgentEvalCase, AgentEvalConfig
     from arkb.knowledge.documents import load_notes
     from arkb.knowledge.indexing import build_index

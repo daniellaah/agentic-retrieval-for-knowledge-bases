@@ -513,7 +513,7 @@ hybrid_rerank
 ### Run retrieval baselines
 
 ```sh
-uv run --locked python -m arkb.evaluation.agent_runner \
+uv run --locked python -m arkb.evaluation.runs \
   --baselines bm25 semantic hybrid \
   --output evaluation/results/baseline-demo
 ```
@@ -527,7 +527,7 @@ uv run --locked --extra rerank
 ### Run agent evaluation
 
 ```sh
-uv run --locked python -m arkb.evaluation.agent_runner \
+uv run --locked python -m arkb.evaluation.runs \
   --num-trials 3 \
   --output evaluation/results/agent-demo
 ```

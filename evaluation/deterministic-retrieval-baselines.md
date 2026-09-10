@@ -11,7 +11,7 @@ Agent Evaluation v1 的固定检索 control group，直接使用同一个
 | --- | --- |
 | `src/arkb/evaluation/models.py` | 增加 `BaselineEvalConfig`、`BaselineEvalResult`、`BaselineEvalRun` 和固定模式映射 |
 | `src/arkb/evaluation/baselines.py` | 单次检索执行、source 归一化、调用已有 metrics、整体和 task_type 汇总、Markdown 报告 |
-| `src/arkb/evaluation/agent_runner.py` | 现有 runner 增加 `run_baseline_evaluation` 和 `run_evaluation` 分发；复用数据解析、JSON 序列化、知识库/源码指纹和产物生命周期 |
+| `src/arkb/evaluation/runs.py` | 现有 runner 增加 `run_baseline_evaluation` 和 `run_evaluation` 分发；复用数据解析、JSON 序列化、知识库/源码指纹和产物生命周期 |
 | `tests/evaluation/test_baselines.py` | 40 项新增确定性检查，包含完整 40-case 本地集成 |
 | `README.md`、`evaluation/README.md`、本文 | 入口说明、配置语义和比较边界 |
 
@@ -95,7 +95,7 @@ Python API 默认运行全部四种方法：
 ```python
 from pathlib import Path
 from arkb.config import RetrievalConfig, RuntimeConfig
-from arkb.evaluation.agent_runner import run_evaluation
+from arkb.evaluation.runs import run_evaluation
 from arkb.evaluation.models import BaselineEvalConfig
 
 config = BaselineEvalConfig(
@@ -115,11 +115,11 @@ run = run_evaluation(config)
 
 ```sh
 # 单个 baseline，只需要匹配的 SQLite 知识库快照。
-uv run --locked python -m arkb.evaluation.agent_runner \
+uv run --locked python -m arkb.evaluation.runs \
   --baselines bm25 --top-k 10 --output /tmp/arkb-bm25-new
 
 # 全部 baseline：本机需运行 embedding/Qdrant，并准备 Qwen reranker 缓存。
-uv run --locked --extra rerank python -m arkb.evaluation.agent_runner \
+uv run --locked --extra rerank python -m arkb.evaluation.runs \
   --baselines bm25 semantic hybrid hybrid_rerank --top-k 10 \
   --reranker-cache .arkb/models --offline \
   --output /tmp/arkb-baselines-new

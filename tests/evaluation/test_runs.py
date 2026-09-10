@@ -6,8 +6,8 @@ from types import SimpleNamespace
 import pytest
 
 from arkb.agent.state import AgentResult, AgentState, AgentToolTrace, AgentTrace
-from arkb.evaluation.agent import evaluate_case, summarize_agent_results
-from arkb.evaluation.agent_runner import main, run_agent_evaluation
+from arkb.evaluation.agent_metrics import evaluate_case, summarize_agent_results
+from arkb.evaluation.runs import main, run_agent_evaluation
 from arkb.evaluation.datasets import load_agent_eval_dataset
 from arkb.evaluation.models import AgentEvalCase, AgentEvalConfig
 from tests.agent.helpers import tool_call
@@ -78,7 +78,7 @@ def test_every_versioned_case_and_multiple_trials_execute_independently(config):
     assert len(metadata['knowledge_before']['notes_sha256']) == 40
     assert metadata['knowledge_before']['snapshot'] is None
     assert metadata['knowledge_changed'] is False
-    assert 'evaluation/agent_runner.py' in metadata['source_hashes']
+    assert 'evaluation/runs.py' in metadata['source_hashes']
     assert not config.db.exists()
     assert 'No failed trials.' in (run.output_dir / 'report.md').read_text()
 

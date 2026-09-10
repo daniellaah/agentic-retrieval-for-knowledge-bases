@@ -16,10 +16,11 @@ import httpx
 
 from arkb.config import DEFAULT_EMBEDDING_MODEL, DEFAULT_RETRIEVAL_MODE, RetrievalConfig, RuntimeConfig
 from arkb.evaluation.ablation_analysis import compare_models, render_comparison, trial_behavior
-from arkb.evaluation.agent_runner import (
-    _code_metadata, _failed_trial, _json, _knowledge_metadata, _now, _write_json, render_agent_report,
+from arkb.evaluation.runs import (
+    _code_metadata, _json, _knowledge_metadata, _now, _write_json,
     run_agent_evaluation,
 )
+from arkb.evaluation.agent_metrics import _failed_trial, render_agent_report
 from arkb.evaluation.datasets import parse_agent_eval_dataset
 from arkb.evaluation.models import AgentEvalCase, AgentEvalConfig, AgentEvalTrial
 
@@ -196,7 +197,7 @@ def _extra_code_metadata():
 def load_trial_results(path):
     """Replay flushed v1 rows, including partial runs, using original metrics."""
     from arkb.agent.state import AgentToolTrace, AgentTrace
-    from arkb.evaluation.agent import evaluate_case
+    from arkb.evaluation.agent_metrics import evaluate_case
 
     rows = []
     if not path.exists():
