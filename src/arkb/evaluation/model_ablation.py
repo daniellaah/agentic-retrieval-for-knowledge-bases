@@ -156,12 +156,7 @@ def inspect_environment(config, knowledge) -> dict:
 
 def _controls(config, raw, knowledge):
     from arkb.agent.loop import SYSTEM_INSTRUCTION
-    from arkb.agent.tools import AgentTools
-    from arkb.retrieval.engine import RetrievalEngine
-
-    # Only capability presence is inspected by tool_definitions; no tool runs.
-    tools = AgentTools(documents=None, exact=None,
-                       engine=RetrievalEngine(bm25=object(), semantic=object()), mode=DEFAULT_RETRIEVAL_MODE)
+    from arkb.agent.tools import tool_definitions
     return {
         'dataset_path': config.evaluation.dataset_path.resolve(),
         'dataset_sha256': hashlib.sha256(raw).hexdigest(),
@@ -173,7 +168,8 @@ def _controls(config, raw, knowledge):
         'retrieval': {'default_mode': DEFAULT_RETRIEVAL_MODE, 'settings': asdict(RetrievalConfig()),
                       'reranker_enabled': False, 'exact': False,
                       'available_modes': ['bm25', 'semantic', 'hybrid']},
-        'agent_system_prompt': SYSTEM_INSTRUCTION, 'tool_definitions': tools.tool_definitions(),
+        'agent_system_prompt': SYSTEM_INSTRUCTION,
+        'tool_definitions': tool_definitions(('bm25', 'semantic', 'hybrid'), default_mode=DEFAULT_RETRIEVAL_MODE),
         'source_hashes': _code_metadata()['source_hashes'],
     }
 

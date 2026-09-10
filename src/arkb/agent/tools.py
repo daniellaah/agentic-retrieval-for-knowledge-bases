@@ -46,6 +46,18 @@ def _query_result(response: SearchResponse) -> QueryResult:
     return QueryResult(query=response.query, results=[_evidence(hit) for hit in response.results])
 
 
+def tool_definitions(modes: tuple[str, ...], *, default_mode: str) -> tuple[dict[str, ConfigValue], ...]:
+    """Render the effective tool schemas without constructing capability objects."""
+    definitions = deepcopy(TOOL_DEFINITIONS)
+    search = next(definition for definition in definitions if definition['name'] == 'search')
+    search['parameters']['properties']['mode']['enum'] = [*modes, None]
+    meanings = {'bm25': 'keyword ranking', 'semantic': 'meaning', 'hybrid': 'keywords and meaning'}
+    strategies = ', '.join(f'{mode} ({meanings[mode]})' for mode in modes)
+    search['parameters']['properties']['mode']['description'] = (
+        f'Available strategies: {strategies or "none"}; omitted/null uses {default_mode}.')
+    return definitions
+
+
 class AgentTools:
     """Adapt injected capabilities without owning resources or making retrieval decisions.
 
@@ -79,14 +91,7 @@ class AgentTools:
             modes.append('semantic')
         if len(modes) == 2:
             modes.append('hybrid')
-        definitions = deepcopy(TOOL_DEFINITIONS)
-        search = next(definition for definition in definitions if definition['name'] == 'search')
-        search['parameters']['properties']['mode']['enum'] = [*modes, None]
-        meanings = {'bm25': 'keyword ranking', 'semantic': 'meaning', 'hybrid': 'keywords and meaning'}
-        strategies = ', '.join(f'{mode} ({meanings[mode]})' for mode in modes)
-        search['parameters']['properties']['mode']['description'] = (
-            f'Available strategies: {strategies or "none"}; omitted/null uses {self._mode}.')
-        return definitions
+        return tool_definitions(tuple(modes), default_mode=self._mode)
 
     def match(self, query: str, *, target: str = 'content', regex: bool = False,
               case_sensitive: bool = True, source: str | None = None, limit: int = 5) -> QueryResult:
