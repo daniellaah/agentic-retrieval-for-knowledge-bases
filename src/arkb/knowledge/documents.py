@@ -1,11 +1,26 @@
 """Load and access current Markdown documents in the existing flat directory scope."""
 
 from collections.abc import Iterator
-from dataclasses import replace
+from dataclasses import dataclass
 from pathlib import Path
 
 from arkb.knowledge.chunking import _sections, whole_note_chunks
-from arkb.knowledge.models import ChunkRecord, Note, _digest, _require_digest, _require_text
+from arkb.knowledge.models import ChunkRecord, Note, _document_id, _require_digest, _require_text
+
+
+@dataclass(frozen=True)
+class DocumentSlice:
+    """Current document text in body coordinates, without an indexed chunk identity."""
+
+    document_id: str
+    document_revision: str
+    source: str
+    title: str
+    content: str
+    start_char: int
+    end_char: int
+    section_id: str | None = None
+    heading_path: tuple[str, ...] = ()
 
 
 def _load_note(path: Path) -> Note:
@@ -73,7 +88,7 @@ class DocumentAccess:
 
     def read(self, document_id: str | None = None, *, source: str | None = None,
              section_id: str | None = None,
-             start_char: int | None = None, end_char: int | None = None) -> ChunkRecord:
+             start_char: int | None = None, end_char: int | None = None) -> DocumentSlice:
         """Read a full body, Markdown section, or end-exclusive character range.
 
         Supply a document ID or exact source filename; if both are provided,
@@ -101,32 +116,29 @@ class DocumentAccess:
             raise ValueError('start_char must not exceed end_char.')
 
         # Resolve by path identity without loading unrelated document bodies.
-        path = next((path for path in self._paths(source) if document_id is None or _digest('document-id', {
-            'vault_id': self.vault_id, 'source': path.name,
-        }) == document_id), None)
+        path = next((path for path in self._paths(source) if document_id is None
+                     or _document_id(self.vault_id, path.name) == document_id), None)
         if path is None:
             raise LookupError(f'No document matches document_id={document_id!r}, source={source!r}.')
         try:
             note = _load_note(path)
         except FileNotFoundError as error:
             raise LookupError(f'Document no longer exists: {path.name}.') from error
-        chunk = whole_note_chunks([note])[0]
+        heading_path = ()
         if section_id is not None:
             section = next((s for s in _sections(note) if s.section_id == section_id), None)
             if section is None:
                 raise LookupError(f'Unknown section: {section_id}.')
             start, end = section.blocks[0].start, section.blocks[-1].end
-            chunk = replace(chunk, content=note.content[start:end], start_char=start,
-                            end_char=end, section_id=section.section_id,
-                            heading_path=section.heading_path,
-                            section_start_char=start, section_end_char=end)
+            heading_path = section.heading_path
         else:
             start = 0 if start_char is None else start_char
             end = len(note.content) if end_char is None else end_char
             if not 0 <= start <= end <= len(note.content):
                 raise ValueError('Character range is outside the current document body.')
-            chunk = replace(chunk, content=note.content[start:end], start_char=start, end_char=end)
-        return ChunkRecord.from_note(chunk, note=note, vault_id=self.vault_id)
+        return DocumentSlice(_document_id(self.vault_id, note.source), note.document_revision,
+                             note.source, note.title, note.content[start:end], start, end,
+                             section_id, heading_path)
 
 
 def scan_notes(directory: Path) -> list[Note]:

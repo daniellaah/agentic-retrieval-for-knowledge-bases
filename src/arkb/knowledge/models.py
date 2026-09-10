@@ -27,6 +27,14 @@ class Note:
         """Stable identity within a source collection; a path rename changes it."""
         return _digest("note-id", {"path": self.source})
 
+    @property
+    def document_revision(self) -> str:
+        return _digest("document-revision", {"title": self.title, "content": self.content})
+
+
+def _document_id(vault_id: str, source: str) -> str:
+    return _digest("document-id", {"vault_id": vault_id, "source": source})
+
 
 @dataclass(frozen=True)
 class Chunk:
@@ -208,8 +216,7 @@ class ChunkRecord:
             raise ValueError("note must be a Note.")
         if not isinstance(note.title, str) or not isinstance(note.content, str):
             raise ValueError("note title and content must be strings.")
-        revision = _digest("document-revision", {"title": note.title, "content": note.content})
-        record = cls(vault_id=vault_id, document_revision=revision, chunk=chunk)
+        record = cls(vault_id=vault_id, document_revision=note.document_revision, chunk=chunk)
         if (
             chunk.source != note.source
             or chunk.title != note.title
@@ -222,7 +229,7 @@ class ChunkRecord:
 
     @property
     def document_id(self) -> str:
-        return _digest("document-id", {"vault_id": self.vault_id, "source": self.chunk.source})
+        return _document_id(self.vault_id, self.chunk.source)
 
     @property
     def chunk_id(self) -> str:

@@ -121,10 +121,13 @@ def test_access_identity_matches_index_records_and_only_reads_resolved_file(tmp_
     load = Mock(wraps=documents._load_note)
     monkeypatch.setattr(documents, '_load_note', load)
     access = DocumentAccess(tmp_path, vault_id='v')
-    assert access.read(indexed.document_id) == indexed
+    read = access.read(indexed.document_id)
+    assert (read.document_id, read.document_revision, read.source, read.title, read.content) == (
+        indexed.document_id, indexed.document_revision, note.source, note.title, note.content)
+    assert not hasattr(read, 'chunk_id')
     load.assert_called_once_with(tmp_path / 'a.md')
     load.reset_mock()
-    assert access.read(source='a.md') == indexed
+    assert access.read(source='a.md') == read
     load.assert_called_once_with(tmp_path / 'a.md')
     load.reset_mock()
     with pytest.raises(LookupError):
@@ -144,11 +147,11 @@ def test_access_sections_reuse_chunker_coordinates_and_ids(tmp_path):
     chunks = chunk_notes(load_notes(tmp_path), count_tokens=len, chunk_size=100, chunk_overlap=0)
     for chunk in chunks:
         read = access.read(whole.document_id, section_id=chunk.section_id)
-        assert read.chunk.content == chunk.content
-        assert read.chunk.heading_path == chunk.heading_path
-        assert read.chunk.section_id == chunk.section_id
-        assert (read.chunk.start_char, read.chunk.end_char) == (chunk.start_char, chunk.end_char)
-    assert access.read(whole.document_id) == whole
+        assert read.content == chunk.content
+        assert read.heading_path == chunk.heading_path
+        assert read.section_id == chunk.section_id
+        assert (read.start_char, read.end_char) == (chunk.start_char, chunk.end_char)
+    assert access.read(whole.document_id).content == whole.chunk.content
 
 
 def test_access_tracks_new_deleted_renamed_files_without_retaining_bodies(tmp_path):
@@ -159,7 +162,7 @@ def test_access_tracks_new_deleted_renamed_files_without_retaining_bodies(tmp_pa
     original = next(access.records())
     path.write_text('# A\nnew', encoding='utf-8')
     current = access.read(original.document_id)
-    assert current.chunk.content == 'new'
+    assert current.content == 'new'
     assert current.document_revision != original.document_revision
     path.rename(tmp_path / 'renamed.md')
     with pytest.raises(LookupError):
@@ -180,7 +183,7 @@ def test_access_preserves_flat_scope_and_excludes_external_symlinks(tmp_path):
     access = DocumentAccess(root, vault_id='v')
     assert [r.chunk.source for r in access.records()] == ['a.md']
     assert list(access.records(source='../private.md')) == []
-    assert access.read(source='a.md').chunk.content == 'inside'
+    assert access.read(source='a.md').content == 'inside'
     for source in ('../private.md', str(outside), 'link.md', 'nested/nested.md', 'ignore.txt'):
         with pytest.raises(LookupError):
             access.read(source=source)

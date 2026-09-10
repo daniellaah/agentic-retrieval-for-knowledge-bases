@@ -20,8 +20,8 @@ def test_all_curated_sources_are_readable_by_real_document_access():
     documents = DocumentAccess(NOTES, vault_id='eval')
     for source in sorted({s for c in cases for s in c.expected_sources}):
         result = documents.read(source=source)
-        assert result.chunk.source == source
-        assert result.chunk.content
+        assert result.source == source
+        assert result.content
 
 
 @pytest.mark.parametrize('index', range(6))

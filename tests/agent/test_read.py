@@ -52,7 +52,7 @@ def test_read_missing_document_section_and_deletion(tools, documents):
 def test_read_delegates_once_and_propagates_errors(documents, engine):
     record = next(documents.records())
     access = Mock(spec=DocumentAccess)
-    access.read.return_value = record
+    access.read.return_value = documents.read(record.document_id)
     exact = Mock(spec=ExactRetriever)
     tools = AgentTools(documents=access, exact=exact, engine=engine)
     tools.read(record.document_id, start_char=1, end_char=3)

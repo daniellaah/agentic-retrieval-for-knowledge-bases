@@ -7,7 +7,7 @@ from arkb.knowledge.documents import DocumentAccess
 from arkb.knowledge.models import ConfigValue
 from arkb.retrieval.engine import RetrievalEngine
 from arkb.retrieval.exact import ExactRetriever
-from arkb.retrieval.models import SearchResponse, SearchResult, chunk_result, validate_request
+from arkb.retrieval.models import SearchResponse, SearchResult, validate_request
 
 
 class Evidence(TypedDict):
@@ -119,13 +119,13 @@ class AgentTools:
         """Read by returned document ID or known source filename. Both selectors
         must agree when supplied together. Optionally select a section or range.
         """
-        record = self._documents.read(document_id, source=source, section_id=section_id,
-                                      start_char=start_char, end_char=end_char)
-        evidence = _evidence(chunk_result(record, method='read'))
-        # A live source slice is not an indexed chunk. Only claim a selected section.
-        evidence['chunk_id'] = None
-        evidence['section_id'] = section_id
-        return ReadResult(result=evidence)
+        document = self._documents.read(document_id, source=source, section_id=section_id,
+                                         start_char=start_char, end_char=end_char)
+        return ReadResult(result=Evidence(
+            document_id=document.document_id, source=document.source, title=document.title,
+            content=document.content, document_revision=document.document_revision,
+            chunk_id=None, section_id=document.section_id,
+            start_char=document.start_char, end_char=document.end_char))
 
 
 # Plain JSON schemas, independent of any model provider, framework, or dispatcher.
