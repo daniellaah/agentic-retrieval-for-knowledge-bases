@@ -52,7 +52,6 @@ def evaluate_citation_context(context, *, client) -> dict:
     from ollama import ResponseError
     from arkb.generation.citations import citation_json_schema
     from arkb.generation.generate import CitedGenerationError, generate_cited_answer
-    context.verify_citation_mapping()
     sources = context.citation_sources
     require_quotes = context.citation_mode == 'quoted'
     row = {'context': context.to_dict(), 'response_schema': citation_json_schema([s.source_id for s in sources], include_quotes=require_quotes),

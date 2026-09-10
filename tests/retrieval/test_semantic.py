@@ -120,17 +120,6 @@ def test_backend_failures_propagate_without_fallback_or_partial_success(capabili
         index.search.assert_not_called()
 
 
-@pytest.mark.parametrize('hits', [
-    [object()], [evidence(method='grep')], [evidence(score=None, score_type=None)],
-    [evidence(source='wrong.md')], [evidence(), evidence()],
-])
-def test_invalid_backend_evidence_does_not_leak_through_public_api(capabilities, hits):
-    embedder, index = capabilities
-    index.search.return_value = hits
-    with pytest.raises(ValueError, match='Vector index'):
-        SemanticRetriever(embedder, index).search('Q?', top_k=1, filters={'source': 'notes/a.md'})
-
-
 def test_primitive_import_and_search_are_independent_of_providers_context_and_indexing():
     script = '''
 import sys

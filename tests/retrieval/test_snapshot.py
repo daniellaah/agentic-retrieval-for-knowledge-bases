@@ -162,7 +162,7 @@ def test_snapshot_adapter_rejects_corrupt_backend_hits(published_index, monkeypa
     if corruption == 'duplicate':
         hits *= 2
     monkeypatch.setattr('arkb.knowledge.qdrant.search_qdrant', lambda *a, **kw: hits)
-    with pytest.raises(ValueError, match='duplicate|snapshot'):
+    with pytest.raises(ValueError, match='duplicate|snapshot|finite cosine'):
         SnapshotSemanticRetriever(store, **kwargs).search('Q?', filters={'source': 'wrong.md'} if corruption == 'wrong_source' else None)
 
 

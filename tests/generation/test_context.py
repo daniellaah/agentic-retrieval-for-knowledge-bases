@@ -71,7 +71,6 @@ def test_packed_context_is_independent_of_mutable_retrieval_metadata():
     hit.metadata['index_version'] = 'changed'
     hit.metadata['title'] = 'changed'
     assert built.to_dict() == original
-    built.verify_citation_mapping()
 
 
 def test_citation_ids_address_final_blocks_and_preserve_merged_origins():
@@ -83,7 +82,6 @@ def test_citation_ids_address_final_blocks_and_preserve_merged_origins():
     assert len(built.citation_sources[0].origins) == 2
     assert {o.chunk_id for o in built.citation_sources[0].origins} == {h.chunk_id for h in hits[:2]}
     assert built.citation_sources[0].source == built.citation_sources[1].source
-    built.verify_citation_mapping()
     assert built.context_id == build_context('Q?', hits, citation_mode='structured').context_id
     changed = build_context('Q?', [source_hit(0, 8, version='v2')], citation_mode='structured')
     assert changed.context_id != build_context('Q?', hits[:1], citation_mode='structured').context_id
@@ -107,12 +105,10 @@ def test_citation_mapping_rejects_tampered_messages_and_retired_mode():
     built = build_context('Q?', [source_hit(0, 8)], citation_mode='structured')
     payload = json.loads(built.messages[1]['content'])
     payload['notes'][0]['source_id'] = 'S99'
-    bad = replace(built, _messages=(built._messages[0], ('user', json.dumps(payload))))
     with pytest.raises(ValueError, match='mapping differs'):
-        bad.verify_citation_mapping()
-    bad = replace(built, citation_sources=(replace(built.citation_sources[0], source_id='S99'),))
+        replace(built, _messages=(built._messages[0], ('user', json.dumps(payload))))
     with pytest.raises(ValueError, match='mapping differs'):
-        bad.verify_citation_mapping()
+        replace(built, citation_sources=(replace(built.citation_sources[0], source_id='S99'),))
     with pytest.raises(ValueError, match='citation_mode'):
         build_context('Q?', [], citation_mode='legacy')
     with pytest.raises(ValueError, match='citation_mode'):
@@ -129,7 +125,6 @@ def test_quoted_protocol_is_counted_and_bound_to_its_mapping():
     budgeted = build_context('Q?', hits, config=budget_for(fake_counter()(quoted.messages)),
                              counter=fake_counter(), citation_mode='quoted')
     assert budgeted.messages == quoted.messages
-    budgeted.verify_citation_mapping()
 
 
 

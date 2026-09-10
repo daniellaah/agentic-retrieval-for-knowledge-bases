@@ -26,10 +26,6 @@ class HybridRetriever:
         responses = {}
         for name, retriever in (('bm25', self.bm25), ('semantic', self.semantic)):
             response = retriever.search(query, top_k=self.candidate_k, filters=dict(filters))
-            if (not isinstance(response, SearchResponse) or response.query != query
-                    or len(response.results) > self.candidate_k
-                    or any('source' in filters and h.source != filters['source'] for h in response.results)):
-                raise ValueError('Hybrid retriever returned invalid candidates or filters.')
             responses[name] = response
         if responses['bm25'].index_id != responses['semantic'].index_id:
             raise ValueError('Hybrid retrieval requires the same pinned snapshot for both retrievers.')

@@ -77,7 +77,6 @@ def generate_cited_answer(context: BuiltContext, *, client: Client) -> CitedGene
         raise TypeError('Generation requires a BuiltContext.')
     if context.status == 'budget_exhausted':
         raise ContextBudgetError('No evidence fits the context budget; increase the window or reduce the output reserve.')
-    context.verify_citation_mapping()
     sources = context.citation_sources
     if not context.has_evidence:
         answer = CitedAnswer('insufficient_evidence', (), (_NO_EVIDENCE,))

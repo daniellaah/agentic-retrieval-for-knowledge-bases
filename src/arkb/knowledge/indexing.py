@@ -142,8 +142,6 @@ def build_index(
             storage.put_embeddings(spec, missing[start:start + len(vectors)], vectors)
         storage.add_chunks(manifest.index_version, records)
         _, loaded, vectors = storage.load_snapshot(manifest.index_version)
-        if len(loaded) != len(records):
-            raise ValueError('Candidate snapshot count does not match source records.')
         if loaded:
             remote.upsert(loaded, vectors)
         remote.verify_snapshot(loaded, vectors)

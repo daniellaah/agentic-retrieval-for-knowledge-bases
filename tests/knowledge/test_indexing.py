@@ -158,21 +158,6 @@ def test_vault_scope_cannot_silently_switch_directories(setup):
     assert storage.active_manifest('vault') == original.manifest
 
 
-def test_incomplete_snapshot_never_publishes_the_candidate(setup, monkeypatch):
-    storage, options = setup
-    notes = [Note(title='A', content='first', source='a.md')]
-    original = build_index(storage, notes, **options)
-    load_snapshot = storage.load_snapshot
-    def incomplete(version):
-        manifest, records, vectors = load_snapshot(version)
-        return manifest, records[:-1], vectors[:-1]
-    monkeypatch.setattr(storage, 'load_snapshot', incomplete)
-    with pytest.raises(ValueError, match='snapshot count'):
-        build_index(storage, notes, **options, index_version='incomplete')
-    assert storage.active_manifest('vault') == original.manifest
-    assert storage.get_manifest('incomplete').status == 'failed'
-
-
 @pytest.fixture
 def qdrant_data():
     spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2,

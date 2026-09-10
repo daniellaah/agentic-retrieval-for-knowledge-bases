@@ -67,8 +67,8 @@ class BuiltContext:
         payload = {'messages': self.messages, 'sources': [asdict(s) for s in self.citation_sources]}
         return hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
 
-    def verify_citation_mapping(self) -> None:
-        """Reject manually replaced messages/evidence before using a source registry."""
+    def __post_init__(self) -> None:
+        """Validate the immutable message/source mapping once, at construction."""
         if self.citation_mode not in ('structured', 'quoted'):
             raise ValueError('Cited generation requires a structured citation context.')
         try:

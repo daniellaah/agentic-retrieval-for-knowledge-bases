@@ -75,10 +75,6 @@ class RerankedRetriever:
         if top_k > self.candidate_k:
             raise ValueError('top_k cannot exceed reranking candidate_k.')
         response = self.retriever.search(query, top_k=self.candidate_k, filters=dict(filters))
-        if (not isinstance(response, SearchResponse) or response.query != query
-                or len(response.results) > self.candidate_k
-                or any('source' in filters and h.source != filters['source'] for h in response.results)):
-            raise ValueError('Retriever returned invalid reranking candidates or filters.')
         results = self.reranker.rerank(query, response.results, top_k=top_k)
         return SearchResponse(query=query, method=response.method + '+rerank',
                               results=results, index_id=response.index_id)

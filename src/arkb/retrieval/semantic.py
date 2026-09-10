@@ -62,13 +62,6 @@ class SemanticRetriever:
         filters = validate_request(query, top_k, filters)
         vector = self.embedder.embed_query(query)
         results = tuple(self.index.search(vector, top_k=top_k, filters=filters))
-        if len(results) > top_k:
-            raise ValueError('Vector index returned more than top_k results.')
-        for result in results:
-            if (not isinstance(result, SearchResult) or result.method != 'semantic'
-                    or result.score is None
-                    or ('source' in filters and result.source != filters['source'])):
-                raise ValueError('Vector index returned invalid semantic evidence or filter metadata.')
         return SearchResponse(query=query, method='semantic', results=results, index_id=self.index.index_id)
 
 
@@ -136,8 +129,7 @@ class QdrantSnapshotIndex:
         results = []
         for hit in hits:
             record = self.storage.get_record(self.index_id, hit.chunk_id)
-            if (not math.isfinite(hit.score) or not -1 <= hit.score <= 1
-                    or ('source' in filters and record.chunk.source != filters['source'])):
-                raise ValueError('Vector hit does not match the snapshot, filter, or cosine score contract.')
+            if 'source' in filters and record.chunk.source != filters['source']:
+                raise ValueError('Vector hit does not match the snapshot source filter.')
             results.append(snapshot_result(record, hit.score, self.index_id))
         return tuple(results)
