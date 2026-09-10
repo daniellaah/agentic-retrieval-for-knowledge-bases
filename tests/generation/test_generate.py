@@ -20,16 +20,20 @@ def client() -> Mock:
     return client
 
 
-def budgeted_context(*, config=None, estimate=False):
-    from arkb.generation.models import ContextConfig, GenerationCounter
-    from arkb.generation.context import build_context
+def generation_hits():
     note = Note('Title', 'A fact.', 'a.md')
     chunk = whole_note_chunks([note])[0]
     record = ChunkRecord.from_note(chunk, note=note, vault_id='v')
+    return [snapshot_result(record, .8, 'snapshot')]
+
+
+def budgeted_context(*, config=None, estimate=False):
+    from arkb.generation.models import ContextConfig, GenerationCounter
+    from arkb.generation.context import build_context
     counter = GenerationCounter('test-model', 'test-renderer',
                                 lambda messages: 12 + sum(len(m['content']) for m in messages),
                                 is_estimate=estimate)
-    return build_context('Q?', [snapshot_result(record, .8, 'snapshot')], config=config or ContextConfig(), counter=counter)
+    return build_context('Q?', generation_hits(), config=config or ContextConfig(), counter=counter)
 
 
 def test_generate_uses_prebuilt_messages_and_runtime_budget_without_rebuilding(client):
@@ -51,7 +55,7 @@ def test_generate_rejects_prebuilt_context_overrides_and_unbudgeted_evidence(cli
             generate_cited_answer(built, client=client, **kwargs)
     with pytest.raises(TypeError):
         generate_cited_answer(built, [], client=client)
-    unbudgeted = build_context('Q?', list(built.evidence_blocks[0].origins))
+    unbudgeted = build_context('Q?', generation_hits())
     with pytest.raises(ValueError, match='budgeted'):
         generate_cited_answer(unbudgeted, client=client)
     client.chat.assert_not_called()
@@ -62,7 +66,7 @@ def test_generate_distinguishes_budget_exhaustion_from_missing_sources(client):
     from arkb.generation.models import ContextConfig
     built = budgeted_context()
     empty_tokens = built.counter(build_context('Q?', []).messages)
-    exhausted = build_context('Q?', list(built.evidence_blocks[0].origins),
+    exhausted = build_context('Q?', generation_hits(),
                               config=ContextConfig(empty_tokens + 16, 16, 0), counter=built.counter)
     with pytest.raises(ContextBudgetError, match='No evidence fits'):
         generate_cited_answer(exhausted, client=client)
@@ -87,7 +91,7 @@ def test_generate_detects_actual_count_drift_or_budget_overflow(client):
 def cited_context():
     from arkb.generation.context import build_context
     built = budgeted_context()
-    return build_context('Q?', list(built.evidence_blocks[0].origins), config=built.config,
+    return build_context('Q?', generation_hits(), config=built.config,
                           counter=built.counter, citation_mode='structured')
 
 
@@ -143,7 +147,7 @@ def test_cited_generation_rejects_tampered_mapping_or_token_count(client):
     from dataclasses import replace
     built = cited_context()
     with pytest.raises(ValueError, match='mapping differs'):
-        generate_cited_answer(replace(built, evidence_blocks=()), client=client)
+        generate_cited_answer(replace(built, citation_sources=()), client=client)
     with pytest.raises(ValueError, match='budget'):
         generate_cited_answer(replace(built, prompt_tokens=built.prompt_tokens - 1), client=client)
     client.chat.assert_not_called()
@@ -152,7 +156,7 @@ def test_cited_generation_rejects_tampered_mapping_or_token_count(client):
 def test_quoted_generation_requires_and_resolves_exact_excerpts(client):
     from arkb.generation.context import build_context
     built = cited_context()
-    quoted = build_context('Q?', list(built.evidence_blocks[0].origins), config=built.config,
+    quoted = build_context('Q?', generation_hits(), config=built.config,
                             counter=built.counter, citation_mode='quoted')
     client.chat.return_value.message.content = cited_response()
     with pytest.raises(CitedGenerationError) as error:

@@ -5,7 +5,6 @@ from dataclasses import asdict, dataclass
 import math
 import re
 from typing import Literal
-from arkb.retrieval.models import SearchResult
 
 
 @dataclass(frozen=True)
@@ -56,40 +55,6 @@ class GenerationCounter:
             raise ValueError('Message counter must return a positive integer.')
         return count
 
-
-@dataclass(frozen=True)
-class EvidenceBlock:
-    """Verbatim text in Note.content coordinates, with all contributing hits.
-
-    Origins retain chunk IDs, document revisions, snapshot versions and scores.
-    """
-
-    content: str
-    title: str
-    source: str
-    start_char: int
-    end_char: int
-    origins: tuple[SearchResult, ...]
-
-    def __post_init__(self) -> None:
-        if (type(self.start_char) is not int or type(self.end_char) is not int
-                or self.start_char < 0 or self.end_char < self.start_char
-                or self.end_char - self.start_char != len(self.content)):
-            raise ValueError('Evidence span must match its content length.')
-        if not self.origins:
-            raise ValueError('Evidence must retain its source origins.')
-        if len({_document_key(hit) for hit in self.origins}) != 1:
-            raise ValueError('Merged evidence requires one known document revision and snapshot.')
-        for hit in self.origins:
-            if (hit.source != self.source or hit.metadata['title'] != self.title
-                    or hit.start_char < self.start_char or hit.end_char > self.end_char
-                    or self.content[hit.start_char - self.start_char:hit.end_char - self.start_char]
-                    != hit.content):
-                raise ValueError('Evidence must contain the verbatim source spans.')
-
-
-def _document_key(hit: SearchResult) -> tuple:
-    return (hit.metadata['index_version'], hit.source_id, hit.metadata['document_revision'])
 
 def _text(value, name):
     if not isinstance(value, str) or not value.strip():

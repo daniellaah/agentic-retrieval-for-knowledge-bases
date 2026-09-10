@@ -19,11 +19,11 @@ def evaluate_context(question, results, case, *, config, counter) -> dict:
 
 def _context_report(context, results, case, *, build_ms) -> dict:
     """Score already packed evidence; the snapshot runner can reuse it for generation."""
-    blocks = context.evidence_blocks
+    blocks = context.citation_sources
     groups = {}
     for block in blocks:
-        hit = block.origins[0]
-        key = (hit.metadata['index_version'], hit.source_id, hit.metadata['document_revision'])
+        origin = block.origins[0]
+        key = (origin.index_version, origin.document_id, origin.document_revision)
         groups.setdefault(key, []).append((block.start_char, block.end_char))
     unique_chars = 0
     for intervals in groups.values():

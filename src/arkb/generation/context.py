@@ -1,14 +1,13 @@
 """Build model messages from retrieved evidence without calling a model."""
 
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 import hashlib
 import json
 import math
 
 from arkb.generation.models import (
-    CitationOrigin, CitationSource, ContextConfig, GenerationCounter, EvidenceBlock,
-    _document_key,
+    CitationOrigin, CitationSource, ContextConfig, GenerationCounter,
 )
 from arkb.retrieval.models import SearchResult
 from arkb.knowledge.models import Chunk, ChunkRecord
@@ -54,7 +53,7 @@ class BuiltContext:
     """
 
     _messages: tuple[tuple[str, str], ...]
-    evidence_blocks: tuple[EvidenceBlock, ...]
+    citation_sources: tuple[CitationSource, ...]
     # Ordered (zero-based input rank, action) events; a merged hit can also be
     # part of a later budget decision. Rank always addresses the original input.
     decisions: tuple[tuple[int, str], ...] = ()
@@ -62,25 +61,6 @@ class BuiltContext:
     prompt_tokens: int | None = None
     counter: GenerationCounter | None = None
     citation_mode: str = 'structured'
-
-    @property
-    def citation_sources(self) -> tuple[CitationSource, ...]:
-        """Number only final, sent evidence; keep all merged origins off-prompt."""
-        sources = []
-        for i, block in enumerate(self.evidence_blocks, 1):
-            origins = []
-            for hit in block.origins:
-                metadata = hit.metadata
-                origins.append(CitationOrigin(
-                    hit.start_char, hit.end_char, hit.score,
-                    hit.chunk_id, hit.source_id,
-                    metadata['document_revision'], metadata['vault_id'],
-                    metadata['index_version'],
-                    score_type=hit.score_type, method=hit.method,
-                ))
-            sources.append(CitationSource(f'S{i}', block.source, block.title, block.content,
-                                          block.start_char, block.end_char, tuple(origins)))
-        return tuple(sources)
 
     @property
     def context_id(self) -> str:
@@ -93,10 +73,11 @@ class BuiltContext:
             raise ValueError('Cited generation requires a structured citation context.')
         try:
             question = json.loads(self.messages[1]['content'])['question']
-            expected = _render_messages(question, self.evidence_blocks, citation_mode=self.citation_mode)
+            expected = _render_messages(question, self.citation_sources, citation_mode=self.citation_mode)
         except (IndexError, KeyError, TypeError, ValueError) as error:
             raise ValueError('Citation messages are malformed.') from error
-        if not isinstance(question, str) or not question.strip() or self.messages != expected:
+        if (not isinstance(question, str) or not question.strip() or self.messages != expected
+                or any(source.source_id != f'S{i}' for i, source in enumerate(self.citation_sources, 1))):
             raise ValueError('Citation mapping differs from final messages.')
 
     @property
@@ -111,7 +92,7 @@ class BuiltContext:
 
     @property
     def has_evidence(self) -> bool:
-        return bool(self.evidence_blocks)
+        return bool(self.citation_sources)
 
     def to_dict(self) -> dict:
         """JSON diagnostics with one source registry for sent evidence and origins."""
@@ -156,7 +137,7 @@ def build_context(question: str, results: Sequence[SearchResult], *,
         candidates = _pack_evidence(question, candidates, config, counter, decisions,
                                     citation_mode=citation_mode)
     candidates = _merge_overlaps(candidates, decisions)
-    blocks = tuple(block for _, block in candidates)
+    blocks = tuple(replace(block, source_id=f'S{i}') for i, (_, block) in enumerate(candidates, 1))
     decisions.extend((rank, 'selected') for rank, _ in candidates)
     messages = _render_messages(question, blocks, citation_mode=citation_mode)
     tokens = counter(messages) if counter is not None else None
@@ -214,8 +195,6 @@ def _prepare_evidence(results: Sequence[SearchResult]):
     candidates, decisions, seen = [], [], set()
     for rank, hit in enumerate(results):
         _validate_snapshot_evidence(hit)
-        block = EvidenceBlock(hit.content, hit.metadata['title'], hit.source,
-                              hit.start_char, hit.end_char, (hit,))
         if not hit.content.strip():
             decisions.append((rank, 'empty'))
             continue
@@ -224,6 +203,12 @@ def _prepare_evidence(results: Sequence[SearchResult]):
             decisions.append((rank, 'duplicate'))
             continue
         seen.add(key)
+        metadata = hit.metadata
+        origin = CitationOrigin(hit.start_char, hit.end_char, hit.score, hit.chunk_id, hit.source_id,
+                                metadata['document_revision'], metadata['vault_id'], metadata['index_version'],
+                                score_type=hit.score_type, method=hit.method)
+        block = CitationSource(f'S{rank + 1}', hit.source, metadata['title'], hit.content,
+                               hit.start_char, hit.end_char, (origin,))
         candidates.append((rank, block))
     return candidates, decisions
 
@@ -231,7 +216,8 @@ def _prepare_evidence(results: Sequence[SearchResult]):
 def _merge_overlaps(candidates, decisions):
     groups, output = {}, []
     for rank, block in candidates:
-        key = _document_key(block.origins[0])
+        origin = block.origins[0]
+        key = (origin.index_version, origin.document_id, origin.document_revision)
         groups.setdefault(key, []).append((rank, block))
     for group in groups.values():
         ordered = sorted(group, key=lambda item: (item[1].start_char, item[1].end_char, item[0]))
@@ -248,15 +234,15 @@ def _merge_overlaps(candidates, decisions):
                 raise ValueError('Conflicting source overlap in one document revision.')
             content = current.content + block.content[overlap_end - block.start_char:]
             origins = current.origins + block.origins
-            current = EvidenceBlock(content, current.title, current.source, current.start_char,
-                                    max(current.end_char, block.end_char), origins)
+            current = replace(current, content=content, end_char=max(current.end_char, block.end_char),
+                              origins=origins)
             decisions.append((max(rank, next_rank), 'merged'))
             rank = min(rank, next_rank)
         output.append((rank, current))
     return sorted(output, key=lambda item: item[0])
 
 
-def _render_messages(question: str, blocks: Sequence[EvidenceBlock], *, citation_mode='structured') -> list[dict[str, str]]:
+def _render_messages(question: str, blocks: Sequence[CitationSource], *, citation_mode='structured') -> list[dict[str, str]]:
     notes = [{'title': b.title, 'content': b.content, 'source': b.source} for b in blocks]
     for i, note in enumerate(notes, 1):
         note['source_id'] = f'S{i}'

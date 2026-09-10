@@ -45,12 +45,12 @@ def test_context_preserves_snapshot_provenance_without_exposing_it_in_prompt():
     record = ChunkRecord.from_note(chunk, note=note, vault_id='v')
     hit = snapshot_result(record, .8, 'snapshot-1')
     built = build_context('Question?', [hit])
-    block = built.evidence_blocks[0]
+    block = built.citation_sources[0]
     assert block.source == 'notes/a.md'
-    assert block.origins == (hit,)
+    assert len(block.origins) == 1
     assert block.origins[0].chunk_id == record.chunk_id
-    assert block.origins[0].metadata['document_revision'] == record.document_revision
-    assert block.origins[0].metadata['index_version'] == 'snapshot-1'
+    assert block.origins[0].document_revision == record.document_revision
+    assert block.origins[0].index_version == 'snapshot-1'
     assert 'snapshot-1' not in built.messages[1]['content']
     payload = built.messages
     payload[1]['content'] = 'mutated'
@@ -61,6 +61,17 @@ def test_context_rejects_invalid_source_coordinates():
     bad = Chunk('abc', 'T', 'a.md', 0, 2, 6)
     with pytest.raises(ValueError, match='span'):
         build_context('Question?', [snapshot_result(ChunkRecord.from_note(bad, note=Note('T', '  abc', 'a.md'), vault_id='v'), .5, 'v1')])
+
+
+def test_packed_context_is_independent_of_mutable_retrieval_metadata():
+    hit = source_hit(0, 8)
+    built = build_context('Q?', [hit])
+    original = built.to_dict()
+    hit.metadata['document_revision'] = 'changed'
+    hit.metadata['index_version'] = 'changed'
+    hit.metadata['title'] = 'changed'
+    assert built.to_dict() == original
+    built.verify_citation_mapping()
 
 
 def test_citation_ids_address_final_blocks_and_preserve_merged_origins():
@@ -99,6 +110,9 @@ def test_citation_mapping_rejects_tampered_messages_and_retired_mode():
     bad = replace(built, _messages=(built._messages[0], ('user', json.dumps(payload))))
     with pytest.raises(ValueError, match='mapping differs'):
         bad.verify_citation_mapping()
+    bad = replace(built, citation_sources=(replace(built.citation_sources[0], source_id='S99'),))
+    with pytest.raises(ValueError, match='mapping differs'):
+        bad.verify_citation_mapping()
     with pytest.raises(ValueError, match='citation_mode'):
         build_context('Q?', [], citation_mode='legacy')
     with pytest.raises(ValueError, match='citation_mode'):
@@ -109,7 +123,7 @@ def test_quoted_protocol_is_counted_and_bound_to_its_mapping():
     hits = [source_hit(0, 8)]
     plain = build_context('Q?', hits, citation_mode='structured')
     quoted = build_context('Q?', hits, citation_mode='quoted')
-    assert quoted.evidence_blocks == plain.evidence_blocks
+    assert quoted.citation_sources == plain.citation_sources
     assert quoted.context_id != plain.context_id
     assert 'exact, contiguous' in quoted.messages[0]['content']
     budgeted = build_context('Q?', hits, config=budget_for(fake_counter()(quoted.messages)),
@@ -125,8 +139,8 @@ def test_merges_transitive_overlap_and_containment_in_source_order_with_first_hi
             source_hit(0, 6), source_hit(4, 10, index=1), source_hit(5, 7, index=3)]
     original = list(hits)
     built = build_context('Q?', hits)
-    assert [b.content for b in built.evidence_blocks] == ['abcdefghijklmn', 'abc']
-    merged = built.evidence_blocks[0]
+    assert [b.content for b in built.citation_sources] == ['abcdefghijklmn', 'abc']
+    merged = built.citation_sources[0]
     assert (merged.start_char, merged.end_char) == (0, 14)
     assert {h.chunk_id for h in merged.origins} == {hits[i].chunk_id for i in (0, 2, 3, 4)}
     assert set(built.decisions) == {(2, 'merged'), (3, 'merged'), (4, 'merged'),
@@ -138,19 +152,19 @@ def test_merges_transitive_overlap_and_containment_in_source_order_with_first_hi
                                   {'text': 'abcdefghijklmno!'}, {'source': 'b.md'}])
 def test_never_merges_different_snapshots_vaults_revisions_or_sources(change):
     built = build_context('Q?', [source_hit(0, 8), source_hit(4, 12, **change)])
-    assert len(built.evidence_blocks) == 2
+    assert len(built.citation_sources) == 2
 
 
 def test_disjoint_or_touching_known_spans_stay_separate():
-    assert len(build_context('Q?', [source_hit(0, 4), source_hit(4, 8)]).evidence_blocks) == 2
-    assert len(build_context('Q?', [source_hit(0, 4), source_hit(6, 8)]).evidence_blocks) == 2
+    assert len(build_context('Q?', [source_hit(0, 4), source_hit(4, 8)]).citation_sources) == 2
+    assert len(build_context('Q?', [source_hit(0, 4), source_hit(6, 8)]).citation_sources) == 2
 
 
 def test_blank_and_duplicate_hits_are_traced_without_dropping_distinct_sources():
     first = source_hit(0, 4)
     hits = [first, first, source_hit(0, 3, text=' \n '), source_hit(0, 4, source='b.md')]
     built = build_context('Q?', hits)
-    assert len(built.evidence_blocks) == 2
+    assert len(built.citation_sources) == 2
     assert set(built.decisions) == {(0, 'selected'), (1, 'duplicate'), (2, 'empty'), (3, 'selected')}
     assert {s.source for s in built.citation_sources} == {'a.md', 'b.md'}
     assert not build_context('Q?', [hits[2]]).has_evidence
@@ -208,8 +222,8 @@ def test_budget_skips_oversized_first_block_and_still_packs_later_evidence():
     hits = [source_hit(0, 800, text='x' * 800), source_hit(0, 4, source='b.md')]
     tokens = message_counter(build_context('Q?', hits[1:]).messages)
     built = build_context('Q?', hits, config=budget_for(tokens), counter=fake_counter())
-    assert [b.source for b in built.evidence_blocks] == ['b.md']
-    assert built.evidence_blocks[0].content == 'abcd'
+    assert [b.source for b in built.citation_sources] == ['b.md']
+    assert built.citation_sources[0].content == 'abcd'
     assert set(built.decisions) == {(0, 'budget'), (1, 'selected')}
     assert [s.source for s in built.citation_sources] == ['b.md']
 
@@ -232,7 +246,7 @@ def test_budget_counts_rendered_json_metadata_and_merged_content():
     assert measured[-1] == built.messages
     assert built.prompt_tokens == message_counter(built.messages)
     assert len(json.loads(built.messages[1]['content'])['notes']) == 1
-    assert built.prompt_tokens > len(built.evidence_blocks[0].content)
+    assert built.prompt_tokens > len(built.citation_sources[0].content)
 
 
 @pytest.mark.parametrize('kwargs', [{'context_window': 0}, {'max_output_tokens': 0},
@@ -304,9 +318,9 @@ def test_budget_never_discards_an_already_fitting_hit_when_merged_union_is_too_l
     limit = message_counter(build_context('Q?', [first]).messages)
     built = build_context('Q?', [first, second], config=budget_for(limit), counter=fake_counter())
     assert built.status == 'ready'
-    assert len(built.evidence_blocks) == 1
-    assert built.evidence_blocks[0].origins == (first,)
-    assert built.evidence_blocks[0].end_char == 600
+    assert len(built.citation_sources) == 1
+    assert [origin.chunk_id for origin in built.citation_sources[0].origins] == [first.chunk_id]
+    assert built.citation_sources[0].end_char == 600
     assert set(built.decisions) == {(0, 'selected'), (1, 'budget')}
 
 
@@ -314,8 +328,8 @@ def test_budget_merges_each_trial_to_admit_evidence_that_raw_concatenation_would
     first, second = source_hit(0, 10), source_hit(6, 16, index=1)
     limit = message_counter(build_context('Q?', [first, second]).messages)
     built = build_context('Q?', [first, second], config=budget_for(limit), counter=fake_counter())
-    assert built.evidence_blocks[0].content == 'abcdefghijklmnop'
-    assert len(built.evidence_blocks[0].origins) == 2
+    assert built.citation_sources[0].content == 'abcdefghijklmnop'
+    assert len(built.citation_sources[0].origins) == 2
     assert built.prompt_tokens == limit
 
 

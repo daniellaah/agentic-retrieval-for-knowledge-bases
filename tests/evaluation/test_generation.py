@@ -53,7 +53,8 @@ def test_citation_case_records_prompt_budget_failure_without_calling_model():
     from arkb.evaluation.generation import evaluate_citation_case
     context = citation_fixture()
     client = Mock()
-    row = evaluate_citation_case('Question?', list(context.evidence_blocks[0].origins),
+    from tests.generation.helpers import source_hit
+    row = evaluate_citation_case('Question?', [source_hit(0, 8)],
                                  config=ContextConfig(30, 10, 0), counter=context.counter, client=client)
     assert row['error']['code'] == 'context_budget' and row['context'] is None
     client.chat.assert_not_called()
