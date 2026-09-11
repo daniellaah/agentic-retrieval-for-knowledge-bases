@@ -1,0 +1,1449 @@
+{
+  "bundle": "p1-pilot-20260910",
+  "release_eligible": false,
+  "provisional": true,
+  "rows": 198,
+  "statuses": {
+    "ok": 194,
+    "not_applicable": 4
+  },
+  "by_method": {
+    "bm25": {
+      "rows": 46,
+      "statuses": {
+        "ok": 46
+      },
+      "coverage_defined_cases": 43,
+      "coverage_defined_families": 26,
+      "mean_case_evidence_coverage": 0.08139534883720931,
+      "mean_family_evidence_coverage": 0.10576923076923077,
+      "mean_assessed_at_10": 0.03695652173913044,
+      "ranking_cases": 46,
+      "rejected_observations": 0,
+      "exact_set_pass_count": 0
+    },
+    "semantic": {
+      "rows": 46,
+      "statuses": {
+        "ok": 46
+      },
+      "coverage_defined_cases": 43,
+      "coverage_defined_families": 26,
+      "mean_case_evidence_coverage": 0.872093023255814,
+      "mean_family_evidence_coverage": 0.9326923076923077,
+      "mean_assessed_at_10": 0.13695652173913045,
+      "ranking_cases": 46,
+      "rejected_observations": 0,
+      "exact_set_pass_count": 0
+    },
+    "hybrid": {
+      "rows": 46,
+      "statuses": {
+        "ok": 46
+      },
+      "coverage_defined_cases": 43,
+      "coverage_defined_families": 26,
+      "mean_case_evidence_coverage": 0.8488372093023255,
+      "mean_family_evidence_coverage": 0.9198717948717948,
+      "mean_assessed_at_10": 0.13695652173913045,
+      "ranking_cases": 46,
+      "rejected_observations": 0,
+      "exact_set_pass_count": 0
+    },
+    "hybrid_rerank": {
+      "rows": 46,
+      "statuses": {
+        "ok": 46
+      },
+      "coverage_defined_cases": 43,
+      "coverage_defined_families": 26,
+      "mean_case_evidence_coverage": 0.813953488372093,
+      "mean_family_evidence_coverage": 0.9230769230769231,
+      "mean_assessed_at_10": 0.13043478260869565,
+      "ranking_cases": 46,
+      "rejected_observations": 0,
+      "exact_set_pass_count": 0
+    },
+    "explicit_match": {
+      "rows": 6,
+      "statuses": {
+        "ok": 6
+      },
+      "coverage_defined_cases": 0,
+      "coverage_defined_families": 0,
+      "mean_case_evidence_coverage": null,
+      "mean_family_evidence_coverage": null,
+      "mean_assessed_at_10": null,
+      "ranking_cases": 0,
+      "rejected_observations": 2,
+      "exact_set_pass_count": 6
+    },
+    "explicit_read": {
+      "rows": 4,
+      "statuses": {
+        "ok": 4
+      },
+      "coverage_defined_cases": 4,
+      "coverage_defined_families": 4,
+      "mean_case_evidence_coverage": 1.0,
+      "mean_family_evidence_coverage": 1.0,
+      "mean_assessed_at_10": null,
+      "ranking_cases": 0,
+      "rejected_observations": 0,
+      "exact_set_pass_count": 0
+    },
+    "not_applicable": {
+      "rows": 4,
+      "statuses": {
+        "not_applicable": 4
+      },
+      "coverage_defined_cases": 0,
+      "coverage_defined_families": 0,
+      "mean_case_evidence_coverage": null,
+      "mean_family_evidence_coverage": null,
+      "mean_assessed_at_10": null,
+      "ranking_cases": 0,
+      "rejected_observations": 0,
+      "exact_set_pass_count": 0
+    }
+  },
+  "exploratory_family_comparisons": {
+    "semantic_vs_hybrid": {
+      "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+      "case_count": 43,
+      "family_count": 26,
+      "trial_counts": {
+        "left": 43,
+        "right": 43
+      },
+      "left_mean": 0.9326923076923077,
+      "right_mean": 0.9198717948717949,
+      "delta_right_minus_left": -0.012820512820512822,
+      "delta_ci95": [
+        -0.038461538461538464,
+        0.0
+      ],
+      "wins": 0,
+      "ties": 25,
+      "losses": 1,
+      "seed": 20260910,
+      "resamples": 10000,
+      "family_scores": {
+        "aggregation": [
+          1.0,
+          1.0
+        ],
+        "benchmark_scope": [
+          1.0,
+          1.0
+        ],
+        "cache": [
+          1.0,
+          1.0
+        ],
+        "calibration": [
+          1.0,
+          1.0
+        ],
+        "candidate_limit": [
+          1.0,
+          1.0
+        ],
+        "context": [
+          1.0,
+          1.0
+        ],
+        "control": [
+          0.75,
+          0.75
+        ],
+        "decoding": [
+          1.0,
+          1.0
+        ],
+        "fusion": [
+          1.0,
+          1.0
+        ],
+        "graph": [
+          1.0,
+          1.0
+        ],
+        "handoff": [
+          1.0,
+          1.0
+        ],
+        "interfaces": [
+          1.0,
+          1.0
+        ],
+        "intermediate_reasoning": [
+          1.0,
+          1.0
+        ],
+        "isolation": [
+          1.0,
+          1.0
+        ],
+        "oversight": [
+          1.0,
+          1.0
+        ],
+        "preferences": [
+          1.0,
+          1.0
+        ],
+        "protocol": [
+          1.0,
+          1.0
+        ],
+        "quantization": [
+          1.0,
+          1.0
+        ],
+        "skill_loading": [
+          1.0,
+          1.0
+        ],
+        "structure": [
+          0.75,
+          0.75
+        ],
+        "synthetic_retention_family": [
+          0.5,
+          0.5
+        ],
+        "tool_loading": [
+          1.0,
+          1.0
+        ],
+        "training": [
+          1.0,
+          1.0
+        ],
+        "uncertainty": [
+          1.0,
+          1.0
+        ],
+        "vectors": [
+          1.0,
+          0.6666666666666666
+        ],
+        "verification": [
+          0.25,
+          0.25
+        ]
+      },
+      "interpretation": "exploratory"
+    },
+    "hybrid_vs_hybrid_rerank": {
+      "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+      "case_count": 43,
+      "family_count": 26,
+      "trial_counts": {
+        "left": 43,
+        "right": 43
+      },
+      "left_mean": 0.9198717948717949,
+      "right_mean": 0.9230769230769231,
+      "delta_right_minus_left": 0.0032051282051282068,
+      "delta_ci95": [
+        -0.04807692307692308,
+        0.05128205128205129
+      ],
+      "wins": 2,
+      "ties": 23,
+      "losses": 1,
+      "seed": 20260910,
+      "resamples": 10000,
+      "family_scores": {
+        "aggregation": [
+          1.0,
+          1.0
+        ],
+        "benchmark_scope": [
+          1.0,
+          1.0
+        ],
+        "cache": [
+          1.0,
+          1.0
+        ],
+        "calibration": [
+          1.0,
+          1.0
+        ],
+        "candidate_limit": [
+          1.0,
+          1.0
+        ],
+        "context": [
+          1.0,
+          1.0
+        ],
+        "control": [
+          0.75,
+          0.75
+        ],
+        "decoding": [
+          1.0,
+          1.0
+        ],
+        "fusion": [
+          1.0,
+          1.0
+        ],
+        "graph": [
+          1.0,
+          1.0
+        ],
+        "handoff": [
+          1.0,
+          1.0
+        ],
+        "interfaces": [
+          1.0,
+          1.0
+        ],
+        "intermediate_reasoning": [
+          1.0,
+          1.0
+        ],
+        "isolation": [
+          1.0,
+          1.0
+        ],
+        "oversight": [
+          1.0,
+          1.0
+        ],
+        "preferences": [
+          1.0,
+          1.0
+        ],
+        "protocol": [
+          1.0,
+          1.0
+        ],
+        "quantization": [
+          1.0,
+          1.0
+        ],
+        "skill_loading": [
+          1.0,
+          1.0
+        ],
+        "structure": [
+          0.75,
+          1.0
+        ],
+        "synthetic_retention_family": [
+          0.5,
+          0.0
+        ],
+        "tool_loading": [
+          1.0,
+          1.0
+        ],
+        "training": [
+          1.0,
+          1.0
+        ],
+        "uncertainty": [
+          1.0,
+          1.0
+        ],
+        "vectors": [
+          0.6666666666666666,
+          1.0
+        ],
+        "verification": [
+          0.25,
+          0.25
+        ]
+      },
+      "interpretation": "exploratory"
+    }
+  },
+  "coverage_failures": [
+    {
+      "case_id": "pilot_001",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-f7a85cf56b8e377f": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_002",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-ca90e588543db123": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_003",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-c7d3be49d912150f": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_004",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-724be3cbb4a9d64e": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_005",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-d7936bf189a4ee87": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_006",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-bd1d5450234dacdc": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_007",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-6b915e99721de1f8": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_008",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-031ea6d8ada180d0": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_009",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-c75459113d523b86": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_011",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-ec09df1599659f74": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_012",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-fc53d2dadabfa9ca": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_013",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1",
+        "facet-2"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-f7a85cf56b8e377f": 0.0,
+        "e-031ea6d8ada180d0": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_014",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1",
+        "facet-2"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-9b2cef28ae0a4b0d": 0.0,
+        "e-ca90e588543db123": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_015",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1",
+        "facet-2"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-c7d3be49d912150f": 0.0,
+        "e-d7936bf189a4ee87": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_016",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1",
+        "facet-2"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-ec09df1599659f74": 0.0,
+        "e-724be3cbb4a9d64e": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_017",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1",
+        "facet-2"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-bd1d5450234dacdc": 0.0,
+        "e-6b915e99721de1f8": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_018",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1",
+        "facet-2"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-6b915e99721de1f8": 0.0,
+        "e-e31334e0bf7042a7": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_019",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1",
+        "facet-2"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-a6434acddd07ee92": 0.0,
+        "e-aac3b880c4396423": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_020",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-2"
+      ],
+      "coverage": 0.5,
+      "ranked_sources": [
+        "18_embedding_benchmarks.md",
+        "17_embedding_quantization.md",
+        "16_matryoshka_embeddings.md",
+        "12_contextual_retrieval.md",
+        "35_llm_serving_and_kv_cache.md"
+      ],
+      "span_coverage": {
+        "e-4ed44f5b94be2abc": 1.0,
+        "e-c734d829e5cc565f": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_021",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1",
+        "facet-2"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-e7a12f55e6dcc6e4": 0.0,
+        "e-e29d9ed2f9c0144f": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_022",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1",
+        "facet-2"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "35_llm_serving_and_kv_cache.md",
+        "32_document_ingestion_and_structure.md"
+      ],
+      "span_coverage": {
+        "e-ec09df1599659f74": 0.0,
+        "e-a731b3909e6814c2": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_023",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1",
+        "facet-2"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-8f106faecb0985a4": 0.0,
+        "e-69774729e73d97b8": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_024",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1",
+        "facet-2"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-3a512fa4908fbf98": 0.0,
+        "e-44c7d3085e14752d": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_025",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-10b3ecdb7221f5a1": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_026",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-6624bc6c49e72912": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_027",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-7a644dda34e94981": 0.0,
+        "e-candidate-alternative": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_028",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-a539e5fec4569f99": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_029",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-42546abc40f0a3bc": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_030",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-aac3b880c4396423": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_033",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "35_llm_serving_and_kv_cache.md",
+        "32_document_ingestion_and_structure.md"
+      ],
+      "span_coverage": {
+        "e-a731b3909e6814c2": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_034",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-c61e19cd85b3d9ea": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_035",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-a2c3e77425b4aa5a": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_036",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [],
+      "span_coverage": {
+        "e-b724556c3ceab292": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_037",
+      "method": "bm25",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_service_1.md",
+        "pilot_archive_1.md"
+      ],
+      "span_coverage": {
+        "e-721cf72ba095cda9": 1.0,
+        "e-cfcd2712f06eddaf": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_038",
+      "method": "bm25",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_service_2.md",
+        "pilot_archive_2.md"
+      ],
+      "span_coverage": {
+        "e-b4c27d3a4d3682d4": 1.0,
+        "e-33c69cb7b78f2a59": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_039",
+      "method": "bm25",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_service_3.md",
+        "pilot_archive_3.md"
+      ],
+      "span_coverage": {
+        "e-94fdf7880774b5ed": 1.0,
+        "e-2a1364b7672fab10": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_040",
+      "method": "bm25",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_service_4.md",
+        "pilot_archive_4.md"
+      ],
+      "span_coverage": {
+        "e-ccd89664b7aa497a": 1.0,
+        "e-67a2ae68af499ec4": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_041",
+      "method": "bm25",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_service_5.md",
+        "pilot_archive_5.md"
+      ],
+      "span_coverage": {
+        "e-c5f9b74d800baf8e": 1.0,
+        "e-d5032110c447a87d": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_042",
+      "method": "bm25",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_service_6.md",
+        "pilot_archive_6.md"
+      ],
+      "span_coverage": {
+        "e-78e1526fe3bb7f8e": 1.0,
+        "e-7c5790aae297358a": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_055",
+      "method": "bm25",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "18_embedding_benchmarks.md",
+        "17_embedding_quantization.md",
+        "16_matryoshka_embeddings.md",
+        "12_contextual_retrieval.md",
+        "35_llm_serving_and_kv_cache.md"
+      ],
+      "span_coverage": {
+        "e-42546abc40f0a3bc": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_007",
+      "method": "semantic",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "07_long_running_harnesses.md",
+        "22_process_supervision.md",
+        "02_tool_interface_design.md",
+        "27_agent_trial_reliability.md",
+        "38_agent_evaluation_and_observability.md",
+        "31_multi_agent_coordination.md",
+        "pilot_service_3.md"
+      ],
+      "span_coverage": {
+        "e-6b915e99721de1f8": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_013",
+      "method": "semantic",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.5,
+      "ranked_sources": [
+        "03_dynamic_tool_discovery.md",
+        "08_think_tool.md",
+        "22_process_supervision.md",
+        "02_tool_interface_design.md",
+        "33_graph_search_strategies.md",
+        "21_speculative_decoding.md"
+      ],
+      "span_coverage": {
+        "e-f7a85cf56b8e377f": 0.0,
+        "e-031ea6d8ada180d0": 1.0
+      }
+    },
+    {
+      "case_id": "pilot_018",
+      "method": "semantic",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.5,
+      "ranked_sources": [
+        "27_agent_trial_reliability.md",
+        "38_agent_evaluation_and_observability.md",
+        "22_process_supervision.md",
+        "02_tool_interface_design.md",
+        "39_synthetic_data_quality.md",
+        "30_retrieval_and_fine_tuning.md",
+        "26_simpleqa_factuality.md"
+      ],
+      "span_coverage": {
+        "e-6b915e99721de1f8": 0.0,
+        "e-e31334e0bf7042a7": 1.0
+      }
+    },
+    {
+      "case_id": "pilot_024",
+      "method": "semantic",
+      "missing_facets": [
+        "facet-2"
+      ],
+      "coverage": 0.5,
+      "ranked_sources": [
+        "15_chunk_boundaries.md",
+        "12_contextual_retrieval.md",
+        "06_context_compaction.md",
+        "37_multimodal_evidence_retrieval.md",
+        "32_document_ingestion_and_structure.md",
+        "07_long_running_harnesses.md"
+      ],
+      "span_coverage": {
+        "e-3a512fa4908fbf98": 1.0,
+        "e-44c7d3085e14752d": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_037",
+      "method": "semantic",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_archive_1.md",
+        "pilot_service_1.md",
+        "pilot_archive_4.md",
+        "pilot_archive_2.md",
+        "pilot_archive_3.md",
+        "pilot_archive_5.md",
+        "pilot_archive_6.md",
+        "pilot_service_4.md",
+        "pilot_service_2.md",
+        "pilot_service_3.md"
+      ],
+      "span_coverage": {
+        "e-721cf72ba095cda9": 1.0,
+        "e-cfcd2712f06eddaf": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_038",
+      "method": "semantic",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_archive_2.md",
+        "pilot_archive_4.md",
+        "pilot_archive_3.md",
+        "pilot_archive_6.md",
+        "pilot_archive_5.md",
+        "pilot_service_2.md",
+        "pilot_archive_1.md",
+        "pilot_service_4.md",
+        "pilot_service_1.md",
+        "pilot_service_3.md"
+      ],
+      "span_coverage": {
+        "e-b4c27d3a4d3682d4": 1.0,
+        "e-33c69cb7b78f2a59": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_039",
+      "method": "semantic",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_archive_3.md",
+        "pilot_service_3.md",
+        "pilot_archive_4.md",
+        "pilot_archive_2.md",
+        "pilot_archive_6.md",
+        "pilot_archive_5.md",
+        "pilot_archive_1.md",
+        "pilot_service_4.md",
+        "pilot_service_2.md",
+        "pilot_service_1.md"
+      ],
+      "span_coverage": {
+        "e-94fdf7880774b5ed": 1.0,
+        "e-2a1364b7672fab10": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_007",
+      "method": "hybrid",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "07_long_running_harnesses.md",
+        "22_process_supervision.md",
+        "02_tool_interface_design.md",
+        "27_agent_trial_reliability.md",
+        "38_agent_evaluation_and_observability.md",
+        "31_multi_agent_coordination.md",
+        "pilot_service_3.md"
+      ],
+      "span_coverage": {
+        "e-6b915e99721de1f8": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_013",
+      "method": "hybrid",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.5,
+      "ranked_sources": [
+        "03_dynamic_tool_discovery.md",
+        "08_think_tool.md",
+        "22_process_supervision.md",
+        "02_tool_interface_design.md",
+        "33_graph_search_strategies.md",
+        "21_speculative_decoding.md"
+      ],
+      "span_coverage": {
+        "e-f7a85cf56b8e377f": 0.0,
+        "e-031ea6d8ada180d0": 1.0
+      }
+    },
+    {
+      "case_id": "pilot_018",
+      "method": "hybrid",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.5,
+      "ranked_sources": [
+        "27_agent_trial_reliability.md",
+        "38_agent_evaluation_and_observability.md",
+        "22_process_supervision.md",
+        "02_tool_interface_design.md",
+        "39_synthetic_data_quality.md",
+        "30_retrieval_and_fine_tuning.md",
+        "26_simpleqa_factuality.md"
+      ],
+      "span_coverage": {
+        "e-6b915e99721de1f8": 0.0,
+        "e-e31334e0bf7042a7": 1.0
+      }
+    },
+    {
+      "case_id": "pilot_024",
+      "method": "hybrid",
+      "missing_facets": [
+        "facet-2"
+      ],
+      "coverage": 0.5,
+      "ranked_sources": [
+        "15_chunk_boundaries.md",
+        "12_contextual_retrieval.md",
+        "06_context_compaction.md",
+        "37_multimodal_evidence_retrieval.md",
+        "32_document_ingestion_and_structure.md",
+        "07_long_running_harnesses.md"
+      ],
+      "span_coverage": {
+        "e-3a512fa4908fbf98": 1.0,
+        "e-44c7d3085e14752d": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_037",
+      "method": "hybrid",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_service_1.md",
+        "pilot_archive_1.md",
+        "pilot_archive_4.md",
+        "pilot_archive_2.md",
+        "pilot_archive_3.md",
+        "pilot_archive_5.md",
+        "pilot_archive_6.md",
+        "pilot_service_4.md",
+        "pilot_service_2.md",
+        "pilot_service_3.md"
+      ],
+      "span_coverage": {
+        "e-721cf72ba095cda9": 1.0,
+        "e-cfcd2712f06eddaf": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_038",
+      "method": "hybrid",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_archive_2.md",
+        "pilot_service_2.md",
+        "pilot_archive_4.md",
+        "pilot_archive_3.md",
+        "pilot_archive_6.md",
+        "pilot_archive_5.md",
+        "pilot_archive_1.md",
+        "pilot_service_4.md",
+        "pilot_service_1.md",
+        "pilot_service_3.md"
+      ],
+      "span_coverage": {
+        "e-b4c27d3a4d3682d4": 1.0,
+        "e-33c69cb7b78f2a59": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_039",
+      "method": "hybrid",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_service_3.md",
+        "pilot_archive_3.md",
+        "pilot_archive_4.md",
+        "pilot_archive_2.md",
+        "pilot_archive_6.md",
+        "pilot_archive_5.md",
+        "pilot_archive_1.md",
+        "pilot_service_4.md",
+        "pilot_service_2.md",
+        "pilot_service_1.md"
+      ],
+      "span_coverage": {
+        "e-94fdf7880774b5ed": 1.0,
+        "e-2a1364b7672fab10": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_055",
+      "method": "hybrid",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "17_embedding_quantization.md",
+        "18_embedding_benchmarks.md",
+        "16_matryoshka_embeddings.md",
+        "35_llm_serving_and_kv_cache.md",
+        "14_cross_encoder_reranking.md"
+      ],
+      "span_coverage": {
+        "e-42546abc40f0a3bc": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_007",
+      "method": "hybrid_rerank",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "38_agent_evaluation_and_observability.md",
+        "07_long_running_harnesses.md",
+        "31_multi_agent_coordination.md",
+        "36_prompt_injection_and_monitors.md",
+        "02_tool_interface_design.md",
+        "27_agent_trial_reliability.md",
+        "22_process_supervision.md"
+      ],
+      "span_coverage": {
+        "e-6b915e99721de1f8": 0.0
+      }
+    },
+    {
+      "case_id": "pilot_013",
+      "method": "hybrid_rerank",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.5,
+      "ranked_sources": [
+        "08_think_tool.md",
+        "02_tool_interface_design.md",
+        "21_speculative_decoding.md",
+        "03_dynamic_tool_discovery.md",
+        "36_prompt_injection_and_monitors.md",
+        "22_process_supervision.md"
+      ],
+      "span_coverage": {
+        "e-f7a85cf56b8e377f": 0.0,
+        "e-031ea6d8ada180d0": 1.0
+      }
+    },
+    {
+      "case_id": "pilot_018",
+      "method": "hybrid_rerank",
+      "missing_facets": [
+        "facet-1"
+      ],
+      "coverage": 0.5,
+      "ranked_sources": [
+        "27_agent_trial_reliability.md",
+        "38_agent_evaluation_and_observability.md",
+        "26_simpleqa_factuality.md",
+        "36_prompt_injection_and_monitors.md"
+      ],
+      "span_coverage": {
+        "e-6b915e99721de1f8": 0.0,
+        "e-e31334e0bf7042a7": 1.0
+      }
+    },
+    {
+      "case_id": "pilot_037",
+      "method": "hybrid_rerank",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_archive_1.md",
+        "pilot_policy_1.md",
+        "pilot_policy_2.md",
+        "pilot_policy_6.md",
+        "pilot_policy_5.md",
+        "pilot_policy_4.md",
+        "pilot_policy_3.md",
+        "pilot_archive_5.md",
+        "pilot_archive_6.md",
+        "pilot_archive_4.md"
+      ],
+      "span_coverage": {
+        "e-721cf72ba095cda9": 0.0,
+        "e-cfcd2712f06eddaf": 1.0
+      }
+    },
+    {
+      "case_id": "pilot_038",
+      "method": "hybrid_rerank",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_archive_2.md",
+        "pilot_policy_2.md",
+        "pilot_policy_1.md",
+        "pilot_policy_6.md",
+        "pilot_policy_4.md",
+        "pilot_policy_5.md",
+        "pilot_policy_3.md",
+        "pilot_archive_1.md",
+        "pilot_archive_5.md",
+        "pilot_archive_6.md"
+      ],
+      "span_coverage": {
+        "e-b4c27d3a4d3682d4": 0.0,
+        "e-33c69cb7b78f2a59": 1.0
+      }
+    },
+    {
+      "case_id": "pilot_039",
+      "method": "hybrid_rerank",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_archive_3.md",
+        "pilot_policy_3.md",
+        "pilot_policy_2.md",
+        "pilot_policy_1.md",
+        "pilot_policy_6.md",
+        "pilot_policy_5.md",
+        "pilot_policy_4.md",
+        "pilot_archive_2.md",
+        "pilot_archive_5.md",
+        "pilot_archive_1.md"
+      ],
+      "span_coverage": {
+        "e-94fdf7880774b5ed": 0.0,
+        "e-2a1364b7672fab10": 1.0
+      }
+    },
+    {
+      "case_id": "pilot_040",
+      "method": "hybrid_rerank",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_archive_4.md",
+        "pilot_policy_4.md",
+        "pilot_policy_2.md",
+        "pilot_policy_1.md",
+        "pilot_policy_5.md",
+        "pilot_policy_3.md",
+        "pilot_policy_6.md",
+        "pilot_archive_2.md",
+        "pilot_archive_1.md",
+        "pilot_archive_5.md"
+      ],
+      "span_coverage": {
+        "e-ccd89664b7aa497a": 0.0,
+        "e-67a2ae68af499ec4": 1.0
+      }
+    },
+    {
+      "case_id": "pilot_041",
+      "method": "hybrid_rerank",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_archive_5.md",
+        "pilot_policy_5.md",
+        "pilot_policy_2.md",
+        "pilot_policy_6.md",
+        "pilot_policy_1.md",
+        "pilot_policy_4.md",
+        "pilot_policy_3.md",
+        "pilot_archive_4.md",
+        "pilot_archive_2.md",
+        "pilot_archive_6.md"
+      ],
+      "span_coverage": {
+        "e-c5f9b74d800baf8e": 0.0,
+        "e-d5032110c447a87d": 1.0
+      }
+    },
+    {
+      "case_id": "pilot_042",
+      "method": "hybrid_rerank",
+      "missing_facets": [
+        "joint-evidence"
+      ],
+      "coverage": 0.0,
+      "ranked_sources": [
+        "pilot_archive_6.md",
+        "pilot_policy_6.md",
+        "pilot_policy_2.md",
+        "pilot_policy_5.md",
+        "pilot_policy_4.md",
+        "pilot_policy_1.md",
+        "pilot_policy_3.md",
+        "pilot_archive_5.md",
+        "pilot_archive_2.md",
+        "pilot_archive_1.md"
+      ],
+      "span_coverage": {
+        "e-78e1526fe3bb7f8e": 0.0,
+        "e-7c5790aae297358a": 1.0
+      }
+    }
+  ],
+  "raw_sha256": "033b9d383804fc8a61f2e4e235593a0273fe067024b521e0fd1092ddd1d793e0",
+  "limits": [
+    "All labels provisional; sampled families are not a production sample",
+    "Nonjudged documents conservatively score zero but are not verified negatives",
+    "Evidence coverage is not answer quality; explicit tools are not Agent routing",
+    "Bootstrap uncertainty does not include annotation error or repeated model trials"
+  ]
+}

@@ -1,0 +1,349 @@
+{
+  "diagnostic": "Offline interval-union redundancy, not a rerun under a different context policy",
+  "by_arm": {
+    "query6_evidence4k": {
+      "trials": 12,
+      "mean_submitted_excerpt_tokens": 616.8333333333334,
+      "mean_union_reference_tokens": 436.25
+    },
+    "query1_evidence4k": {
+      "trials": 12,
+      "mean_submitted_excerpt_tokens": 160.83333333333334,
+      "mean_union_reference_tokens": 138.91666666666666
+    },
+    "query6_evidence2k": {
+      "trials": 12,
+      "mean_submitted_excerpt_tokens": 616.8333333333334,
+      "mean_union_reference_tokens": 436.25
+    }
+  },
+  "rows": [
+    {
+      "case_id": "pilot_001",
+      "arm": "query6_evidence4k",
+      "submitted_excerpt_tokens": 773,
+      "union_reference_tokens": 637,
+      "merged_intervals": 7,
+      "documents": 7,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_001",
+      "arm": "query1_evidence4k",
+      "submitted_excerpt_tokens": 316,
+      "union_reference_tokens": 263,
+      "merged_intervals": 4,
+      "documents": 4,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_001",
+      "arm": "query6_evidence2k",
+      "submitted_excerpt_tokens": 773,
+      "union_reference_tokens": 637,
+      "merged_intervals": 7,
+      "documents": 7,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_024",
+      "arm": "query1_evidence4k",
+      "submitted_excerpt_tokens": 431,
+      "union_reference_tokens": 273,
+      "merged_intervals": 3,
+      "documents": 3,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_024",
+      "arm": "query6_evidence2k",
+      "submitted_excerpt_tokens": 889,
+      "union_reference_tokens": 643,
+      "merged_intervals": 6,
+      "documents": 5,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_024",
+      "arm": "query6_evidence4k",
+      "submitted_excerpt_tokens": 889,
+      "union_reference_tokens": 643,
+      "merged_intervals": 6,
+      "documents": 5,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_037",
+      "arm": "query6_evidence2k",
+      "submitted_excerpt_tokens": 521,
+      "union_reference_tokens": 291,
+      "merged_intervals": 9,
+      "documents": 9,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_037",
+      "arm": "query6_evidence4k",
+      "submitted_excerpt_tokens": 521,
+      "union_reference_tokens": 291,
+      "merged_intervals": 9,
+      "documents": 9,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_037",
+      "arm": "query1_evidence4k",
+      "submitted_excerpt_tokens": 200,
+      "union_reference_tokens": 174,
+      "merged_intervals": 5,
+      "documents": 5,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_040",
+      "arm": "query6_evidence4k",
+      "submitted_excerpt_tokens": 549,
+      "union_reference_tokens": 395,
+      "merged_intervals": 12,
+      "documents": 12,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_040",
+      "arm": "query1_evidence4k",
+      "submitted_excerpt_tokens": 200,
+      "union_reference_tokens": 174,
+      "merged_intervals": 5,
+      "documents": 5,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_040",
+      "arm": "query6_evidence2k",
+      "submitted_excerpt_tokens": 549,
+      "union_reference_tokens": 395,
+      "merged_intervals": 12,
+      "documents": 12,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_043",
+      "arm": "query1_evidence4k",
+      "submitted_excerpt_tokens": 2,
+      "union_reference_tokens": 2,
+      "merged_intervals": 1,
+      "documents": 1,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_043",
+      "arm": "query6_evidence2k",
+      "submitted_excerpt_tokens": 2,
+      "union_reference_tokens": 2,
+      "merged_intervals": 1,
+      "documents": 1,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_043",
+      "arm": "query6_evidence4k",
+      "submitted_excerpt_tokens": 2,
+      "union_reference_tokens": 2,
+      "merged_intervals": 1,
+      "documents": 1,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_046",
+      "arm": "query6_evidence2k",
+      "submitted_excerpt_tokens": 251,
+      "union_reference_tokens": 251,
+      "merged_intervals": 2,
+      "documents": 2,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_046",
+      "arm": "query6_evidence4k",
+      "submitted_excerpt_tokens": 251,
+      "union_reference_tokens": 251,
+      "merged_intervals": 2,
+      "documents": 2,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_046",
+      "arm": "query1_evidence4k",
+      "submitted_excerpt_tokens": 251,
+      "union_reference_tokens": 251,
+      "merged_intervals": 2,
+      "documents": 2,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_049",
+      "arm": "query6_evidence4k",
+      "submitted_excerpt_tokens": 121,
+      "union_reference_tokens": 121,
+      "merged_intervals": 1,
+      "documents": 1,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_049",
+      "arm": "query1_evidence4k",
+      "submitted_excerpt_tokens": 121,
+      "union_reference_tokens": 121,
+      "merged_intervals": 1,
+      "documents": 1,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_049",
+      "arm": "query6_evidence2k",
+      "submitted_excerpt_tokens": 121,
+      "union_reference_tokens": 121,
+      "merged_intervals": 1,
+      "documents": 1,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_053",
+      "arm": "query1_evidence4k",
+      "submitted_excerpt_tokens": 0,
+      "union_reference_tokens": 0,
+      "merged_intervals": 0,
+      "documents": 0,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_053",
+      "arm": "query6_evidence2k",
+      "submitted_excerpt_tokens": 1800,
+      "union_reference_tokens": 1380,
+      "merged_intervals": 15,
+      "documents": 12,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_053",
+      "arm": "query6_evidence4k",
+      "submitted_excerpt_tokens": 1800,
+      "union_reference_tokens": 1380,
+      "merged_intervals": 15,
+      "documents": 12,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_055",
+      "arm": "query6_evidence2k",
+      "submitted_excerpt_tokens": 1179,
+      "union_reference_tokens": 614,
+      "merged_intervals": 9,
+      "documents": 8,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_055",
+      "arm": "query6_evidence4k",
+      "submitted_excerpt_tokens": 1179,
+      "union_reference_tokens": 614,
+      "merged_intervals": 9,
+      "documents": 8,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_055",
+      "arm": "query1_evidence4k",
+      "submitted_excerpt_tokens": 214,
+      "union_reference_tokens": 214,
+      "merged_intervals": 5,
+      "documents": 3,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_056",
+      "arm": "query6_evidence4k",
+      "submitted_excerpt_tokens": 1317,
+      "union_reference_tokens": 901,
+      "merged_intervals": 13,
+      "documents": 13,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_056",
+      "arm": "query1_evidence4k",
+      "submitted_excerpt_tokens": 195,
+      "union_reference_tokens": 195,
+      "merged_intervals": 5,
+      "documents": 5,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_056",
+      "arm": "query6_evidence2k",
+      "submitted_excerpt_tokens": 1317,
+      "union_reference_tokens": 901,
+      "merged_intervals": 13,
+      "documents": 13,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_057",
+      "arm": "query1_evidence4k",
+      "submitted_excerpt_tokens": 0,
+      "union_reference_tokens": 0,
+      "merged_intervals": 0,
+      "documents": 0,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_057",
+      "arm": "query6_evidence2k",
+      "submitted_excerpt_tokens": 0,
+      "union_reference_tokens": 0,
+      "merged_intervals": 0,
+      "documents": 0,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_057",
+      "arm": "query6_evidence4k",
+      "submitted_excerpt_tokens": 0,
+      "union_reference_tokens": 0,
+      "merged_intervals": 0,
+      "documents": 0,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_060",
+      "arm": "query6_evidence2k",
+      "submitted_excerpt_tokens": 0,
+      "union_reference_tokens": 0,
+      "merged_intervals": 0,
+      "documents": 0,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_060",
+      "arm": "query6_evidence4k",
+      "submitted_excerpt_tokens": 0,
+      "union_reference_tokens": 0,
+      "merged_intervals": 0,
+      "documents": 0,
+      "rejected_observations": 0
+    },
+    {
+      "case_id": "pilot_060",
+      "arm": "query1_evidence4k",
+      "submitted_excerpt_tokens": 0,
+      "union_reference_tokens": 0,
+      "merged_intervals": 0,
+      "documents": 0,
+      "rejected_observations": 0
+    }
+  ],
+  "raw_sha256": "4813481e3668ace2a65fcc9a0f9e3cc6e1d86a8bcf242e4162198cdcc19fe1fa",
+  "evaluator_sha256": "66642b9d307e0cc6384109a9a9af550371171855b7c1f47633c5ce997852ccf1",
+  "script_sha256": "27ec279596a7ae348f9e2e0eb7d4c937e8c01335850fa352206f339eba7a86c2"
+}

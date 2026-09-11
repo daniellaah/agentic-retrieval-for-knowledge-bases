@@ -1,0 +1,82 @@
+{
+  "schema_version": "arkb-development-decision-ledger-v1",
+  "experiment": "p3-controlled-20260910",
+  "protocol_sha256": "0ad8a95a7a6ec6f40694cfaa0af9f977300c536508ef50b1c1b8571ebaac48eb",
+  "preexisting_dev_only": true,
+  "validation_attempts": [],
+  "test_attempts": [],
+  "candidate_decisions": [
+    {
+      "comparison": [
+        "depth20",
+        "depth40"
+      ],
+      "decision": "reject_for_this_dev_round",
+      "production_adoption": false,
+      "metric": "family-weighted draft returned evidence coverage",
+      "observed_delta": 0.0,
+      "ci95": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "comparison": [
+        "depth10",
+        "depth20"
+      ],
+      "decision": "reject_for_this_dev_round",
+      "production_adoption": false,
+      "metric": "family-weighted draft returned evidence coverage",
+      "observed_delta": -0.012820512820512822,
+      "ci95": [
+        -0.038461538461538464,
+        0.0
+      ]
+    },
+    {
+      "comparison": [
+        "depth20",
+        "depth20_rerank"
+      ],
+      "decision": "evidence_insufficient",
+      "production_adoption": false,
+      "metric": "family-weighted draft returned evidence coverage",
+      "observed_delta": 0.0032051282051282068,
+      "ci95": [
+        -0.04807692307692308,
+        0.05128205128205129
+      ]
+    }
+  ],
+  "stopping_decision": {
+    "decision": "evidence_insufficient",
+    "production_adoption": false,
+    "reason": "Independent reviewed quality is missing; diagnostic final/coverage cannot establish noninferiority."
+  },
+  "default_product_configuration_changed": false,
+  "next_hypotheses": [
+    {
+      "id": "fusion-pool-selection",
+      "status": "unmeasured",
+      "basis": "pilot_007/013 evidence first becomes complete at fused ranks 22/33, beyond fixed 20-pool."
+    },
+    {
+      "id": "bridge-aware-selection",
+      "status": "unmeasured",
+      "basis": "pilot_040/041/042 service bridge drops to reranked rank 13; all 920 scorer pairs fit without token truncation."
+    },
+    {
+      "id": "gap-aware-termination",
+      "status": "unmeasured",
+      "basis": "Only pilot_056 triggered reminders; both arms still stop at max_turns on five cases, including absent/partial/ambiguous evidence."
+    }
+  ],
+  "required_before_promotion": [
+    "independent reviewed gold",
+    "independent output quality/noninferiority assessment",
+    "unseen validation/test families",
+    "matched production cost measurement"
+  ],
+  "summary_sha256": "2c528e304cfbcb74cec678752f2e99013d847e5fd00e39c6c12d56e1df062064"
+}

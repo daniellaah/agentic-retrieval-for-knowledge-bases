@@ -1,0 +1,38 @@
+{
+  "scope": "Recomputed all whole-unit BM25 rankings from full corpus using each run frozen implementation; no model calls.",
+  "runs": [
+    {
+      "dataset": "scifact",
+      "raw_rows_sha256": "d865ca635a4c286ee6d546fb27c901ddb157f937f945e2475156a4ba0124fd90",
+      "rows_replayed": 300,
+      "reference_max_error": 1.1102230246251565e-16,
+      "lexical_rankings_recomputed": 300,
+      "release_eligible": false
+    },
+    {
+      "dataset": "bright-stackoverflow",
+      "raw_rows_sha256": "b6f654cec3c4d0da4802df574a38c5aae1f7122d968ecd0f144756823005b0d1",
+      "rows_replayed": 115,
+      "reference_max_error": 2.220446049250313e-16,
+      "lexical_rankings_recomputed": 115,
+      "release_eligible": false
+    },
+    {
+      "dataset": "bright-robotics",
+      "raw_rows_sha256": "7bb5734487794c1e72b191bb9761edb8e592a8c648f4fcb814809a317a6322f8",
+      "rows_replayed": 101,
+      "reference_max_error": 2.220446049250313e-16,
+      "lexical_rankings_recomputed": 101,
+      "release_eligible": false
+    },
+    {
+      "dataset": "t2",
+      "raw_rows_sha256": "cad224ea02ff5f27c621205beb125dc50f75706d7433a1a3236fdc5b30d7d4fd",
+      "rows_replayed": 500,
+      "reference_max_error": 1.1102230246251565e-16,
+      "lexical_rankings_recomputed": 500,
+      "release_eligible": false
+    }
+  ],
+  "passed": true
+}

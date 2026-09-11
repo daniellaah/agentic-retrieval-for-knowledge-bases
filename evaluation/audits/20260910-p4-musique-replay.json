@@ -1,0 +1,8 @@
+{
+  "rows_replayed": 200,
+  "model_requests_verified": 1424,
+  "tool_events_verified": 1398,
+  "source_spans_verified": 5252,
+  "missing_error_results": 0,
+  "release_eligible": false
+}

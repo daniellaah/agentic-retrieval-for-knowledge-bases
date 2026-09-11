@@ -31,38 +31,27 @@ def client() -> Client:
     [
         pytest.param("Chunking keeps related ideas together.", 7, 8, id="english"),
         pytest.param(
-            "卡片盒笔记包含临时笔记、文献笔记和永久笔记。", 13, 14, id="chinese"
-        ),
-        pytest.param(
-            "Obsidian 使用 Markdown 保存 Zettelkasten 笔记，chunk_size=512。",
-            22, 23, id="mixed",
-        ),
-        pytest.param(
-            "# Chunking\n\n## 原则\n\n- 保留来源\n- 使用 64 tokens overlap\n",
-            23, 24, id="markdown",
+            "# Chunking\n\n## Principles\n\n- Keep provenance\n- Use 64 tokens overlap\n",
+            20, 21, id="markdown",
         ),
         pytest.param(
             "```python\ndef count_tokens(text: str) -> int:\n"
             "    return len(tokenizer.encode(text).ids)\n```",
             24, 25, id="code",
         ),
-        pytest.param("学习笔记 🧠📚，程序员 👩🏽\u200d💻。", 15, 16, id="emoji"),
+        pytest.param("Study notes 🧠📚, developer 👩🏽\u200d💻.", 15, 16, id="emoji"),
         pytest.param("café naïve résumé", 7, 8, id="composed-characters"),
         pytest.param(
             "cafe\u0301 nai\u0308ve re\u0301sume\u0301",
             12, 13, id="combining-characters",
-        ),
-        pytest.param(
-            "卡片盒笔记需要保留来源，长文档按段落切分。\n\n" * 70,
-            1050, 1051, id="long-chinese",
         ),
         pytest.param(" a" * 511, 511, 512, id="511-tokens"),
         pytest.param(" a" * 512, 512, 513, id="512-tokens"),
         pytest.param(" a" * 513, 513, 514, id="513-tokens"),
         pytest.param("A note.<|endoftext|>", 4, 5, id="literal-end-marker"),
         pytest.param(
-            "卡片盒笔记\n\n" + " a" * 512,
-            516, 517, id="title-and-body",
+            "Permanent notes\n\n" + " a" * 512,
+            515, 516, id="title-and-body",
         ),
     ],
 )

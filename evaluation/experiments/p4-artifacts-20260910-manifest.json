@@ -1,0 +1,568 @@
+{
+  "schema": "arkb-p4-final-artifact-index-v1",
+  "status": "public_development_experiments_audited_and_archived",
+  "created_at": "2026-09-11T09:49:10.451122+00:00",
+  "path_base": "repository root",
+  "entry_report": "evaluation/p4-external-results.md",
+  "decision_ledger": "evaluation/experiments/p4-decision-ledger.json",
+  "aggregate_results": "evaluation/experiments/p4-external-20260910-summary.json",
+  "archives": [
+    {
+      "archive": "evaluation/experiments/artifacts/p4-bright-robotics-20260910.tar.gz",
+      "sha256": "632b45891fe7f33bd56ea67a18a502ccf3bb388c8606b68aada5d48053cff18a",
+      "bytes": 24128321,
+      "sidecar": "evaluation/experiments/artifacts/p4-bright-robotics-20260910.tar.manifest.json",
+      "status": "verified"
+    },
+    {
+      "archive": "evaluation/experiments/artifacts/p4-bright-stackoverflow-20260910.tar.gz",
+      "sha256": "80b71786438ce9568344db330f1b8d91c3f4e0f959f56fbac7d94b081b93e967",
+      "bytes": 47615216,
+      "sidecar": "evaluation/experiments/artifacts/p4-bright-stackoverflow-20260910.tar.manifest.json",
+      "status": "verified"
+    },
+    {
+      "archive": "evaluation/experiments/artifacts/p4-musique-20260910.tar.gz",
+      "sha256": "05324bf3b37b31272bbdb7bcd37199f1dbfaf1ad7dec3863208cac75324d40b1",
+      "bytes": 9153242,
+      "sidecar": "evaluation/experiments/artifacts/p4-musique-20260910.tar.manifest.json",
+      "status": "verified"
+    },
+    {
+      "archive": "evaluation/experiments/artifacts/p4-regression-evidence-20260910-v2.tar.gz",
+      "sha256": "116b25258402f7a7d373ff28d98cd998c05c07f1025983506c1b14a645003947",
+      "bytes": 10390449,
+      "sidecar": "evaluation/experiments/artifacts/p4-regression-evidence-20260910-v2.tar.manifest.json",
+      "status": "verified"
+    },
+    {
+      "archive": "evaluation/experiments/artifacts/p4-regression-evidence-20260910.tar.gz",
+      "sha256": "681f863e049d84fe119f6bf7c16ec83552026ab1e7b554e005c58bc554248b09",
+      "bytes": 10374227,
+      "sidecar": "evaluation/experiments/artifacts/p4-regression-evidence-20260910.tar.manifest.json",
+      "status": "retained_failed_archive_verification"
+    },
+    {
+      "archive": "evaluation/experiments/artifacts/p4-scifact-20260910.tar.gz",
+      "sha256": "4df11fa697de47e7a1eb5033735f8c0bb08e9ac84c2c49fb9aa24699eeba12f9",
+      "bytes": 36453112,
+      "sidecar": "evaluation/experiments/artifacts/p4-scifact-20260910.tar.manifest.json",
+      "status": "verified"
+    },
+    {
+      "archive": "evaluation/experiments/artifacts/p4-t2-20260910.tar.gz",
+      "sha256": "26f3c255ef3212184fb288db4bb6332f2d1f5038b2a5e4df218ae73f8532ae2c",
+      "bytes": 136707615,
+      "sidecar": "evaluation/experiments/artifacts/p4-t2-20260910.tar.manifest.json",
+      "status": "verified",
+      "storage": "reconstruct_from_versioned_parts",
+      "multipart_manifest": "evaluation/experiments/artifacts/p4-t2-20260910.multipart.json"
+    }
+  ],
+  "files": {
+    ".github/workflows/evaluation.yml": {
+      "sha256": "e08b363052d218d83a2e2d4e24d7b9450d5d704f31efc3c486a191a23a5322ba",
+      "bytes": 1249
+    },
+    ".gitignore": {
+      "sha256": "92d92735750b6e44fb7f3deb608b464fa222d8b24dda7ce35b8fba01831a05bb",
+      "bytes": 586
+    },
+    "evaluation/README.md": {
+      "sha256": "6c80b7a95fc2dd0fe8719143045fa45b3d578549355b679bef26190b915dfbec",
+      "bytes": 17004
+    },
+    "evaluation/audits/20260910-p4-agent-costs.json": {
+      "sha256": "114bba4fb41548c06f271f3bdb3330c7f85514409b85af2957c230a069793a9e",
+      "bytes": 7333
+    },
+    "evaluation/audits/20260910-p4-agent-hard-deadline-observation.json": {
+      "sha256": "2c9641c596b7552abca4f94912c2703550e664c18b021d714a6a19f561ac4c96",
+      "bytes": 994
+    },
+    "evaluation/audits/20260910-p4-agent-v1-interrupt-trace.txt": {
+      "sha256": "bf3a232fdc330f58431d9b712714b3f8a5f3c47d8bec4001266cab920146250a",
+      "bytes": 4059
+    },
+    "evaluation/audits/20260910-p4-agent-v1-interruption.json": {
+      "sha256": "f19abc13569109f005a0129e6175e399e340e6bc0cf4471849a99d9492341111",
+      "bytes": 3604
+    },
+    "evaluation/audits/20260910-p4-agent-v1-native-stack.txt": {
+      "sha256": "d75a37fa0902dbbbc7ddd1521c72d326c89370f934c9e8283bade627727ceaef",
+      "bytes": 119382
+    },
+    "evaluation/audits/20260910-p4-bright-robotics-agent-costs.json": {
+      "sha256": "4fff77578c427c6b86ca20523b6635b39703874c03cfc956560f57734481eef5",
+      "bytes": 2409
+    },
+    "evaluation/audits/20260910-p4-bright-robotics-agent-replay.json": {
+      "sha256": "ff4c778f4ed50f8ebca0ae2c2c5188b0dd32beebf3932a5ce8acd5b4276bff61",
+      "bytes": 182
+    },
+    "evaluation/audits/20260910-p4-bright-robotics-archive-validation.json": {
+      "sha256": "303af3a689f69b1559773e1430ad516a55e8abfd286ee3f5c4c341e3e007a40f",
+      "bytes": 973
+    },
+    "evaluation/audits/20260910-p4-bright-robotics-replay.json": {
+      "sha256": "1af97282ca025c86ce3c58010a61a6d82f027ec4e06114ee412246de365c6503",
+      "bytes": 173
+    },
+    "evaluation/audits/20260910-p4-bright-stackoverflow-agent-costs.json": {
+      "sha256": "21ff4f4a3f775588c9a8428cdb6ed4e7ff70ed0ca982cc059d1862c5b207455b",
+      "bytes": 2514
+    },
+    "evaluation/audits/20260910-p4-bright-stackoverflow-agent-replay.json": {
+      "sha256": "7f4bddaa1d527b211ea5741e36fbaa1500dbddfc6c4613dbbc7df032cb187efe",
+      "bytes": 180
+    },
+    "evaluation/audits/20260910-p4-bright-stackoverflow-archive-validation.json": {
+      "sha256": "01de024e7538e2cda76aa46ca964fbb1c665bd5ec6d5631f88e00e1faaebb344",
+      "bytes": 986
+    },
+    "evaluation/audits/20260910-p4-bright-stackoverflow-replay.json": {
+      "sha256": "01a3ffc86a9c564fadc008a389d83f0e7efdac40c76ce59a48655d0983236656",
+      "bytes": 173
+    },
+    "evaluation/audits/20260910-p4-chat-context-probe.json": {
+      "sha256": "d9081dd2ed9f8be2dffe89401684e33366c1484f30e4f2407f918cb96f6b5d15",
+      "bytes": 8161
+    },
+    "evaluation/audits/20260910-p4-ci-local-environment.json": {
+      "sha256": "2ca5dde4a6196fbbad940b81457c01799f80020fbdee8dbc1445175b6c870224",
+      "bytes": 1318
+    },
+    "evaluation/audits/20260910-p4-conversion-replay.json": {
+      "sha256": "72fe6d80573badca6e8762f88b8ae5696b638f1e0dfd13d6e9c66d263cb35898",
+      "bytes": 2463
+    },
+    "evaluation/audits/20260910-p4-current-bm25-regression.json": {
+      "sha256": "3f9869e2cbeb85d6027fca697ec73988afef308dbc253d978330136a3a2cd09e",
+      "bytes": 488
+    },
+    "evaluation/audits/20260910-p4-current-tests-v2.json": {
+      "sha256": "2278eaeba2e1c9b22ce85c26c9bb56e9baffa2d6c49ebffb8461c8eedec21ec6",
+      "bytes": 20470
+    },
+    "evaluation/audits/20260910-p4-current-tests.json": {
+      "sha256": "73edda48e5d9b5e6c2c24ca4f0098a171a75a80b11d291e302a796cbb869c2a9",
+      "bytes": 20199
+    },
+    "evaluation/audits/20260910-p4-environment-observation.json": {
+      "sha256": "3f09336c23907cd4e2e2a5c109766dcebcff387838ced615eb502404373e363e",
+      "bytes": 944
+    },
+    "evaluation/audits/20260910-p4-final-delivery.json": {
+      "sha256": "d04f1eca2d301fa4d03d1bb767511b8cfa5dd15ad49cbc168b3ae87b0f13ba56",
+      "bytes": 1246
+    },
+    "evaluation/audits/20260910-p4-input-integrity.json": {
+      "sha256": "4bf2aa6f25962d29cfb7445af995cd0b0321083af0cd91d6bab8fe8459ac4fea",
+      "bytes": 1877
+    },
+    "evaluation/audits/20260910-p4-minimal-ci-bm25-regression-v2.json": {
+      "sha256": "1f8d103cb6e2f4698125777c9d56de05442290096ff24b52bdf8dfc25abf17e4",
+      "bytes": 562
+    },
+    "evaluation/audits/20260910-p4-minimal-ci-bm25-regression.json": {
+      "sha256": "3f9869e2cbeb85d6027fca697ec73988afef308dbc253d978330136a3a2cd09e",
+      "bytes": 488
+    },
+    "evaluation/audits/20260910-p4-multipart-smoke.json": {
+      "sha256": "fddb8bf82a023f62d43653800c15e99752b3bfde459700832ae454435871559b",
+      "bytes": 1312
+    },
+    "evaluation/audits/20260910-p4-musique-archive-validation.json": {
+      "sha256": "adb9c2db74f915921bfa02b142d3833afd88ede134c3dee0d11cf5b0721fb25b",
+      "bytes": 514
+    },
+    "evaluation/audits/20260910-p4-musique-context-isolation.json": {
+      "sha256": "edeaa986ea1a327adcd73d07ae3a6e71b83a706c2e71624b5faa7fb87c40627f",
+      "bytes": 2716
+    },
+    "evaluation/audits/20260910-p4-musique-format-official.json": {
+      "sha256": "7593c9a3d96bb11884dad34e7250205f422239079bba3337590c3b1d9f9e0db6",
+      "bytes": 2833
+    },
+    "evaluation/audits/20260910-p4-musique-official.json": {
+      "sha256": "47d5d4b956119f38f35bd871588b9b00c0601349274540e8728252d5b85aa6bd",
+      "bytes": 2513
+    },
+    "evaluation/audits/20260910-p4-musique-replay.json": {
+      "sha256": "34bb99ca9366ddc74fca093ebb8254cc1098067c5d55249f9e0179ba82b6962d",
+      "bytes": 186
+    },
+    "evaluation/audits/20260910-p4-musique-tool-errors.json": {
+      "sha256": "9286a22ba47c0a83e7ec249d5ad763fcf163805bbd34db185e48f3f4f9136682",
+      "bytes": 4831
+    },
+    "evaluation/audits/20260910-p4-musique-v2-incomplete.json": {
+      "sha256": "3ff110d94b54ba321a4ad40550f09f50d6d4cc5d62613f1384b2402ac6198e28",
+      "bytes": 824
+    },
+    "evaluation/audits/20260910-p4-native-retrieval-replay.json": {
+      "sha256": "b9cf2fba0d92bb1d58b9e5651cba1d4289fc28b98cc14f0888e45b41d9db9bd8",
+      "bytes": 1332
+    },
+    "evaluation/audits/20260910-p4-production-source-consistency-v2.json": {
+      "sha256": "a4d04f576bbff0d0a19e820fa7438a57c4f2671b69db527f90a2ff50c674727c",
+      "bytes": 7514
+    },
+    "evaluation/audits/20260910-p4-production-source-consistency.json": {
+      "sha256": "4f82f92a772602b2e7692cb70d319375f56130f918c6b8a4c9bde9f9ddcf4564",
+      "bytes": 3759
+    },
+    "evaluation/audits/20260910-p4-regression-archive-v1-failure.json": {
+      "sha256": "200ed2191c80d33c8e65dc55306474d9819883b279d8e2604385af6aaddf6452",
+      "bytes": 638
+    },
+    "evaluation/audits/20260910-p4-regression-archive-validation-v2.json": {
+      "sha256": "807eb26cc1ab45fcd9cb3f1ff1d304e5ce31eaceaa14d0380d54545b1300e7b6",
+      "bytes": 562
+    },
+    "evaluation/audits/20260910-p4-rerank-query-preflight.json": {
+      "sha256": "72c5a395dbc3ff3e55a90a2502164c4f3abd941c0f368cfdfe2d57590467d0b6",
+      "bytes": 77842
+    },
+    "evaluation/audits/20260910-p4-robotics-tie-policy-summary.json": {
+      "sha256": "fe74c88d5d29e76eba0b81e37c6753a9d0cc27633b962bf4047f35488f61538d",
+      "bytes": 2392
+    },
+    "evaluation/audits/20260910-p4-robotics-tool-errors.json": {
+      "sha256": "6a80ea2af92b080c7b7beb3bebf68952addb7fd5b3b1ee82f3e383fc8f76a59a",
+      "bytes": 3999
+    },
+    "evaluation/audits/20260910-p4-scifact-archive-validation.json": {
+      "sha256": "d26dffe3a27bb15c863f205470703a07dfbd3cc90cfd26bd46b1b462622a87af",
+      "bytes": 660
+    },
+    "evaluation/audits/20260910-p4-scifact-tie-policy-summary.json": {
+      "sha256": "d892fbc4441da84ec669308f43605c6163213864f07abffd90901a500f81f18e",
+      "bytes": 1935
+    },
+    "evaluation/audits/20260910-p4-stackoverflow-tie-policy-summary.json": {
+      "sha256": "d9c95c755a11f7e88767c024d577d91f066013d433c435afd4ed8fbfd6a4444b",
+      "bytes": 2393
+    },
+    "evaluation/audits/20260910-p4-t2-archive-validation.json": {
+      "sha256": "9cfb3b16200f672e5ef950611f854e678663c1ec9b62f5ecf13f9524411ddef1",
+      "bytes": 693
+    },
+    "evaluation/audits/20260910-p4-t2-corpus-lengths.json": {
+      "sha256": "142af16ccc30794a41448bdfa4db0e4d7ae25655473fc9006d8a697f5d89e6bb",
+      "bytes": 451
+    },
+    "evaluation/audits/20260910-p4-t2-multipart-validation.json": {
+      "sha256": "8d77593fb8c9430bae1deb2448a47b447b67161563e49171ef68c3facc0e3ba8",
+      "bytes": 956
+    },
+    "evaluation/audits/20260910-p4-t2-preflight-native-stack.txt": {
+      "sha256": "a95a729069f9c46e55507400f5b65a0d5bd8dc909ae1b021303e8e99bd673fc0",
+      "bytes": 225915
+    },
+    "evaluation/audits/20260910-p4-t2-preflight-profile.json": {
+      "sha256": "0dc2e99ecf043af7be6fa5e4efbe82006ccf58ffcd647fc9b3ea53b45d05da3b",
+      "bytes": 705
+    },
+    "evaluation/audits/20260910-p4-t2-replay.json": {
+      "sha256": "2c2d79ef4dff88d1f9fd3d003ec7b776cf1f863c508dc16b71d97b0d3d58741c",
+      "bytes": 177
+    },
+    "evaluation/audits/20260910-p4-t2-tie-policy-summary.json": {
+      "sha256": "d63db5c1f4af97e8695a6be159aed153903b6940ef0d2c07f872f07f9d8514f1",
+      "bytes": 1928
+    },
+    "evaluation/audits/20260910-p4-text-duplicates.json": {
+      "sha256": "dbf43e3149dbaca3c6ba311870e1e063b8e24f3d86dee5925cbdd759ef64664a",
+      "bytes": 3857
+    },
+    "evaluation/audits/20260910-p4-token-preflight.json": {
+      "sha256": "b8136e548f4b1d96a6b6a68d8d623d16cc7633719e750679e6e04e1767d63fdd",
+      "bytes": 955
+    },
+    "evaluation/audits/audit_p4_inputs.py": {
+      "sha256": "b716b827c8d7395a5a0e249ac1caaf2bce4d9452905c4f52d1f7f0b22a66653b",
+      "bytes": 5707
+    },
+    "evaluation/audits/audit_p4_musique_format.py": {
+      "sha256": "d4b55b35e2b7a28f14352f5e9c5aa4bd0ed4778c94e20d60fd8c77fd249c34d4",
+      "bytes": 4886
+    },
+    "evaluation/audits/audit_p4_rerank.py": {
+      "sha256": "fafbcded144ba4280246f6527f81fdf8277645e5f0474eba3ad03a8da993cc1a",
+      "bytes": 7046
+    },
+    "evaluation/audits/audit_p4_rerank_ties.py": {
+      "sha256": "185719af788168060e509ae489a47b21565489ec798681d88e4c74075abc7952",
+      "bytes": 5418
+    },
+    "evaluation/audits/audit_p4_sources.py": {
+      "sha256": "20fdd6c2fa4989060ba95ad71bb0bd388fc036a3c132ee651ea4da64e914725b",
+      "bytes": 2079
+    },
+    "evaluation/audits/audit_p4_tool_errors.py": {
+      "sha256": "0f95b32cf7582ac760ef9f5d7a86c3b1f51e64096baaf21725e2e34495b683f5",
+      "bytes": 4176
+    },
+    "evaluation/audits/check_p4_musique.py": {
+      "sha256": "b83d16f7c036d707672b7ea761f586b4106ac8c0536bec1c0ee7a2ad06588c3f",
+      "bytes": 2744
+    },
+    "evaluation/audits/p4-musique-format-20260910/decisions.json": {
+      "sha256": "449abcaf9b77b993b2656f895264ea40459e4aca5327ac13f2e5c29b9949bfd9",
+      "bytes": 41012
+    },
+    "evaluation/audits/p4-musique-format-20260910/manifest.json": {
+      "sha256": "c6a3cecfb10ab582aad86c3c63df0216e003771bb95053674ec3a5ec3b0dba26",
+      "bytes": 291
+    },
+    "evaluation/audits/p4-musique-format-20260910/predictions.jsonl": {
+      "sha256": "c903a9ae3211ca97a68390e56960bd65ccd990062b26018fd1d43afa28f3d490",
+      "bytes": 25082
+    },
+    "evaluation/audits/p4-musique-format-20260910/summary.json": {
+      "sha256": "6fbc7e141b70a72a8e0a900b43b931d46f3e1f4c6d9ad6aba7f5ea1dcc688847",
+      "bytes": 1734
+    },
+    "evaluation/audits/replay_p4.py": {
+      "sha256": "fffe30bcddd602074ed9c2e14eb87b4460551c5cec91676e2c27af4d1f757467",
+      "bytes": 6106
+    },
+    "evaluation/audits/replay_p4_agents.py": {
+      "sha256": "dc016c3bb1a405c3cd4eb6a313b7bf5a490eece8e849a18a85d67bafda0bb0b4",
+      "bytes": 9828
+    },
+    "evaluation/audits/verify_p4.py": {
+      "sha256": "d665ca417659a83328b1172ce4c8e140b4c91a45fe7846e38d8681538950ee2d",
+      "bytes": 4676
+    },
+    "evaluation/audits/verify_p4_archive.py": {
+      "sha256": "8aacc4aacbe63131d8c9d05b83885a7b3a4605885d81bf1709367eeecd60e1ba",
+      "bytes": 2863
+    },
+    "evaluation/experiments/archive_p4.py": {
+      "sha256": "676e3b4e5cf20a0c6600befb5aa9ce3c20bc1bc466e4a12600820ef0278f37a9",
+      "bytes": 3917
+    },
+    "evaluation/experiments/archive_p4_regressions.py": {
+      "sha256": "4ea5a04800ba0df523e6903c6a4ab3f1b66ab7822c3353f5281fe058248595b8",
+      "bytes": 5790
+    },
+    "evaluation/experiments/artifacts/p4-bright-robotics-20260910.tar.gz": {
+      "sha256": "632b45891fe7f33bd56ea67a18a502ccf3bb388c8606b68aada5d48053cff18a",
+      "bytes": 24128321
+    },
+    "evaluation/experiments/artifacts/p4-bright-robotics-20260910.tar.manifest.json": {
+      "sha256": "88759b6221e19af15604b62e07d06c66bb47182aa196f9ee4985044dbb1889dd",
+      "bytes": 618
+    },
+    "evaluation/experiments/artifacts/p4-bright-stackoverflow-20260910.tar.gz": {
+      "sha256": "80b71786438ce9568344db330f1b8d91c3f4e0f959f56fbac7d94b081b93e967",
+      "bytes": 47615216
+    },
+    "evaluation/experiments/artifacts/p4-bright-stackoverflow-20260910.tar.manifest.json": {
+      "sha256": "16c2af6c7aa097bd2dd717c5d65d9d9a9d94ba67c982f1f38bcdf9d7dac00e4a",
+      "bytes": 638
+    },
+    "evaluation/experiments/artifacts/p4-musique-20260910.tar.gz": {
+      "sha256": "05324bf3b37b31272bbdb7bcd37199f1dbfaf1ad7dec3863208cac75324d40b1",
+      "bytes": 9153242
+    },
+    "evaluation/experiments/artifacts/p4-musique-20260910.tar.manifest.json": {
+      "sha256": "81ccc91e4b5e460130642cc366c1dbe9452597414a8ff3d53a4f36623ce6262a",
+      "bytes": 536
+    },
+    "evaluation/experiments/artifacts/p4-regression-evidence-20260910-v2.tar.gz": {
+      "sha256": "116b25258402f7a7d373ff28d98cd998c05c07f1025983506c1b14a645003947",
+      "bytes": 10390449
+    },
+    "evaluation/experiments/artifacts/p4-regression-evidence-20260910-v2.tar.manifest.json": {
+      "sha256": "447cc6165cce3b9ad4bf16cdbc39cbd7cb3211cfe377358e87b52bf30f414a6d",
+      "bytes": 431
+    },
+    "evaluation/experiments/artifacts/p4-regression-evidence-20260910.tar.gz": {
+      "sha256": "681f863e049d84fe119f6bf7c16ec83552026ab1e7b554e005c58bc554248b09",
+      "bytes": 10374227
+    },
+    "evaluation/experiments/artifacts/p4-regression-evidence-20260910.tar.manifest.json": {
+      "sha256": "3d8c8dae951e2f3650851652e4d77afac63cc18790b2f565dc9c56bf57ac9b63",
+      "bytes": 428
+    },
+    "evaluation/experiments/artifacts/p4-scifact-20260910.tar.gz": {
+      "sha256": "4df11fa697de47e7a1eb5033735f8c0bb08e9ac84c2c49fb9aa24699eeba12f9",
+      "bytes": 36453112
+    },
+    "evaluation/experiments/artifacts/p4-scifact-20260910.tar.manifest.json": {
+      "sha256": "1664b15a461cf42fe48d5d20e1d4408b7148e8040f360d2ff1cc93ee44c4b50f",
+      "bytes": 559
+    },
+    "evaluation/experiments/artifacts/p4-t2-20260910.multipart.json": {
+      "sha256": "ac5637ff7684bc3f0cf2315cc5c88d53d97c08d812454bfdd6624ad96ac33d3d",
+      "bytes": 1093
+    },
+    "evaluation/experiments/artifacts/p4-t2-20260910.tar.gz.part-000": {
+      "sha256": "6f72b36c8e72f70f8b6d3a54f399fc744ed77830ca2ba0ef19c60cc18811752d",
+      "bytes": 67108864
+    },
+    "evaluation/experiments/artifacts/p4-t2-20260910.tar.gz.part-001": {
+      "sha256": "cc04e07c8983102a4da21fbfec1c95410df4f6c040da606601bfdc0f2323a366",
+      "bytes": 67108864
+    },
+    "evaluation/experiments/artifacts/p4-t2-20260910.tar.gz.part-002": {
+      "sha256": "222841c1b29fdb92e193b10a17c909645ad5fdcc892735920c7ad95285769279",
+      "bytes": 2489887
+    },
+    "evaluation/experiments/artifacts/p4-t2-20260910.tar.manifest.json": {
+      "sha256": "b4f10d593a8e95b8d1009d3177e0d6243110bb98dc63de25e0b15acaadcfc808",
+      "bytes": 545
+    },
+    "evaluation/experiments/check_p4_deterministic.py": {
+      "sha256": "73d524841aaccb35a8188bd0fc7ef9a0057c9a437f59a4121c186178b9ad007d",
+      "bytes": 4202
+    },
+    "evaluation/experiments/fetch_p4.py": {
+      "sha256": "5f6eeddc081022a9a0d96511dc77a8b5faf80ef28d95ef21e8ad757f45ffb766",
+      "bytes": 2872
+    },
+    "evaluation/experiments/finalize_p4.py": {
+      "sha256": "51cf84437254c15db20fcfba0cb5945e568b96690f9fab72a5a924eb0b9f8079",
+      "bytes": 7722
+    },
+    "evaluation/experiments/p4-decision-ledger.json": {
+      "sha256": "bd0a67d463be97996354e00f958f5d52edaaa13fe59b43ebbcd2d3ab7113454e",
+      "bytes": 22282
+    },
+    "evaluation/experiments/p4-downloads.lock.json": {
+      "sha256": "9775503c0a120f944dbc441f14464c2dd24546a5c96a13173084e6ed56c80ade",
+      "bytes": 11379
+    },
+    "evaluation/experiments/p4-external-20260910-summary.json": {
+      "sha256": "6e82d7693c70516497237ffb9d4fb0588d140a97f13d70054a1ecceb53a8966b",
+      "bytes": 31317
+    },
+    "evaluation/experiments/p4_archive_parts.py": {
+      "sha256": "ee81ab3be236af2c75d271f4746cfac8cacafe82116bb3b4a26596526d565cf6",
+      "bytes": 5263
+    },
+    "evaluation/experiments/p4_queue.py": {
+      "sha256": "c5938cf2626ca903413d29b23b7cd62b8bccef97f0f0aaf631fc0f0e68783963",
+      "bytes": 2285
+    },
+    "evaluation/experiments/p4_regression.py": {
+      "sha256": "53c727915b5005d0cb4bcfc652b5d05cc9f1e0816dbdaab69beb0d3ddc2c0b64",
+      "bytes": 1272
+    },
+    "evaluation/experiments/p4_status.py": {
+      "sha256": "2bf3dea66e35ae1dcc5076b42c1fd4a09dd7fd2f288c517d8e507edb4a65f2ca",
+      "bytes": 2350
+    },
+    "evaluation/experiments/prepare_p4.py": {
+      "sha256": "907a3dbefcaad226a681e17c45b680ddca6d62061dbe93d2c67c524a3b75137b",
+      "bytes": 1418
+    },
+    "evaluation/experiments/run_p4.py": {
+      "sha256": "099af2d8158457db5b3fcad9177f2bb3f67b82754b3d92affc9b84dc3d5683b6",
+      "bytes": 14951
+    },
+    "evaluation/experiments/run_p4_agents.py": {
+      "sha256": "f00c31ffdd214a8b2a3dbe96a0d9a56a3e6d78fb1500797c492abf8eb93c664f",
+      "bytes": 15748
+    },
+    "evaluation/experiments/run_p4_freshness_live.py": {
+      "sha256": "ccf9cba857e76948f2fe717a0ef628f159e4e760cf7e64ef85a76b12422864c8",
+      "bytes": 5686
+    },
+    "evaluation/experiments/summarize_p4_agents.py": {
+      "sha256": "7153f799ca4c17c0e69dfa95eaa966c2c968766d5edba0d24cfbcf1ffbab70b7",
+      "bytes": 12591
+    },
+    "evaluation/experiments/summarize_p4_costs.py": {
+      "sha256": "2d5f024f6ad81c13f600745e954a65db223a503476fdb4c00523b6a580ed574c",
+      "bytes": 3088
+    },
+    "evaluation/implementation-progress.md": {
+      "sha256": "3020f8e77d84573117093e699a7ff4f7347a0a87bb9f3bcc8ce31d486c70e1c6",
+      "bytes": 9296
+    },
+    "evaluation/p4-external-results.md": {
+      "sha256": "99ffa1c9268392b784e13fbee88971dcfb025e8625338d489cc7448948d1d1ef",
+      "bytes": 38596
+    },
+    "evaluation/reviews/p4-bright-robotics-20260910/README.md": {
+      "sha256": "22ef99423061b49213a4f5a3add616c8a92e1fdd730d8e04b274dad333f27089",
+      "bytes": 1717
+    },
+    "evaluation/reviews/p4-bright-robotics-20260910/diagnostics.jsonl": {
+      "sha256": "604f9886ef1418259bb807c080fdf45886fed8158771e478996858d0f02de18e",
+      "bytes": 27355
+    },
+    "evaluation/reviews/p4-bright-robotics-20260910/manifest.json": {
+      "sha256": "553e46a349a683f5ed94b55ee88ae3831ef8fed3c15f18921c1e0fc107b17ed3",
+      "bytes": 696
+    },
+    "evaluation/reviews/p4-bright-robotics-20260910/review-packets.json": {
+      "sha256": "6e6802935d81d624aee4b01c6c8d24bc5f79b16010602d982089c90e243a0e0c",
+      "bytes": 1275907
+    },
+    "evaluation/reviews/p4-bright-robotics-20260910/summary.json": {
+      "sha256": "51aa75aa03edf18037f33a2769765cd9e76afeebcae5c081566476bde4a85ad7",
+      "bytes": 1504
+    },
+    "evaluation/reviews/p4-bright-stackoverflow-20260910/README.md": {
+      "sha256": "22ef99423061b49213a4f5a3add616c8a92e1fdd730d8e04b274dad333f27089",
+      "bytes": 1717
+    },
+    "evaluation/reviews/p4-bright-stackoverflow-20260910/diagnostics.jsonl": {
+      "sha256": "c1b549f36aa6034889dbbec775cb8b4d74ef9d605d459ccdf3c444147318b550",
+      "bytes": 26335
+    },
+    "evaluation/reviews/p4-bright-stackoverflow-20260910/manifest.json": {
+      "sha256": "14cbbdb120dcbb221f24322ffa55dd48667c4edbcef1450377a603ecc46201a5",
+      "bytes": 696
+    },
+    "evaluation/reviews/p4-bright-stackoverflow-20260910/review-packets.json": {
+      "sha256": "20fe10e77a5f2ef69165cddea66a54a962ef3cbc4c222e13331a5b6fd96b90ef",
+      "bytes": 942970
+    },
+    "evaluation/reviews/p4-bright-stackoverflow-20260910/summary.json": {
+      "sha256": "85cf20501796210cc18334c769048b57ada922f0e810cb67d0a0d4d8d2a83d21",
+      "bytes": 1511
+    },
+    "evaluation/reviews/p4-musique-20260910/README.md": {
+      "sha256": "22ef99423061b49213a4f5a3add616c8a92e1fdd730d8e04b274dad333f27089",
+      "bytes": 1717
+    },
+    "evaluation/reviews/p4-musique-20260910/diagnostics.jsonl": {
+      "sha256": "e3df929d34fc1ef96d70833ff3d8a9a8577a5b6f666061a059620a399d255038",
+      "bytes": 237404
+    },
+    "evaluation/reviews/p4-musique-20260910/manifest.json": {
+      "sha256": "568441d7f5a5e221884eefa0e947d0a1237fa72a75414e25bddeace9d959fab0",
+      "bytes": 696
+    },
+    "evaluation/reviews/p4-musique-20260910/review-packets.json": {
+      "sha256": "93f9d64aa55ee94885c01d280ef3226c441b8855963cd54a41f763df80d7c9a0",
+      "bytes": 8560631
+    },
+    "evaluation/reviews/p4-musique-20260910/summary.json": {
+      "sha256": "62c59a40b7836ec3ad8d71f5b4f2128d8c2056322e684377797c0938988b888e",
+      "bytes": 4007
+    },
+    "pyproject.toml": {
+      "sha256": "8d0c7cb95676164213684ddce65cc7c54c21491ea732fada0e0d4db5ef8a121d",
+      "bytes": 875
+    },
+    "uv.lock": {
+      "sha256": "84636f2d52b5c5b64fc36ec9716531b581be1b19e6b1623da67d6d73693cde3c",
+      "bytes": 110002
+    }
+  },
+  "scope": "Portable local repository evidence. Full T2 archive is reconstructible from hashed parts; original raw downloads/model weights/rebuildable indexes are omitted from the portable dataset archives. Auxiliary v1 archive intentionally retained as failed verification, v2 is accepted. No remote upload performed.",
+  "remaining_acceptance": [
+    "Independent ARKB core/gold and unseen validation/test",
+    "250 exported public Agent outputs await independent human review",
+    "Real release holdout rotation",
+    "Remote CI and remote long-term storage"
+  ],
+  "release_eligible": false
+}

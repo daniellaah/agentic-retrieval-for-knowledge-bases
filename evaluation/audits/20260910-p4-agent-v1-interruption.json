@@ -1,0 +1,86 @@
+{
+  "status": "incomplete_attempt",
+  "completed_cases": 0,
+  "registered_cases": 25,
+  "first_query_id": "7",
+  "metadata": {
+    "status": "failed",
+    "started_at": "2026-09-11T03:03:05.665467+00:00",
+    "track": "bright",
+    "environment_before": {
+      "python": "3.13.5 (main, Jun 12 2025, 12:22:43) [Clang 20.1.4 ]",
+      "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+      "machine": "arm64",
+      "cpu_count": 16,
+      "packages": {
+        "numpy": "2.5.2",
+        "ollama": "0.6.2",
+        "qdrant-client": "1.19.0",
+        "tokenizers": "0.23.2",
+        "pyarrow": "21.0.0",
+        "pytrec-eval-terrier": "0.5.10",
+        "torch": "2.14.0",
+        "transformers": "5.16.1"
+      },
+      "ollama_server_version": "0.33.2",
+      "qdrant_server": {
+        "version": "1.19.0",
+        "commit": "74f3e85b9473c62560006c043e13737ce6b48412"
+      },
+      "thread_settings": {
+        "OMP_NUM_THREADS": "4",
+        "MKL_NUM_THREADS": "4",
+        "TOKENIZERS_PARALLELISM": "false"
+      }
+    },
+    "chat_model_definition_before": {
+      "parameters": "presence_penalty               1.5\ntemperature                    1\ntop_k                          20\ntop_p                          0.95",
+      "capabilities": [
+        "completion",
+        "vision",
+        "tools",
+        "thinking"
+      ],
+      "model_info": {},
+      "template_sha256": "b507b9c2f6ca642bffcd06665ea7c91f235fd32daeefdf875a0f938db05fb315"
+    },
+    "models_before": {
+      "qwen3.5:4b": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+      "qwen3-embedding:0.6b": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d"
+    },
+    "dataset_manifest_sha256": "c1489ae76055218991517963d5cb1bccd61d018d72e16b8d11f84eda7bae86df",
+    "verified_index_artifacts": 68,
+    "index_checksums_sha256": "4b4901f9ffdb7b3d407fc5fa1f7c68c6d58179bcfbc9d780b1d218922f56bc54",
+    "index_manifest": {
+      "index_version": "fd2276dee04548ff99f56a5f0dc79c22",
+      "vault_id": "bright-stackoverflow",
+      "embedding_spec": {
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "provider": "ollama",
+        "normalization": "l2",
+        "dtype": "float64"
+      },
+      "chunking_fingerprint": "5218ef8e553560c586665eead65d09e9aebd23025c43e64de8d3cefdd6f8b716",
+      "document_count": 109188,
+      "chunk_count": 246224,
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "status": "ready",
+      "schema_version": 2
+    },
+    "preparation_ms": 18640.855083009228,
+    "error": {
+      "type": "KeyboardInterrupt",
+      "message": ""
+    },
+    "finished_at": "2026-09-11T03:20:48.839090+00:00"
+  },
+  "verified_files": 68,
+  "original_checksums_sha256": "9ce661d2c7d54df79b7506e93c3f65e046894fa674a15a649eb44e712f78bb08",
+  "sample_sha256": "d75a37fa0902dbbbc7ddd1521c72d326c89370f934c9e8283bade627727ceaef",
+  "evidence": "OS native stack sampled repeated subprocess_fork_exec; live child rg observed; interrupt traceback retains ExactRetriever call site. No partial Agent trace survived KeyboardInterrupt.",
+  "amendment": "New v2 attempt adds 180000 ms evaluation-only timer around each run_agent call, retaining timeout as an execution error. Source data, prompts, selection and product cooperative budget unchanged. No completed v1 score exists.",
+  "interrupt_trace_sha256": "bf3a232fdc330f58431d9b712714b3f8a5f3c47d8bec4001266cab920146250a"
+}

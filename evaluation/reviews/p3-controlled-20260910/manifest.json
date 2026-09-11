@@ -1,0 +1,11 @@
+{
+  "schema_version": "arkb-p3-review-export-v1",
+  "bundle": "p3-controlled-20260910",
+  "raw_agent_sha256": "bd51040854e6fd0d49d673a14487816ea4be7cb928265469a03d943e1d435e7e",
+  "export_script_sha256": "48d20c33687bb8627f31cc6596f81e4c53bffc50571a3aaa1b9279c2d4efa522",
+  "files": {
+    "blind-packets.json": "655d0d5aabb8f7f0353c2c408b786fd12299f74a478725570a97aea32f71d390",
+    "operator-key.json": "590097c45d6a8db1d9d117485dba31086cd3f20fe7c5424c961091bca1aad271",
+    "progress.json": "51f8a146a6094c38dbbbbd134b3b626430ec96df64cb9ba0f1da777ee3079cf0"
+  }
+}

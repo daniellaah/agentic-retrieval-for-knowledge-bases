@@ -1,0 +1,129 @@
+{
+  "run": "p4-musique-agent-v3",
+  "rows_sha256": "d8dd3c8581ce29f50d522d671c9a0250089355d6e9c50654f68573b1e00a3d06",
+  "audit_sha256": "0f95b32cf7582ac760ef9f5d7a86c3b1f51e64096baaf21725e2e34495b683f5",
+  "tool_failures": [
+    {
+      "case_index": 5,
+      "id": "2hop__85463_50252",
+      "tool": "read",
+      "arguments": {
+        "document_id": "35fba8162e3c68a28640c14c52b58315b5b689bc8c6d42d643464fe63641fad0.md",
+        "section_id": "bdbd19c7f3f61fb63535a376f4efa597b763100cb4567397c502a09b0803dec6"
+      },
+      "error": {
+        "stage": "tool_execution",
+        "type": "ValueError",
+        "message": "document_id must be a lowercase SHA-256 hex digest."
+      },
+      "target_document_exists": false
+    },
+    {
+      "case_index": 14,
+      "id": "2hop__17827_54024",
+      "tool": "read",
+      "arguments": {
+        "document_id": "4c8942acd650b4e6e16b60568d002bec81c7e42dec15e04b6151c46dec345b6b.md",
+        "source": "4c8942acd650b4e6e16b60568d002bec81c7e42dec15e04b6151c46dec345b6b.md"
+      },
+      "error": {
+        "stage": "tool_execution",
+        "type": "ValueError",
+        "message": "document_id must be a lowercase SHA-256 hex digest."
+      },
+      "target_document_exists": false
+    },
+    {
+      "case_index": 20,
+      "id": "2hop__779424_75487",
+      "tool": "read",
+      "arguments": {
+        "document_id": "b761c2253745aa160358d5af8ee6f4212635106c79a4ac3bb4204207c72447d"
+      },
+      "error": {
+        "stage": "tool_execution",
+        "type": "ValueError",
+        "message": "document_id must be a lowercase SHA-256 hex digest."
+      },
+      "target_document_exists": false
+    },
+    {
+      "case_index": 42,
+      "id": "2hop__25788_25839",
+      "tool": "read",
+      "arguments": {
+        "document_id": "4bfd10fa705def6141c148fd0f1d111e0f46fe9e724d17c76943151a311328e5",
+        "source": "2f3cbc59b3958408307cd8449f2b0f571176213d7b1796b9ecf71913aec52.md"
+      },
+      "error": {
+        "stage": "tool_execution",
+        "type": "LookupError",
+        "message": "No document matches document_id='4bfd10fa705def6141c148fd0f1d111e0f46fe9e724d17c76943151a311328e5', source='2f3cbc59b3958408307cd8449f2b0f571176213d7b1796b9ecf71913aec52.md'."
+      },
+      "target_document_exists": true,
+      "source": "2f3cbc59b3958408307cd8449f2b0f571176213d7b1796b9ecf71913b19aec52.md",
+      "document_revision": "fa3625cf06da15b0ba89872955c9631ab14e274a8656bb2e83231e55afd74ce8",
+      "body_characters": 631
+    },
+    {
+      "case_index": 132,
+      "id": "3hop1__351696_42197_18397",
+      "tool": "read",
+      "arguments": {
+        "document_id": "efeb564463ef8c47b51acefac7489dccbc3f0dafc7ea7459002f90ab63077af7.md",
+        "section_id": "d2636f70254aa3d14e4701852443499edcff300852affcb087df820b1ac3e375"
+      },
+      "error": {
+        "stage": "tool_execution",
+        "type": "ValueError",
+        "message": "document_id must be a lowercase SHA-256 hex digest."
+      },
+      "target_document_exists": false
+    },
+    {
+      "case_index": 164,
+      "id": "4hop1__105773_457883_650651_7262",
+      "tool": "read",
+      "arguments": {
+        "document_id": "8766c1dcd56532924bdf41a782ac51bd898cf0b658914a7315fa9973467be95"
+      },
+      "error": {
+        "stage": "tool_execution",
+        "type": "ValueError",
+        "message": "document_id must be a lowercase SHA-256 hex digest."
+      },
+      "target_document_exists": false
+    },
+    {
+      "case_index": 168,
+      "id": "4hop1__696484_49925_13759_736921",
+      "tool": "read",
+      "arguments": {
+        "document_id": "d757e117e647ea51a9b3402ca7c1b332f692635112c02c6175b48fc3e8f4b7bc",
+        "section_id": "a03a0e6428c3a2cf8510aae8a43957948ed7e1fe11839013f960eec32b041219",
+        "start_char": 1832,
+        "end_char": 2000
+      },
+      "error": {
+        "stage": "tool_execution",
+        "type": "ValueError",
+        "message": "section_id and character range are mutually exclusive."
+      },
+      "target_document_exists": true,
+      "source": "8d40dfe5ce20c5d5779786ef28ce17a851879b05e0b9fea8c959d19db575462b.md",
+      "document_revision": "c7c5d969a3e594338953f2c645b9fbd887848383c7d08e1d6b80085171875147",
+      "body_characters": 1832,
+      "start_char_invalid_type": false,
+      "start_char_exceeds_body": false,
+      "end_char_invalid_type": false,
+      "end_char_exceeds_body": true,
+      "section_exists_in_target": true,
+      "prior_returned_document_ids_for_section": [
+        "d757e117e647ea51a9b3402ca7c1b332f692635112c02c6175b48fc3e8f4b7bc"
+      ],
+      "mixed_document_and_section_from_different_hits": false
+    }
+  ],
+  "scope": "Descriptive checks of retained failed tool arguments against the registered source bodies and previously delivered hit metadata. This is not an answer-quality judgment.",
+  "release_eligible": false
+}

@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "identical_files": {
+    "scifact/manifest.json": "f3d64da57c0dfdccbd2b14bae61b8d9f794e071ace9531fc74b469580a43a3c3",
+    "scifact/corpus.jsonl": "a709af1800e845f0c26cec7550aaef9b6eb230c29648cf0d8a129309cc6cf447",
+    "scifact/queries.json": "ea82a05040e5d8e3baed58a0387ef42790da7d2a7e7e13d2624306a38d7b0897",
+    "scifact/qrels.json": "096e0edcdff8dd7584130e2d861257c3b9b8a7809edac4d9c1ad3cc311bf7f3e",
+    "scifact/aspects.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+    "bright-stackoverflow/manifest.json": "c1489ae76055218991517963d5cb1bccd61d018d72e16b8d11f84eda7bae86df",
+    "bright-stackoverflow/corpus.jsonl": "9068413bcb9a56be0c8494bfae4609818e2a2b8a73681585c2424fdb59418a4f",
+    "bright-stackoverflow/queries.json": "226cc74ac5b1fad21e54560af4dd54f8897716b10791ec36dc2d3dd5f360d814",
+    "bright-stackoverflow/qrels.json": "9f1235f4fc8f87e13a30d4a0f5f5c6cf3df38f4d5dc67aa53a6b38df4f6aac47",
+    "bright-stackoverflow/aspects.json": "1406b142e22a8ffd02356ed62939952415264ca40e81069d0b1d333a9f1f2ddf",
+    "bright-robotics/manifest.json": "c9cb46e9ce805ebc9b72f9c802cd94fc11ef1044322e265f2833055eaa483643",
+    "bright-robotics/corpus.jsonl": "7ea48dd81960dc87519fbdd0622754ad2ea68850d0c54bd0a38596c339db5b02",
+    "bright-robotics/queries.json": "b778f5912cb3837b415f1dc02cb1e3115efc4b60f1255d5e5c5566d49b9a1c40",
+    "bright-robotics/qrels.json": "ba9ee513ff1e55ce22fabb75bd95f64d131393bf9eda4bd77936ff195a670cde",
+    "bright-robotics/aspects.json": "21d25092522e9361c8e4f25fc46c7ebc112e0397b7f2d8a910eb7838477d970e",
+    "t2/manifest.json": "22309a6940c0a1ccb00a13510893b8e07d5a70fedf3cb3051c6e0b5747e5bdaf",
+    "t2/corpus.jsonl": "5dbc7e91dbdf6e544f4142b4836fedf32f2ec5ba2bc804a96ea09bed552e67f4",
+    "t2/queries.json": "f0d9dee33801450408d87382cf4b253866c3e58437604f5f5c3b18daf0170612",
+    "t2/qrels.json": "74267ad18d2b8cb8cbcdb849b870039d7b0ee07c4da2251726e78b6afce777fa",
+    "t2/aspects.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+    "musique-selected.json": "4d5ad0614a161e45a862ae0306d60133acedeeb44ac820651f46cae77dd72408"
+  },
+  "preparer_sha256": "907a3dbefcaad226a681e17c45b680ddca6d62061dbe93d2c67c524a3b75137b",
+  "adapter_sha256": "8bfa5a33da62126b2ed938fb4c8609ccfc889906d3f33120b8a34aba7d1add8d",
+  "scope": "New temporary output regenerated from hash-locked raw inputs; all 21 normalized data/manifest/selection files match byte-for-byte."
+}

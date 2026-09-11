@@ -1,6 +1,10 @@
 # ARKB Evaluation 优化方案
 
+**2026-09-11 范围更新：当前仅维护英文检索。** 本文保留原始评估设计与研究依据；中文、跨语言专项不再属于当前实施范围。已有数据集不改写为英文评测数据，历史结果保持原口径。后续工程以 [范围清理](../docs/english-scope-cleanup.md) 和当前决策日志为准。
+
 日期：2026-09-10。审查代码：`0a3e89d`。状态：调研与设计完成，v2 数据标注和运行能力尚未实施。
+
+以上状态属于方案形成时的快照；后续执行、实际测量及待完成门槛见 [实施进度](implementation-progress.md)。下文的历史结论与拟议标准保留，不能据此推定所有阶段已经完成。
 
 建议先建立可信的测量，再用测量选择优化：**冻结 v1 作为回归集，建立独立的 v2 数据与证据标注，分开评估检索排序、多步取证、最终输出和运行成本，最后在受控实验中决定改什么。** 当前最值得优先验证的方向是 match 的完整枚举、跨语言查询、候选覆盖、段落选择与停止控制。扩大模型或替换 embedding 应放在这些诊断之后。
 
@@ -68,12 +72,14 @@ v1 的优点应保留：标签不会传给被测 Runtime；不用唯一工具顺
 
 | 方法 / 数据集 | 官方设计的重点 | 用于 ARKB 的方式 |
 | --- | --- | --- |
-| [BEIR](https://github.com/beir-cellar/beir)、[原论文](https://arxiv.org/abs/2104.08663) | 多领域零样本检索；统一 corpus / queries / qrels，nDCG、Recall、MAP 等 | 采用兼容数据接口；先跑 SciFact、NFCorpus，验证实现与领域迁移。不要用 embedding 总榜替代本项目评测 |
+| [BEIR](https://github.com/beir-cellar/beir)、[原论文](https://arxiv.org/abs/2104.08663) | 多领域零样本检索；统一 corpus / queries / qrels，nDCG、Recall、MAP 等 | 采用兼容数据接口；先跑 SciFact 校验接入，NFCorpus 按领域迁移需求后置。不要用 embedding 总榜替代本项目评测 |
 | [MS MARCO](https://microsoft.github.io/msmarco/)、[TREC DL](https://github.com/microsoft/msmarco/blob/master/TREC-Deep-Learning-2021.md) | 完整语料检索和固定候选重排分开；TREC 人工分级判断以 nDCG 为重点，稀疏 MS MARCO 标签另看 MRR | 借鉴候选召回与最终排序分离。稀疏 qrels 不能直接充当穷尽的相关来源清单 |
 | [MIRACL](https://github.com/project-miracl/miracl)、[MTEB 中文任务](https://leaderboard.mteb.org/benchmark/MTEB%28cmn%2C%20v1%29) | 多语言/中文 embedding 与检索能力；MIRACL 有人工正负判断 | 选 zh→zh、en→en 作语言对照；MIRACL 多语言单语检索不能单独证明 zh→en 能力 |
 | [MKQA](https://arxiv.org/abs/2007.15207) | 多语言、语言无关答案的开放域 QA，非一套现成的完整 passage qrels | 可借鉴跨语言问题对齐；引入时必须另定英文语料、证据标注/答案匹配口径，不能自动视为金标准检索标签 |
-| [BRIGHT](https://brightbenchmark.github.io/) | 1,385 个需要较深入推理才能建立 query-document 关联的查询 | 用于困难语义/推理检索；按域评估，不能因英文通用 benchmark 高分就宣称本地 Agent 更好 |
+| [BRIGHT](https://brightbenchmark.github.io/) | 约 1,400 个需要较深入推理才能建立 query-document 关联的查询 | 用于困难语义/推理检索；按域评估，不能因英文通用 benchmark 高分就宣称本地 Agent 更好 |
 | [Bright-Pro 作者仓库](https://github.com/yale-nlp/Bright-Pro) | 2026 年扩展；方面标注、静态与 Agent 搜索两类协议，并有固定轮数/自适应轮数对照 | 借鉴 aspect coverage 和受控搜索预算。属于较新补充，先固定数据与代码 revision 再使用 |
+| [T2Retrieval](https://huggingface.co/datasets/mteb/T2Retrieval)、[T2Ranking 上游](https://github.com/THUIR/T2Ranking) | 中文 passage retrieval；MTEB 加工版语料小于原始全量任务 | 首轮中文组件对照；固定加工版本，不能混报全量 T2Ranking 成绩，不能替代跨语言验证 |
+| [MuSiQue](https://github.com/StonyBrookNLP/musique) | 连接的 2–4 跳问答；Full 加入依赖给定上下文的不可回答项 | 桥接与证据充分性专项；逐题保留候选上下文和配对关系，避免合并语料后破坏无答案标签 |
 | [HotpotQA](https://aclanthology.org/D18-1259/)、[HoVer](https://aclanthology.org/2020.findings-emnlp.309/) | supporting facts 与跨多个文档的证据推理 | 借鉴句子证据和证据依赖；区分 full-corpus 检索与给定 distractor 的较小候选场景 |
 | [TREC RAG 2025](https://pages.nist.gov/trec-browser/trec34/rag/overview/)、[2025 overview](https://arxiv.org/abs/2603.09891) | 检索、给定证据生成、端到端 RAG 分开；考察相关性、完整性与归因 | 采用按事实要点检查完整性、检查引用支撑的分层设计 |
 | [TREC RAG 2026](https://trec-rag.github.io/) | 当前官网已转为 Agent-first，语料换成 ClimbMix；列出 Retrieval 与 RAG 任务，judgments 返回时间仍为 TBD | 跟踪新协议；近期优先采用已发布、可冻结的历史 judgments，不把 2025/2026 配置混用 |
@@ -81,7 +87,7 @@ v1 的优点应保留：标签不会传给被测 Runtime；不用唯一工具顺
 | [Ragas 指标](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/)、[ARES](https://aclanthology.org/2024.naacl-long.20/) | Ragas 提供 context/faithfulness 等评分；ARES 用人工标注校准自动评估并做统计推断 | 先实现项目 rubric 与人工校准，框架只做可替换 judge adapter；导入框架不会自动得到可信标签 |
 | [ir-measures](https://ir-measur.es/en/latest/getting-started.html)、[trec_eval](https://github.com/usnistgov/trec_eval/blob/main/m_ndcg_cut.c) | 标准排名指标、分 query 输出、qrels 与 run 格式 | 用作第二评分器交叉验证，固定 provider、版本、gain、cutoff、相关性阈值及 tie 规则 |
 
-公开集的建议顺序是 **SciFact / NFCorpus → 一个 BRIGHT 域 → MIRACL zh/en 或合适中文 retrieval 子集**。这些只是外部有效性检查，主优化仍由独立 ARKB 场景决定。大规模 MS MARCO/TREC 全量暂放后面，避免先投入大量索引资源。
+结合 P3 失败与进一步调研，公开集的建议顺序更新为 **SciFact 接入校验 → Bright-Pro 的 Stack Overflow / Robotics 域 → T2Retrieval 中文对照 → MuSiQue 多跳/缺证据专项**。具体规模、协议、许可和约束见 [P4 前公开集选型](public-dataset-selection.md)。MIRACL、MKQA 跨语言适配、MTRAG 会话任务按能力与预算后续引入。外部集合与独立 ARKB core 分别报告；大规模 MS MARCO/TREC 全量暂放后面。
 
 外部数据 adapter 应把官方 document ID 映射为安全的平面 Markdown 文件名，保留原 ID、title、正文、split、许可证、下载 revision/hash 与 qrels 映射。输出需聚合回官方的检索单位；若改变官方段落边界或裁剪语料，应显式标为自定义实验。可以抽样 query 降低成本，正式可比评估应保留对应完整 corpus；只留下正例和少量 distractor 会让任务变简单。公开训练集、已知模型训练暴露风险与未公开的项目盲测结果分别说明。
 

@@ -1,0 +1,7 @@
+{
+  "trial_outputs": 48,
+  "unique_packets": 12,
+  "human_reviewed_packets": 0,
+  "status": "pending",
+  "note": "Identical packet hashes may share an exact-content review; this does not create new independent cases or families."
+}

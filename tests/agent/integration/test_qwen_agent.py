@@ -16,18 +16,18 @@ pytestmark = [pytest.mark.integration, pytest.mark.skipif(
 
 
 @pytest.mark.parametrize('query,allowed_first_tools', [
-    ('哪些笔记提到了 RAG', ('match',)),
-    ('有哪些笔记和 RAG 相关', ('search',)),
-    ('读取 rag.md', ('read',)),
-    ('帮我找一些写 Agent Memory 的素材', ('match', 'search', 'read')),
-    ('你好', ()),
+    ('Which notes mention RAG', ('match',)),
+    ('Which notes relate to RAG', ('search',)),
+    ('Read rag.md', ('read',)),
+    ('Find material about Agent Memory', ('match', 'search', 'read')),
+    ('Hello', ()),
 ])
 def test_real_model_selects_tools_and_finishes(tmp_path, query, allowed_first_tools):
     (tmp_path / 'rag.md').write_text(
-        '# RAG\nRAG uses retrieved knowledge to ground answers. RAG 结合检索和生成。', encoding='utf-8')
+        '# RAG\nRAG uses retrieved knowledge to ground answers. RAG combines retrieval and generation.', encoding='utf-8')
     (tmp_path / 'memory.md').write_text(
         '# Agent Memory\nAgent Memory stores past events and useful facts. '
-        'Agent Memory 包括工作记忆与长期记忆。', encoding='utf-8')
+        'Agent Memory includes working and long-term memory.', encoding='utf-8')
     documents = DocumentAccess(tmp_path, vault_id='agent-test')
     # Keep the service check focused on model tool calling. The tool schema
     # advertises this engine's BM25-only capability, with no vector server.

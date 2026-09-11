@@ -22,7 +22,7 @@ def test_match_regex_case_and_filename(tools):
     assert len(tools.match(r'foo\(\)', regex=True)['results']) == 2
     assert len(tools.match('foo()', case_sensitive=False)['results']) == 3
     hit, = tools.match(r'^a\.md$', target='source', regex=True)['results']
-    assert hit['source'] == 'a.md' and hit['content'].startswith('中文')
+    assert hit['source'] == 'a.md' and hit['content'].startswith('éø')
     assert hit['start_char'] is None and hit['end_char'] is None
     assert tools.match('Alpha')['results'] == []  # Title is separate from the body.
 
@@ -62,7 +62,7 @@ def test_match_to_read_and_live_edits(tools, documents):
     hit = tools.match('foo()', source='a.md')['results'][0]
     assert tools.read(hit['document_id'], start_char=hit['start_char'],
                       end_char=hit['end_char'])['result']['content'] == 'foo()'
-    assert tools.read(hit['document_id'])['result']['content'].startswith('中文 café')
+    assert tools.read(hit['document_id'])['result']['content'].startswith('éø café')
     (documents.directory / 'a.md').write_text('# Changed\n\nnew text', encoding='utf-8')
     assert tools.match('foo()', source='a.md')['results'] == []
     current = tools.match('new text')['results'][0]

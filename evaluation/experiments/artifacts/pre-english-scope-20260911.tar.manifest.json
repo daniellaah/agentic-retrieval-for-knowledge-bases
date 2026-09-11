@@ -1,0 +1,7 @@
+{
+  "archive": "pre-english-scope-20260911.tar.gz",
+  "sha256": "6e3e19e07dad9ffdcadfaf2ee7a443338233376e4bc644dde69b2df800c318a1",
+  "bytes": 2752147,
+  "files": 274,
+  "scope": "Pre-cleanup source, tests, scripts and P4 delivery metadata. Historical evidence only; active code may change. Large immutable dataset archives remain beside this snapshot."
+}

@@ -1,0 +1,32 @@
+{
+  "judge_identity": "9d56e1f6b2906ef3e1895d2a6f190a1a25394e8900bd8012e21e8d321a4cb3a6",
+  "calibration_cases": 0,
+  "calibration_families": 0,
+  "tuning_cases": 0,
+  "judge_coverage": null,
+  "confusion_matrix": {
+    "TP": 0,
+    "FP": 0,
+    "TN": 0,
+    "FN": 0
+  },
+  "conditional_false_accept_rate": null,
+  "conditional_false_accept_wilson95": null,
+  "positive_recall": null,
+  "missing_judge_cases": 0,
+  "protocol_checks_passed": false,
+  "blockers": [
+    "insufficient_independent_calibration_cases",
+    "insufficient_judge_coverage",
+    "no_human_positive_cases",
+    "false_accept_bound_not_met"
+  ],
+  "thresholds": {
+    "min_cases": 100,
+    "max_false_accept_upper": 0.1,
+    "min_coverage": 0.95
+  },
+  "human_independence_authenticated": false,
+  "release_eligible": false,
+  "limits": "Human outcomes are supplied, not generated here. Wilson assumes independent sampled families; representativeness and human correctness require external review."
+}

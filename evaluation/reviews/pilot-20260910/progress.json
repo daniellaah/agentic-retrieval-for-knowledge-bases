@@ -1,0 +1,13 @@
+{
+  "expected_pairs": 3248,
+  "exported_pairs": 3248,
+  "judged_pairs": 0,
+  "pending_pairs": 3248,
+  "coverage": 0.0,
+  "by_reviewer": {},
+  "timed_judgments": 0,
+  "total_recorded_ms": 0,
+  "mean_recorded_ms": null,
+  "human_independence_verified": false,
+  "release_eligible": false
+}

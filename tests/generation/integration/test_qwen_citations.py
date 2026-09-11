@@ -33,7 +33,7 @@ pytestmark = [pytest.mark.integration, pytestmark]
 
 @pytest.mark.parametrize('question,body', [
     ('What is the project code?', 'The project code is ORCHID-42.'),
-    ('项目代号是什么？', '项目代号是 ORCHID-42。原样字符：e\u0301 🧠。'),
+    ('What is the project code?', 'The project code is ORCHID-42. Verbatim characters: e\u0301 🧠.'),
 ])
 def test_real_citation_schema_and_message_counts(question, body):
     with Client(host='http://127.0.0.1:11434', timeout=120, trust_env=False) as client:

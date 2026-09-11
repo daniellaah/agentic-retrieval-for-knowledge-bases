@@ -1,0 +1,9 @@
+{
+  "bundle": "p1-pilot-20260910.tar.gz",
+  "extracted_replay": {
+    "valid": true,
+    "pilot_rows": 198,
+    "provisional": true
+  },
+  "tampered_input_rejected": true
+}

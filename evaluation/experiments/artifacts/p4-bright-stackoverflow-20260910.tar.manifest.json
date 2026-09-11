@@ -1,0 +1,14 @@
+{
+  "archive": "p4-bright-stackoverflow-20260910.tar.gz",
+  "sha256": "80b71786438ce9568344db330f1b8d91c3f4e0f959f56fbac7d94b081b93e967",
+  "bytes": 47615216,
+  "files": 243,
+  "runs": [
+    "p4-bright-stackoverflow-lexical",
+    "p4-bright-stackoverflow-indexed",
+    "p4-bright-stackoverflow-agent-v2"
+  ],
+  "omitted_files": 1,
+  "scope": "Offline score and ranking-assembly replay. Includes full normalized corpus, frozen measured source, raw candidates/observations and official metric source. Model weights and SQLite/Qdrant caches are omitted; generating new model outputs requires rebuilding them.",
+  "release_eligible": false
+}

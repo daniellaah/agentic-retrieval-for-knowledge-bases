@@ -1,0 +1,29 @@
+{
+  "archive_sha256": "26f3c255ef3212184fb288db4bb6332f2d1f5038b2a5e4df218ae73f8532ae2c",
+  "replayed": [
+    {
+      "run": "p4-t2-lexical",
+      "rows_replayed": 500,
+      "reference_max_error": 1.1102230246251565e-16,
+      "lexical_rankings_recomputed": 500,
+      "release_eligible": false
+    },
+    {
+      "run": "p4-t2-indexed",
+      "rows_replayed": 2000,
+      "reference_max_error": 3.3306690738754696e-16,
+      "rankings_reassembled": 2000,
+      "source_body_spans_verified": 10000,
+      "release_eligible": false
+    }
+  ],
+  "passed": true,
+  "scope": "No model or Qdrant calls; metric and ranking assembly integrity, not annotation truth.",
+  "release_eligible": false,
+  "multipart": {
+    "manifest_sha256": "ac5637ff7684bc3f0cf2315cc5c88d53d97c08d812454bfdd6624ad96ac33d3d",
+    "parts_verified": 3,
+    "archive_byte_identity": true,
+    "packager_sha256": "ee81ab3be236af2c75d271f4746cfac8cacafe82116bb3b4a26596526d565cf6"
+  }
+}

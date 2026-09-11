@@ -4,7 +4,8 @@ import json
 
 from ollama import Client
 
-from arkb.agent.state import AgentResult, AgentState
+from arkb.agent.state import AgentResult, AgentState, ObservedAgentResult
+from arkb.agent.observation import AgentObserver
 from arkb.agent.tools import AgentTools
 from arkb.config import DEFAULT_AGENT_THINK
 
@@ -49,7 +50,9 @@ def _search_stalled(messages: list[dict], turn_start: int) -> bool:
 
 
 def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
-              max_turns: int = 8, think: bool = DEFAULT_AGENT_THINK) -> AgentResult:
+              max_turns: int = 8, think: bool = DEFAULT_AGENT_THINK,
+              observer: AgentObserver | None = None,
+              search_stall_reminder: bool = True) -> AgentResult:
     """Run one query with fresh state, returning the model's final text unchanged.
 
     Each model request counts as one turn, including a final response. Execute
@@ -63,6 +66,12 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
     think is an explicit model setting, independent of result/trace formatting.
     Repeated search evidence prompts a progress reminder on the next turn; the
     model still chooses its tools or final answer within the same turn limit.
+    An optional single-use observer records native usage and operation states.
+    search_stall_reminder=False disables only the progress reminder for controlled
+    ablations; the initial instructions, tools and turn limit stay identical.
+    Its limits stop over-budget calls or withhold complete tool observations;
+    cooperative deadlines cannot cancel work already in flight. No observer
+    means the original request messages, options and result contract are used.
     """
     if not isinstance(query, str) or not query.strip():
         raise ValueError('query must be a nonblank string.')
@@ -72,21 +81,39 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
         raise ValueError('max_turns must be a positive integer.')
     if type(think) is not bool:
         raise ValueError('think must be a boolean.')
+    if type(search_stall_reminder) is not bool:
+        raise ValueError('search_stall_reminder must be a boolean.')
+    if observer is not None and not isinstance(observer,AgentObserver):
+        raise ValueError('observer must be an AgentObserver.')
 
     state = AgentState(messages=[{'role': 'system', 'content': SYSTEM_INSTRUCTION},
                                  {'role': 'user', 'content': query}])
+    if observer is not None:observer.start()
+    def finish(response,reason):
+        if observer is None:return AgentResult(response,reason,state)
+        return ObservedAgentResult(response,reason,state,observer.finish(reason))
+    stage,event='setup',None
     try:
         definitions = [{'type': 'function', 'function': definition}
                        for definition in tools.tool_definitions()]
         available = {'match': tools.match, 'search': tools.search, 'read': tools.read}
         turn_start = len(state.messages)
         for _ in range(max_turns):
-            if _search_stalled(state.messages, turn_start):
+            if observer is not None and observer.deadline():return finish(None,'budget')
+            if search_stall_reminder and _search_stalled(state.messages, turn_start):
                 state.messages.append({'role': 'system', 'content': _SEARCH_STALLED_INSTRUCTION})
             state.turn += 1
             turn_start = len(state.messages)
-            response = client.chat(model=model, messages=list(state.messages), tools=definitions,
-                                   stream=False, think=think, options={'temperature': 0})
+            request=dict(model=model,messages=list(state.messages),tools=definitions,
+                         stream=False,think=think,options={'temperature':0})
+            event=None;stage='measurement'
+            if observer is not None:observer.start_model(state.turn,request)
+            stage='model_request'
+            response = client.chat(**request)
+            stage='model_protocol'
+            if observer is not None:
+                observer.end_model(response)
+                if observer.deadline():return finish(None,'budget')
             if response.done_reason == 'length':
                 raise ValueError('Agent model response was truncated.')
             message = response.message
@@ -96,18 +123,29 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
             if not message.tool_calls:
                 if not message.content or not message.content.strip():
                     raise ValueError('Agent model returned neither tool calls nor a final response.')
-                return AgentResult(message.content, 'final', state)
-            for call in message.tool_calls:
+                return finish(message.content,'final')
+            events=observer.request_tools(state.turn,message.tool_calls) if observer is not None else None
+            for index,call in enumerate(message.tool_calls):
+                event=events[index] if events is not None else None
+                if observer is not None and not observer.permit_tool(event):return finish(None,'budget')
                 function = call.function
+                stage='tool_dispatch'
                 if function.name not in available:
                     raise ValueError(f'Unknown agent tool: {function.name}.')
+                if observer is not None:observer.start_tool(event)
+                stage='tool_execution'
                 result = available[function.name](**function.arguments)
+                stage='tool_output'
+                serialized=json.dumps(result,ensure_ascii=False,allow_nan=False)
+                stage='measurement'
+                if observer is not None and not observer.end_tool(event,result):return finish(None,'budget')
                 state.messages.append({'role': 'tool', 'tool_name': function.name,
-                                       'content': json.dumps(result, ensure_ascii=False, allow_nan=False)})
-        return AgentResult(None, 'max_turns', state)
+                                       'content':serialized})
+        return finish(None,'max_turns')
     except Exception as error:
+        if observer is not None:observer.fail(error,stage,event)
         try:
-            error.agent_result = AgentResult(None, 'error', state)
+            error.agent_result = finish(None,'error')
         except Exception:
             # Custom exceptions can reject attributes; keep the original failure.
             pass

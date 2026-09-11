@@ -38,14 +38,14 @@ def test_whole_note_chunks_preserves_each_note_and_its_origin() -> None:
 def test_chunk_notes_keeps_short_notes_separate_and_complete() -> None:
     notes = [
         Note(title="A", content="  idea  ", source="a.md"),
-        Note(title="B", content="第二条笔记。", source="b.md"),
+        Note(title="B", content="Note B.", source="b.md"),
     ]
 
     chunks = chunk_notes(notes, count_tokens=len, chunk_size=8, chunk_overlap=0)
 
     assert [(chunk.content, chunk.source, chunk.chunk_index) for chunk in chunks] == [
         ("  idea  ", "a.md", 0),
-        ("第二条笔记。", "b.md", 0),
+        ("Note B.", "b.md", 0),
     ]
 
 
@@ -77,10 +77,9 @@ def test_chunk_notes_splits_long_unbroken_text_and_records_exact_ranges() -> Non
         ("aa\n\nbbbb\n\ncc", 8, ["aa\n\n", "bbbb\n\ncc"]),
         ("aa\nbbbb\ncc", 6, ["aa\n", "bbbb\n", "cc"]),
         ("One. Two words. End.", 12, ["One. ", "Two words. ", "End."]),
-        ("先记下。然后整理内容。最后连接。", 8, ["先记下。", "然后整理内容。", "最后连接。"]),
         ("aaa bbb cc", 7, ["aaa ", "bbb cc"]),
     ],
-    ids=["paragraphs", "lines", "english-sentences", "chinese-sentences", "words"],
+    ids=["paragraphs", "lines", "english-sentences", "words"],
 )
 def test_chunk_notes_prefers_natural_boundaries(
     text: str, size: int, expected: list[str]
@@ -193,7 +192,7 @@ def test_chunk_notes_defaults_to_512_tokens_and_64_overlap() -> None:
     [
         "Hi\n\nabcdefghi\n\nBye",
         "# Header\r\n\r\n- one\r\n- two\r\n\r\n```py\r\na = 1\r\n```",
-        "e\u0301👩🏽\u200d💻中文" * 8,
+        "e\u0301👩🏽\u200d💻éø" * 8,
     ],
     ids=["oversized-paragraph", "markdown-and-crlf", "combining-characters-and-emoji"],
 )
@@ -315,8 +314,8 @@ def test_markdown_heading_edge_cases(text: str, paths: list[tuple[str, ...]]) ->
 
 
 def test_crlf_unicode_links_and_source_ranges_survive_json_roundtrip() -> None:
-    text = "## 中文\r\n\r\n[[笔记#标题|alias]] #tag\r\n\r\n👩🏽‍💻 café\r\n\r\n## Next\r\n![[image.png]]"
-    note = Note("My note", text, "folder/笔记.md")
+    text = "## éø\r\n\r\n[[note#Title|alias]] #tag\r\n\r\n👩🏽‍💻 café\r\n\r\n## Next\r\n![[image.png]]"
+    note = Note("My note", text, "folder/note.md")
     chunks = chunk_notes([note], count_tokens=len, chunk_size=24, chunk_overlap=4)
 
     for chunk in chunks:
@@ -412,7 +411,7 @@ def test_mixed_markdown_is_lossless_across_many_small_budgets() -> None:
     rng = random.Random(731)
     fragments = ["# Heading\n", "## Child\n", "text\n\n", "- item\n  wrapped\n\n",
                  "```py\n# Code\n\nprint(1)\n```\n", "~~~\nx\n~~~\n", "\n",
-                 "Title\n===\n", "中文👩🏽‍💻", "[[note]]", "\r\n", "---\n"]
+                 "Title\n===\n", "éø👩🏽‍💻", "[[note]]", "\r\n", "---\n"]
     for _ in range(80):
         text = "".join(rng.choices(fragments, k=20))
         size = rng.randrange(1, 70)

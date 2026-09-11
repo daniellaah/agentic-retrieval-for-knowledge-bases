@@ -47,7 +47,7 @@ def hit(source, chunk):
 
 @pytest.mark.parametrize('name', BASELINE_MODES)
 def test_each_baseline_passes_only_original_query_and_one_fixed_request(name, monkeypatch):
-    query = '  查找 | 原始 query\nwithout rewrites '
+    query = '  Find | original query\nwithout rewrites '
     case = AgentEvalCase(id='c', query=query, task_type='direct_read', expected_sources=('a.md',))
     response = SearchResponse(query=query, method='fixed', index_id='snapshot', results=(hit('a.md', '1'),))
     engine = SimpleNamespace(search=Mock(return_value=response))

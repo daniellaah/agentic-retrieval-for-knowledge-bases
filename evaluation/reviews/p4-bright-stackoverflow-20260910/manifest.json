@@ -1,0 +1,12 @@
+{
+  "schema": "arkb-p4-agent-review-v1",
+  "input_rows_sha256": "d5183c84a13e570691f4b2369e593af2a89a4f83fb6dbd0ae79a407ea138c115",
+  "run_checksums_sha256": "c18cad4cae83817a6595eb86b6cf40ce88ca065b5e3b42bf675d51af634ec879",
+  "summarizer_sha256": "a02658a6dfb5c0b0338aa715e939d8853e77c4b96a308c8b3e5dd522295231ef",
+  "files": {
+    "summary.json": "85cf20501796210cc18334c769048b57ada922f0e810cb67d0a0d4d8d2a83d21",
+    "review-packets.json": "20fe10e77a5f2ef69165cddea66a54a962ef3cbc4c222e13331a5b6fd96b90ef",
+    "README.md": "22ef99423061b49213a4f5a3add616c8a92e1fdd730d8e04b274dad333f27089",
+    "diagnostics.jsonl": "c1b549f36aa6034889dbbec775cb8b4d74ef9d605d459ccdf3c444147318b550"
+  }
+}

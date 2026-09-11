@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "archive_sha256": "116b25258402f7a7d373ff28d98cd998c05c07f1025983506c1b14a645003947",
+  "verified_files": 435,
+  "deterministic_freshness_checks_replayed": 12,
+  "live_model_probe": "Original results and hashes retained, not rerun.",
+  "incomplete_agent_attempts": {
+    "bright_v1": "Original failed status and artifacts preserved; no score imputed.",
+    "musique_v2": "One completed variant and second-context setup failure retained; zero complete pairs. No output is selected against the v3 restart."
+  },
+  "release_eligible": false
+}

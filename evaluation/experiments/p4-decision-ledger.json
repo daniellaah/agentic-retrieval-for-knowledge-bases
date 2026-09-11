@@ -1,0 +1,480 @@
+{
+  "schema_version": "arkb-development-decision-ledger-v1",
+  "experiment": "p4-external-20260910",
+  "status": "public_development_experiments_audited_and_archived",
+  "data_exposure": "public-development",
+  "validation_attempts": [],
+  "test_attempts": [],
+  "default_product_configuration_changed": false,
+  "completed_comparisons": [
+    {
+      "dataset": "scifact",
+      "comparison": [
+        "hybrid",
+        "hybrid-rerank20"
+      ],
+      "metric": "native-unit ndcg@10",
+      "result": {
+        "delta": 0.04494671599916056,
+        "ci95": [
+          0.022934587384790647,
+          0.0690058180754163
+        ],
+        "wins": 62,
+        "ties": 206,
+        "losses": 32
+      },
+      "decision": "Positive public-development evidence for this corpus/configuration; Bright domains regress and T2 does not establish benefit. No universal promotion; independent ARKB quality validation remains required.",
+      "production_adoption": false,
+      "summary_sha256": "0d9eae60ad1c34bda0afb3e28299d20eea6c20e5b8b77c23de410227ba9ebf8b"
+    },
+    {
+      "dataset": "bright-stackoverflow",
+      "comparison": [
+        "hybrid",
+        "hybrid-rerank20"
+      ],
+      "metric": "native-unit ndcg@10",
+      "result": {
+        "delta": -0.13942504850338897,
+        "ci95": [
+          -0.18548250123058352,
+          -0.09354982655829118
+        ],
+        "wins": 26,
+        "ties": 17,
+        "losses": 72
+      },
+      "decision": "Current rerank configuration regresses on this technical domain; no universal promotion based on SciFact. Freeze candidates and compare input budgeting before any product adoption.",
+      "production_adoption": false,
+      "summary_sha256": "11ec32dc83d1dde0cc59255584ecd649b2b8b9c27c6148b80e39c04c0e46f0d8"
+    },
+    {
+      "dataset": "bright-robotics",
+      "comparison": [
+        "hybrid",
+        "hybrid-rerank20"
+      ],
+      "metric": "native-unit ndcg@10",
+      "result": {
+        "delta": -0.09855816953329558,
+        "ci95": [
+          -0.13942522540840577,
+          -0.059804971330545235
+        ],
+        "wins": 27,
+        "ties": 11,
+        "losses": 63
+      },
+      "decision": "Second technical domain regresses with the current 512-token reranker. Validate input budgeting/tie behavior on independent data; do not promote this configuration across domains.",
+      "production_adoption": false,
+      "summary_sha256": "60b372b58dcfc8527bda2a09bfe6a0724fd6a668abe8d162383e56c448a7e997"
+    },
+    {
+      "dataset": "t2",
+      "comparison": [
+        "hybrid",
+        "hybrid-rerank20"
+      ],
+      "metric": "native-unit ndcg@10",
+      "result": {
+        "delta": -0.002297014417332979,
+        "ci95": [
+          -0.01609526827883853,
+          0.012331122250600197
+        ],
+        "wins": 124,
+        "ties": 215,
+        "losses": 161
+      },
+      "decision": "No clear reranking improvement in this fixed 500-query public-development sample; CI includes zero while the reranking stage adds about 4.57 seconds per query. Semantic is strong; current lexical tokenization remains ineffective.",
+      "production_adoption": false,
+      "summary_sha256": "21a45fe8e7e7c7fe674c12e4928e8c19dd92f5d5fd6236e8ce2b11241ca9792c"
+    }
+  ],
+  "next_hypotheses": [
+    {
+      "id": "reranker-query-document-budget",
+      "status": "input_loss_measured_alternative_not_measured",
+      "basis": "SciFact: 1237/6000 candidate inputs truncated. Bright-Pro preflight: query/instruction prefix reaches the 464-token main capacity on 30/115 Stack Overflow and 26/101 Robotics queries. Actual Stack Overflow rerank inputs: 1582/2300 truncated and 600 retain no body across 30 queries. Mean nDCG delta is -0.2210 for those 30 queries and -0.1106 for the other 85; truncation alone cannot explain all loss. Robotics has1140/2020 truncated inputs and520 zero-body inputs across26 queries. T2 has3896/10000 truncated,zero zero-body inputs,and no aggregate metric change from tie-only replay.",
+      "next_control": "Reuse identical frozen candidate pools to compare a larger fixed input window, explicit query/document budgeting and an explicit no-rerank fallback when document text cannot fit. Register settings before new model runs. The frozen-score replay confirms that preserving hybrid order on exactly tied scores restores part of SO ranking loss. Validate this tie rule on independent data and together with explicit input budgeting; do not replace the original benchmark score.",
+      "measure": [
+        "ndcg@10",
+        "weighted aspect recall@10",
+        "zero-body input rate",
+        "reranking cost"
+      ],
+      "evidence": "audits/20260910-p4-rerank-query-preflight.json"
+    },
+    {
+      "id": "multi-hop-evidence-and-abstention",
+      "status": "complete_paired_run_and_posthoc_format_diagnostic",
+      "next_control": "Predeclare structured-output generation/parsing and report format compliance separately from content. Then compare completion/packing policies under fixed budgets and complete pairs; keep nonfinal and tool errors in denominators. Review actual support passages and claims before interpreting retrieval versus reasoning failure.",
+      "basis": "All 100 pairs/200 variants completed: 49 final,82 max_turns,62 evidence-budget stops,7 read errors. Strict format accepts8 outputs; unique JSON-code-block extraction accepts35 additional outputs without changing their fields. Strict answer F1=.072381, diagnostic=.213995; group sufficiency strict=0, diagnostic answer=.068238. These are protocol-dependent string metrics, not pure reasoning ability.",
+      "evidence": "reviews/p4-musique-20260910/summary.json"
+    },
+    {
+      "id": "duplicate-evidence-and-annotation-aliases",
+      "status": "exact-duplicate-audit-completed-remediation-unmeasured",
+      "basis": "Bright-Pro Stack Overflow has 109188 native IDs but 68375 distinct normalized title/body values; Robotics has 63920 IDs but 42382 values. Nine and four queries respectively have exact-text aliases of positive documents not labeled positive. Inspected examples include duplicated pandas/R/TeleBot and ROS/Gazebo reference passages.",
+      "next_control": "Keep the official native-ID score track intact. Review exact-text aliases and test evidence-content deduplication with retained source aliases on a separately versioned diagnostic track; preserve filename/provenance tasks and do not merge different revisions automatically.",
+      "measure": [
+        "unique evidence per fixed candidate/context budget",
+        "aspect coverage",
+        "known-positive alias sensitivity",
+        "cost"
+      ],
+      "evidence": "audits/20260910-p4-text-duplicates.json"
+    },
+    {
+      "id": "exact-search-scaling-and-enforced-deadlines",
+      "status": "completed_bright_diagnostics_product_remediation_unmeasured",
+      "basis": "First full-corpus Bright SO case spent more than 17 minutes in exact matching; native stack and interrupt traceback identify subprocess.run / per-document rg. Product cooperative deadline only checks between operations. Completed v2 SO run also records 22 document-ID reads averaging 2459 ms. Current DocumentAccess resolves IDs by enumerating paths; this is a profiling lead, not a measured causal optimization.",
+      "next_control": "Benchmark exact matching across fixed corpus sizes, hit rates and literal/regex/source cases; compare batched ripgrep or literal matching with identical spans/order/provenance. Separately test propagated cancellable deadlines and count interrupted work as failures. Include known-ID read lookup with edit/delete/rename/symlink regressions before considering a path-identity cache.",
+      "measure": [
+        "end-to-end wall time",
+        "time-to-first-result",
+        "subprocess count",
+        "deadline overshoot",
+        "exact output equivalence"
+      ],
+      "evidence": "audits/20260910-p4-agent-v1-interruption.json"
+    },
+    {
+      "id": "kb-dependent-retrieval-policy-and-evidence-budget",
+      "status": "all_public_agent_batches_completed",
+      "basis": "Fixed 25-query SO Agent run has six final responses with no submitted body evidence and five evidence-token budget stops. Mean submitted known-positive document recall is 0.2877. These are observations, not semantic quality labels. Robotics has8 evidence-budget stops; MuSiQue has62/200 evidence-budget stops and82/200 max_turns. These sources and tasks have different scopes; do not pool into a quality score.",
+      "next_control": "On independently labeled KB-dependent tasks, compare current optional retrieval policy with explicit grounding requirements, preserving no-retrieval task controls. Separately compare span-sized read/context packing at fixed budgets and retriever mode; retain every unsuccessful attempt.",
+      "measure": [
+        "reviewed answer correctness",
+        "claim support",
+        "unnecessary retrieval on no-retrieval tasks",
+        "submitted evidence coverage",
+        "budget stop rate",
+        "provider tokens and wall time"
+      ],
+      "evidence": "reviews/p4-bright-stackoverflow-20260910/summary.json"
+    },
+    {
+      "id": "tool-argument-binding-and-recoverable-errors",
+      "status": "actual_robotics_and_musique_errors_audited",
+      "basis": "Robotics fixed 25-query Agent run contains four read argument failures: two 0..1000 requests on 55/104-character bodies, one document ID combined with a section ID from another delivered hit, one malformed section ID. These end the current agent loop. There is also one distinct model-request hard timeout. MuSiQue adds7 read failures:5 malformed document IDs,1 mismatched existing ID/source and1 mutually exclusive section/range request.",
+      "next_control": "Compare explicit bounded-read semantics and compact runtime-owned evidence handles that bind document/section/range together. Separately evaluate returning validated recoverable tool errors to the model within the same total budget. Preserve path, revision and unknown-ID checks.",
+      "measure": [
+        "valid tool argument rate",
+        "recovered attempts",
+        "reviewed answer quality",
+        "additional tools/tokens",
+        "no unauthorized or cross-source reads"
+      ],
+      "evidence": "audits/20260910-p4-robotics-tool-errors.json"
+    }
+  ],
+  "required_before_promotion": [
+    "Independent reviewed ARKB gold and output quality",
+    "Unseen validation/test families",
+    "Predeclared quality/cost acceptance criteria",
+    "Matched production cost validation"
+  ],
+  "limits": [
+    "Public data can occur in model training.",
+    "Query bootstrap intervals are exploratory and not corrected for multiple comparisons.",
+    "Document coverage and completed execution do not establish answer correctness."
+  ],
+  "protocol_amendments": [
+    {
+      "from": "arkb-p4-agent-v1",
+      "to": "arkb-p4-agent-v2",
+      "reason": "Unbounded in-flight exact call before any case completed",
+      "incomplete_attempt": "results/p4-bright-stackoverflow-agent",
+      "hard_deadline_ms": 180000,
+      "product_budget_changed": false
+    },
+    {
+      "from": "agent-v2 instrumentation",
+      "to": "agent-v2.1 instrumentation",
+      "scope": "Additional MuSiQue per-case context-index cost/BuildReport logging; EvaluationDeadlineExceeded now derives from RuntimeError to avoid HTTP transports converting it to a network timeout. Agent limits, model, prompts, inputs and ranking code unchanged.",
+      "existing_run_effect": "Completed SO v2 has one tool timeout and zero model-request errors; no previously completed score is reclassified or rerun."
+    },
+    {
+      "from": "MuSiQue agent-v2",
+      "to": "MuSiQue agent-v3",
+      "reason": "The second source directory was correctly rejected by the production vault/source-scope guard.",
+      "change": "One fresh SQLite database per variant; no cross-variant embedding-cache reuse. Prompts, source identities, model, budgets, selection and production code are unchanged.",
+      "retained_attempt": "results/p4-musique-agent-v2",
+      "retained_completed_variants": 1,
+      "complete_pairs": 0,
+      "new_attempt": "results/p4-musique-agent-v3",
+      "repetition_disclosure": "First variant has one additional prior attempt; the complete v3 matrix is used without selecting the better output.",
+      "validation": "audits/20260910-p4-musique-context-isolation.json"
+    }
+  ],
+  "agent_diagnostics": {
+    "bright-stackoverflow": {
+      "attempted": 25,
+      "stop_reasons": {
+        "final": 17,
+        "budget": 5,
+        "max_turns": 2,
+        "error": 1
+      },
+      "final_without_submitted_body_evidence": 6,
+      "submitted_document_recall_proxy": 0.2876666666666667,
+      "submitted_weighted_aspect_coverage_proxy": 0.3536666666666667,
+      "answer_quality": "pending independent review",
+      "summary_sha256": "85cf20501796210cc18334c769048b57ada922f0e810cb67d0a0d4d8d2a83d21"
+    },
+    "bright-robotics": {
+      "attempted": 25,
+      "stop_reasons": {
+        "final": 8,
+        "budget": 8,
+        "error": 5,
+        "max_turns": 4
+      },
+      "final_without_submitted_body_evidence": 0,
+      "submitted_document_recall_proxy": 0.2535337995337995,
+      "submitted_weighted_aspect_coverage_proxy": 0.3384785214785214,
+      "answer_quality": "pending independent review",
+      "summary_sha256": "51aa75aa03edf18037f33a2769765cd9e76afeebcae5c081566476bde4a85ad7"
+    },
+    "musique": {
+      "attempted": 200,
+      "complete_pairs": 100,
+      "stop_reasons": {
+        "final": 49,
+        "max_turns": 82,
+        "error": 7,
+        "budget": 62
+      },
+      "strict_metrics": {
+        "answer_f1": 0.07238095238095238,
+        "answer_em": 0.06,
+        "support_f1": 0.07333333333333333,
+        "group_answer_sufficiency_f1": 0.0,
+        "group_support_sufficiency_f1": 0.0,
+        "answerability_accuracy": 0.04,
+        "groups": 100,
+        "rows": 200
+      },
+      "by_hops": {
+        "2": {
+          "metrics": {
+            "answer_f1": 0.21288515406162464,
+            "answer_em": 0.17647058823529413,
+            "support_f1": 0.2156862745098039,
+            "group_answer_sufficiency_f1": 0.0,
+            "group_support_sufficiency_f1": 0.0,
+            "answerability_accuracy": 0.11764705882352941,
+            "groups": 34,
+            "rows": 68
+          },
+          "stop_reasons": {
+            "final": 31,
+            "max_turns": 22,
+            "error": 4,
+            "budget": 11
+          },
+          "valid_structured_outputs": 8
+        },
+        "3": {
+          "metrics": {
+            "answer_f1": 0.0,
+            "answer_em": 0.0,
+            "support_f1": 0.0,
+            "group_answer_sufficiency_f1": 0.0,
+            "group_support_sufficiency_f1": 0.0,
+            "answerability_accuracy": 0.0,
+            "groups": 33,
+            "rows": 66
+          },
+          "stop_reasons": {
+            "max_turns": 27,
+            "final": 14,
+            "budget": 24,
+            "error": 1
+          },
+          "valid_structured_outputs": 0
+        },
+        "4": {
+          "metrics": {
+            "answer_f1": 0.0,
+            "answer_em": 0.0,
+            "support_f1": 0.0,
+            "group_answer_sufficiency_f1": 0.0,
+            "group_support_sufficiency_f1": 0.0,
+            "answerability_accuracy": 0.0,
+            "groups": 33,
+            "rows": 66
+          },
+          "stop_reasons": {
+            "final": 4,
+            "budget": 27,
+            "max_turns": 33,
+            "error": 2
+          },
+          "valid_structured_outputs": 0
+        }
+      },
+      "strict_answerability_confusion": {
+        "true": {
+          "true": 8,
+          "undefined": 92
+        },
+        "false": {
+          "undefined": 100
+        }
+      },
+      "paired_bootstrap": {
+        "unit": "complete original pair",
+        "seed": 20260910,
+        "resamples": 2000,
+        "ci95": {
+          "answer_f1": [
+            0.026666666666666665,
+            0.12238095238095237
+          ],
+          "answer_em": [
+            0.02,
+            0.11
+          ],
+          "support_f1": [
+            0.03,
+            0.12333333333333332
+          ],
+          "group_answer_sufficiency_f1": [
+            0.0,
+            0.0
+          ],
+          "group_support_sufficiency_f1": [
+            0.0,
+            0.0
+          ],
+          "answerability_accuracy": [
+            0.015,
+            0.065
+          ]
+        },
+        "limits": "Exploratory sampling intervals on this selected mixture; no multiple-comparison correction, no model retrials, and no correction for public-data training exposure."
+      },
+      "valid_structured_outputs": 8,
+      "invalid_final_outputs": 41,
+      "nonfinal_attempts": 151,
+      "summary_sha256": "62c59a40b7836ec3ad8d71f5b4f2128d8c2056322e684377797c0938988b888e",
+      "answer_quality": "Official answer-string/support metrics verified; independent semantic/claim-support review pending. Format failures materially confound strict scores."
+    }
+  },
+  "posthoc_policy_replays": [
+    {
+      "dataset": "bright-stackoverflow",
+      "policy": "Exact equal scores retain original frozen hybrid-pool order; all other scores and candidates are unchanged.",
+      "status": "offline_replay_completed_on_exposed_development_data",
+      "ndcg10_before": 0.3412274648761499,
+      "ndcg10_after": 0.3988712730147078,
+      "hybrid_ndcg10": 0.4806525133795389,
+      "all_effective_inputs_identical_queries": 30,
+      "all_scores_equal_queries": 30,
+      "reference_max_error": 2.220446049250313e-16,
+      "result_sha256": "1efb5f76fceb62790fc4d4be6a3a591db2b8beeddd7b8e8062fa6768f068d41e",
+      "production_adoption": false
+    },
+    {
+      "dataset": "scifact",
+      "policy": "Exact equal scores retain original frozen hybrid-pool order; all other scores and candidates are unchanged.",
+      "status": "offline_replay_completed_on_exposed_development_data",
+      "ndcg10_before": 0.766586327081165,
+      "ndcg10_after": 0.766586327081165,
+      "changed_rankings": 0,
+      "reference_max_error": 1.1102230246251565e-16,
+      "production_adoption": false
+    },
+    {
+      "dataset": "bright-robotics",
+      "policy": "Exact equal scores retain original frozen hybrid-pool order; all other scores and candidates are unchanged.",
+      "status": "offline_replay_completed_on_exposed_development_data",
+      "ndcg10_before": 0.2918556372269239,
+      "ndcg10_after": 0.3489859206644337,
+      "hybrid_ndcg10": 0.3904138067602195,
+      "all_effective_inputs_identical_queries": 26,
+      "all_scores_equal_queries": 26,
+      "reference_max_error": 2.220446049250313e-16,
+      "result_sha256": "5e86f4132008d47ff1ee706538dbf646f37a16b0ebf0a08d331ec0f238ddfb47",
+      "production_adoption": false
+    },
+    {
+      "dataset": "t2",
+      "policy": "Exact equal scores retain original frozen hybrid-pool order; all other scores and candidates are unchanged.",
+      "status": "offline_replay_completed_on_exposed_development_data",
+      "ndcg10_before": 0.8249209355491417,
+      "ndcg10_after": 0.8249209355491417,
+      "queries_with_score_ties": 12,
+      "changed_rankings": 3,
+      "reference_max_error": 3.3306690738754696e-16,
+      "result_sha256": "7c5a7851840bad8a0bcb734050b6b6a896188688bc1095af307f78b1da314ef8",
+      "production_adoption": false
+    }
+  ],
+  "completed_at_date": "2026-09-11",
+  "remaining_acceptance": {
+    "human_output_reviews": {
+      "completed": 0,
+      "exported": 250
+    },
+    "independent_arkb_core": "31 provisional families; 300-family target and independent review pending",
+    "real_release_holdout_attempts": 0,
+    "remote_ci": "not run",
+    "remote_long_term_storage": "not configured"
+  },
+  "posthoc_format_diagnostics": [
+    {
+      "dataset": "musique",
+      "policy": "Keep all strict-valid outputs and nonfinal failures. For a strict-invalid final only, extract exactly one json/unlabelled fenced code block, then apply the original exact schema/source checks. No field repair or choice by gold.",
+      "counts": {
+        "kept_strict_valid": 8,
+        "kept_nonfinal": 151,
+        "extracted_unique_valid_block": 35,
+        "no_unambiguous_json_block": 6
+      },
+      "strict_metrics": {
+        "answer_f1": 0.07238095238095238,
+        "answer_em": 0.06,
+        "support_f1": 0.07333333333333333,
+        "group_answer_sufficiency_f1": 0.0,
+        "group_support_sufficiency_f1": 0.0,
+        "answerability_accuracy": 0.04,
+        "groups": 100,
+        "rows": 200
+      },
+      "diagnostic_metrics": {
+        "answer_f1": 0.21399511599511598,
+        "answer_em": 0.18,
+        "support_f1": 0.2562142857142857,
+        "group_answer_sufficiency_f1": 0.06823809523809524,
+        "group_support_sufficiency_f1": 0.08,
+        "answerability_accuracy": 0.195,
+        "groups": 100,
+        "rows": 200
+      },
+      "summary_sha256": "6fbc7e141b70a72a8e0a900b43b931d46f3e1f4c6d9ad6aba7f5ea1dcc688847",
+      "official_check": "audits/20260910-p4-musique-format-official.json",
+      "primary_score_replaced": false,
+      "production_adoption": false
+    }
+  ],
+  "artifact_index": "experiments/p4-artifacts-20260910-manifest.json",
+  "production_source_consistency": "audits/20260910-p4-production-source-consistency-v2.json",
+  "maintenance_scope_update": {
+    "date": "2026-09-11",
+    "requested_scope": "English retrieval only",
+    "active_public_datasets": [
+      "scifact",
+      "bright-stackoverflow",
+      "bright-robotics",
+      "musique"
+    ],
+    "retired_work": "Language-specific tokenizer development and evaluation orchestration",
+    "retained": "All prior measurements and datasets; prior recommendations remain available in the pre-cleanup snapshot.",
+    "historical_status_unchanged": true,
+    "cleanup_report": "../docs/english-scope-cleanup.md"
+  }
+}

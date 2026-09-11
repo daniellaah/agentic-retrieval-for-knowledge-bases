@@ -15,7 +15,7 @@ from arkb.knowledge.sqlite import SQLiteStorage
 def sample():
     spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2,
                          document_template='title-body-v1')
-    note = Note(title='标题', content='正文 e\u0301\n', source='notes/a.md')
+    note = Note(title='Title', content='Body e\u0301\n', source='notes/a.md')
     record = ChunkRecord.from_note(whole_note_chunks([note])[0], note=note, vault_id='vault')
     manifest = IndexManifest(index_version='v1', vault_id='vault', embedding_spec=spec,
                              chunking_fingerprint=fingerprint_config({}), document_count=1, chunk_count=1)

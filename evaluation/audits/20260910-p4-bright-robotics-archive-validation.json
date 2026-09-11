@@ -1,0 +1,32 @@
+{
+  "archive_sha256": "632b45891fe7f33bd56ea67a18a502ccf3bb388c8606b68aada5d48053cff18a",
+  "replayed": [
+    {
+      "run": "p4-bright-robotics-lexical",
+      "rows_replayed": 101,
+      "reference_max_error": 2.220446049250313e-16,
+      "lexical_rankings_recomputed": 101,
+      "release_eligible": false
+    },
+    {
+      "run": "p4-bright-robotics-indexed",
+      "rows_replayed": 404,
+      "reference_max_error": 2.220446049250313e-16,
+      "rankings_reassembled": 404,
+      "source_body_spans_verified": 2020,
+      "release_eligible": false
+    },
+    {
+      "run": "p4-bright-robotics-agent-v2",
+      "rows_replayed": 25,
+      "model_requests_verified": 133,
+      "tool_events_verified": 124,
+      "source_spans_verified": 480,
+      "missing_error_results": 0,
+      "release_eligible": false
+    }
+  ],
+  "passed": true,
+  "scope": "No model or Qdrant calls; metric and ranking assembly integrity, not annotation truth.",
+  "release_eligible": false
+}

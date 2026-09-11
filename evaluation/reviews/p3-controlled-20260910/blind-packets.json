@@ -1,0 +1,3019 @@
+[
+  {
+    "packet": {
+      "schema_version": "arkb-output-review-v1",
+      "case": {
+        "id": "pilot_055",
+        "intent_family_id": "vectors",
+        "task_type": "evidence_gap",
+        "query": "解释截短 embedding 维度后的归一化要求，并报告本系统截短后实际节省了百分之多少延迟。",
+        "query_language": "zh",
+        "split": "dev",
+        "answerability": "partial",
+        "query_origin": "assistant_authored",
+        "annotation_status": "provisional",
+        "reviewers": [],
+        "evidence_requirements": [
+          {
+            "id": "facet-1",
+            "weight": 1,
+            "critical": true,
+            "alternatives": [
+              [
+                "e-42546abc40f0a3bc"
+              ]
+            ]
+          }
+        ],
+        "required_facts": [
+          "可以说明必要时重新归一化；本系统实测延迟节省比例未知，分开回答。"
+        ],
+        "expected_behavior": "可以说明必要时重新归一化；本系统实测延迟节省比例未知，分开回答。"
+      },
+      "answer": null,
+      "evidence": [
+        {
+          "document_id": "5052c035688b09be8f508dd552ebec10ef3e0c97be8cd4d18d52d2d7d29cb431",
+          "source": "17_embedding_quantization.md",
+          "title": "Reducing Vector Precision",
+          "content": "## Source\n\n[Hugging Face — Binary and Scalar Embedding Quantization for Significantly Faster and Cheaper Retrieval](https://huggingface.co/blog/embedding-quantization)",
+          "document_revision": "298546a13f158b4d8a1519f4b3160183715e63a96b45d41b69d91db88dc768bc",
+          "chunk_id": "0f5d3995023a3f2177b7160e1da068dd00ee88cc20c6c87e9eec96537f859d20",
+          "section_id": "20c4379d29b8abe168030b65a50cc4df7c08bb152ae9054976ca27cd8eb62cba",
+          "start_char": 566,
+          "end_char": 733,
+          "id": "E0_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "98b3ef425620799a9434c84610fc82a2374fe57c7f07158ce057a3e29919c4de",
+          "source": "18_embedding_benchmarks.md",
+          "title": "Task-Specific Embedding Evaluation",
+          "content": "## Source\n\n[Hugging Face — MTEB: Massive Text Embedding Benchmark](https://huggingface.co/blog/mteb)",
+          "document_revision": "b2c52b9d1d5579339a5c0a498a99ece9acad3848d2907000fc827a83c08cfebf",
+          "chunk_id": "97c0a25a2ca52f1d757e13461e60c2b04e7921f78184e9bc7ecd17043581cb35",
+          "section_id": "aed629e862937b3ca7c50a3bf83b26817b3f748fd0bb9623bc098e322d50fadb",
+          "start_char": 519,
+          "end_char": 619,
+          "id": "E0_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd134b2350e854fe5726d06276ac677f003ebe9c3aef6f135b406c723ba248c2",
+          "source": "16_matryoshka_embeddings.md",
+          "title": "Embeddings with Nested Dimensions",
+          "content": "## Source\n\n[Hugging Face — Introduction to Matryoshka Embedding Models](https://huggingface.co/blog/matryoshka)",
+          "document_revision": "f9ae212bcd47b3a8a1725dc38f0cb55f455e2bf36b46b986c80f5aecc21a45f1",
+          "chunk_id": "ebe01181ca146c77118a99103431b3be5448010fe1561461a922bcfd11eaf1f9",
+          "section_id": "431a91d23f6cdbafedf3cfb5cc387528833a8b15ff286531f403d2649cf50928",
+          "start_char": 566,
+          "end_char": 677,
+          "id": "E0_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd134b2350e854fe5726d06276ac677f003ebe9c3aef6f135b406c723ba248c2",
+          "source": "16_matryoshka_embeddings.md",
+          "title": "Embeddings with Nested Dimensions",
+          "content": "## Core idea\n\nMatryoshka embedding models are trained so useful information is retained in shorter prefixes of their output vectors. A system can use fewer dimensions for a cheaper initial search and retain longer vectors for a more detailed comparison. This behavior depends on the training method; arbitrary embedding dimensions are not automatically interchangeable.\n\n",
+          "document_revision": "f9ae212bcd47b3a8a1725dc38f0cb55f455e2bf36b46b986c80f5aecc21a45f1",
+          "chunk_id": "b8253aa9a578686574f06407e87e17de97b396df09a40d7dc55a727ded013310",
+          "section_id": "ce6268967bcced77e106ec2dc3040dccc99e8cd6cc36a9391abf0009174fd241",
+          "start_char": 0,
+          "end_char": 371,
+          "id": "E0_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "98b3ef425620799a9434c84610fc82a2374fe57c7f07158ce057a3e29919c4de",
+          "source": "18_embedding_benchmarks.md",
+          "title": "Task-Specific Embedding Evaluation",
+          "content": "## Core idea\n\nThe Massive Text Embedding Benchmark evaluates embeddings across tasks such as retrieval, classification, clustering, and semantic similarity. These tasks test different uses of the same numerical representation. A model that performs well on one task or language does not thereby establish its quality for every other application.\n\n",
+          "document_revision": "b2c52b9d1d5579339a5c0a498a99ece9acad3848d2907000fc827a83c08cfebf",
+          "chunk_id": "c68cbbf1f448659310286fc0c5b4d257303fbb42506970f4e584cce7ea5594da",
+          "section_id": "c5303c0aaa46b8cc2e82b042728026e44c54fa7943b777a15be8a21900420b91",
+          "start_char": 0,
+          "end_char": 347,
+          "id": "E0_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "5052c035688b09be8f508dd552ebec10ef3e0c97be8cd4d18d52d2d7d29cb431",
+          "source": "17_embedding_quantization.md",
+          "title": "Reducing Vector Precision",
+          "content": "## Source\n\n[Hugging Face — Binary and Scalar Embedding Quantization for Significantly Faster and Cheaper Retrieval](https://huggingface.co/blog/embedding-quantization)",
+          "document_revision": "298546a13f158b4d8a1519f4b3160183715e63a96b45d41b69d91db88dc768bc",
+          "chunk_id": null,
+          "section_id": "20c4379d29b8abe168030b65a50cc4df7c08bb152ae9054976ca27cd8eb62cba",
+          "start_char": 566,
+          "end_char": 733,
+          "id": "E1_0",
+          "tool": "read"
+        },
+        {
+          "document_id": "5052c035688b09be8f508dd552ebec10ef3e0c97be8cd4d18d52d2d7d29cb431",
+          "source": "17_embedding_quantization.md",
+          "title": "Reducing Vector Precision",
+          "content": "## Source\n\n[Hugging Face — Binary and Scalar Embedding Quantization for Significantly Faster and Cheaper Retrieval](https://huggingface.co/blog/embedding-quantization)",
+          "document_revision": "298546a13f158b4d8a1519f4b3160183715e63a96b45d41b69d91db88dc768bc",
+          "chunk_id": "0f5d3995023a3f2177b7160e1da068dd00ee88cc20c6c87e9eec96537f859d20",
+          "section_id": "20c4379d29b8abe168030b65a50cc4df7c08bb152ae9054976ca27cd8eb62cba",
+          "start_char": 566,
+          "end_char": 733,
+          "id": "E2_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "98b3ef425620799a9434c84610fc82a2374fe57c7f07158ce057a3e29919c4de",
+          "source": "18_embedding_benchmarks.md",
+          "title": "Task-Specific Embedding Evaluation",
+          "content": "## Source\n\n[Hugging Face — MTEB: Massive Text Embedding Benchmark](https://huggingface.co/blog/mteb)",
+          "document_revision": "b2c52b9d1d5579339a5c0a498a99ece9acad3848d2907000fc827a83c08cfebf",
+          "chunk_id": "97c0a25a2ca52f1d757e13461e60c2b04e7921f78184e9bc7ecd17043581cb35",
+          "section_id": "aed629e862937b3ca7c50a3bf83b26817b3f748fd0bb9623bc098e322d50fadb",
+          "start_char": 519,
+          "end_char": 619,
+          "id": "E2_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd134b2350e854fe5726d06276ac677f003ebe9c3aef6f135b406c723ba248c2",
+          "source": "16_matryoshka_embeddings.md",
+          "title": "Embeddings with Nested Dimensions",
+          "content": "## Core idea\n\nMatryoshka embedding models are trained so useful information is retained in shorter prefixes of their output vectors. A system can use fewer dimensions for a cheaper initial search and retain longer vectors for a more detailed comparison. This behavior depends on the training method; arbitrary embedding dimensions are not automatically interchangeable.\n\n",
+          "document_revision": "f9ae212bcd47b3a8a1725dc38f0cb55f455e2bf36b46b986c80f5aecc21a45f1",
+          "chunk_id": "b8253aa9a578686574f06407e87e17de97b396df09a40d7dc55a727ded013310",
+          "section_id": "ce6268967bcced77e106ec2dc3040dccc99e8cd6cc36a9391abf0009174fd241",
+          "start_char": 0,
+          "end_char": 371,
+          "id": "E2_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd134b2350e854fe5726d06276ac677f003ebe9c3aef6f135b406c723ba248c2",
+          "source": "16_matryoshka_embeddings.md",
+          "title": "Embeddings with Nested Dimensions",
+          "content": "## Source\n\n[Hugging Face — Introduction to Matryoshka Embedding Models](https://huggingface.co/blog/matryoshka)",
+          "document_revision": "f9ae212bcd47b3a8a1725dc38f0cb55f455e2bf36b46b986c80f5aecc21a45f1",
+          "chunk_id": "ebe01181ca146c77118a99103431b3be5448010fe1561461a922bcfd11eaf1f9",
+          "section_id": "431a91d23f6cdbafedf3cfb5cc387528833a8b15ff286531f403d2649cf50928",
+          "start_char": 566,
+          "end_char": 677,
+          "id": "E2_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "5052c035688b09be8f508dd552ebec10ef3e0c97be8cd4d18d52d2d7d29cb431",
+          "source": "17_embedding_quantization.md",
+          "title": "Reducing Vector Precision",
+          "content": "## Practical implication\n\nMeasure the quality and memory trade-off on representative data. Lower precision and fewer dimensions are different changes to an embedding representation.\n\n",
+          "document_revision": "298546a13f158b4d8a1519f4b3160183715e63a96b45d41b69d91db88dc768bc",
+          "chunk_id": "db13a729409ad41c77df355f74134e941380c88a6ea6c1c485bbc23489c1c4ac",
+          "section_id": "241afbc0160647639ae1cbfb31cfeb3b05f1449b62a99b2334a23493421a7fc5",
+          "start_char": 383,
+          "end_char": 566,
+          "id": "E2_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd134b2350e854fe5726d06276ac677f003ebe9c3aef6f135b406c723ba248c2",
+          "source": "16_matryoshka_embeddings.md",
+          "title": "Embeddings with Nested Dimensions",
+          "content": "## Core idea\n\nMatryoshka embedding models are trained so useful information is retained in shorter prefixes of their output vectors. A system can use fewer dimensions for a cheaper initial search and retain longer vectors for a more detailed comparison. This behavior depends on the training method; arbitrary embedding dimensions are not automatically interchangeable.\n\n",
+          "document_revision": "f9ae212bcd47b3a8a1725dc38f0cb55f455e2bf36b46b986c80f5aecc21a45f1",
+          "chunk_id": null,
+          "section_id": "ce6268967bcced77e106ec2dc3040dccc99e8cd6cc36a9391abf0009174fd241",
+          "start_char": 0,
+          "end_char": 371,
+          "id": "E3_0",
+          "tool": "read"
+        },
+        {
+          "document_id": "fd134b2350e854fe5726d06276ac677f003ebe9c3aef6f135b406c723ba248c2",
+          "source": "16_matryoshka_embeddings.md",
+          "title": "Embeddings with Nested Dimensions",
+          "content": "## Practical implication\n\nMeasure quality at the chosen dimension. After truncating a normalized vector, normalize the shorter vector again when the similarity calculation requires unit length.\n\n",
+          "document_revision": "f9ae212bcd47b3a8a1725dc38f0cb55f455e2bf36b46b986c80f5aecc21a45f1",
+          "chunk_id": "e608666c7e507306fd2e202e1f36a60bbf9f232ef9fd25bb50370cb3d24d122a",
+          "section_id": "42ba0fc0c8ddd37d250eb10121fad17107774b47c918112a1246d60bdb25610a",
+          "start_char": 371,
+          "end_char": 566,
+          "id": "E4_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "5052c035688b09be8f508dd552ebec10ef3e0c97be8cd4d18d52d2d7d29cb431",
+          "source": "17_embedding_quantization.md",
+          "title": "Reducing Vector Precision",
+          "content": "## Source\n\n[Hugging Face — Binary and Scalar Embedding Quantization for Significantly Faster and Cheaper Retrieval](https://huggingface.co/blog/embedding-quantization)",
+          "document_revision": "298546a13f158b4d8a1519f4b3160183715e63a96b45d41b69d91db88dc768bc",
+          "chunk_id": "0f5d3995023a3f2177b7160e1da068dd00ee88cc20c6c87e9eec96537f859d20",
+          "section_id": "20c4379d29b8abe168030b65a50cc4df7c08bb152ae9054976ca27cd8eb62cba",
+          "start_char": 566,
+          "end_char": 733,
+          "id": "E4_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "98b3ef425620799a9434c84610fc82a2374fe57c7f07158ce057a3e29919c4de",
+          "source": "18_embedding_benchmarks.md",
+          "title": "Task-Specific Embedding Evaluation",
+          "content": "## Source\n\n[Hugging Face — MTEB: Massive Text Embedding Benchmark](https://huggingface.co/blog/mteb)",
+          "document_revision": "b2c52b9d1d5579339a5c0a498a99ece9acad3848d2907000fc827a83c08cfebf",
+          "chunk_id": "97c0a25a2ca52f1d757e13461e60c2b04e7921f78184e9bc7ecd17043581cb35",
+          "section_id": "aed629e862937b3ca7c50a3bf83b26817b3f748fd0bb9623bc098e322d50fadb",
+          "start_char": 519,
+          "end_char": 619,
+          "id": "E4_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd134b2350e854fe5726d06276ac677f003ebe9c3aef6f135b406c723ba248c2",
+          "source": "16_matryoshka_embeddings.md",
+          "title": "Embeddings with Nested Dimensions",
+          "content": "## Source\n\n[Hugging Face — Introduction to Matryoshka Embedding Models](https://huggingface.co/blog/matryoshka)",
+          "document_revision": "f9ae212bcd47b3a8a1725dc38f0cb55f455e2bf36b46b986c80f5aecc21a45f1",
+          "chunk_id": "ebe01181ca146c77118a99103431b3be5448010fe1561461a922bcfd11eaf1f9",
+          "section_id": "431a91d23f6cdbafedf3cfb5cc387528833a8b15ff286531f403d2649cf50928",
+          "start_char": 566,
+          "end_char": 677,
+          "id": "E4_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd134b2350e854fe5726d06276ac677f003ebe9c3aef6f135b406c723ba248c2",
+          "source": "16_matryoshka_embeddings.md",
+          "title": "Embeddings with Nested Dimensions",
+          "content": "## Core idea\n\nMatryoshka embedding models are trained so useful information is retained in shorter prefixes of their output vectors. A system can use fewer dimensions for a cheaper initial search and retain longer vectors for a more detailed comparison. This behavior depends on the training method; arbitrary embedding dimensions are not automatically interchangeable.\n\n",
+          "document_revision": "f9ae212bcd47b3a8a1725dc38f0cb55f455e2bf36b46b986c80f5aecc21a45f1",
+          "chunk_id": "b8253aa9a578686574f06407e87e17de97b396df09a40d7dc55a727ded013310",
+          "section_id": "ce6268967bcced77e106ec2dc3040dccc99e8cd6cc36a9391abf0009174fd241",
+          "start_char": 0,
+          "end_char": 371,
+          "id": "E4_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "5052c035688b09be8f508dd552ebec10ef3e0c97be8cd4d18d52d2d7d29cb431",
+          "source": "17_embedding_quantization.md",
+          "title": "Reducing Vector Precision",
+          "content": "## Source\n\n[Hugging Face — Binary and Scalar Embedding Quantization for Significantly Faster and Cheaper Retrieval](https://huggingface.co/blog/embedding-quantization)",
+          "document_revision": "298546a13f158b4d8a1519f4b3160183715e63a96b45d41b69d91db88dc768bc",
+          "chunk_id": "0f5d3995023a3f2177b7160e1da068dd00ee88cc20c6c87e9eec96537f859d20",
+          "section_id": "20c4379d29b8abe168030b65a50cc4df7c08bb152ae9054976ca27cd8eb62cba",
+          "start_char": 566,
+          "end_char": 733,
+          "id": "E5_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "98b3ef425620799a9434c84610fc82a2374fe57c7f07158ce057a3e29919c4de",
+          "source": "18_embedding_benchmarks.md",
+          "title": "Task-Specific Embedding Evaluation",
+          "content": "## Source\n\n[Hugging Face — MTEB: Massive Text Embedding Benchmark](https://huggingface.co/blog/mteb)",
+          "document_revision": "b2c52b9d1d5579339a5c0a498a99ece9acad3848d2907000fc827a83c08cfebf",
+          "chunk_id": "97c0a25a2ca52f1d757e13461e60c2b04e7921f78184e9bc7ecd17043581cb35",
+          "section_id": "aed629e862937b3ca7c50a3bf83b26817b3f748fd0bb9623bc098e322d50fadb",
+          "start_char": 519,
+          "end_char": 619,
+          "id": "E5_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd134b2350e854fe5726d06276ac677f003ebe9c3aef6f135b406c723ba248c2",
+          "source": "16_matryoshka_embeddings.md",
+          "title": "Embeddings with Nested Dimensions",
+          "content": "## Source\n\n[Hugging Face — Introduction to Matryoshka Embedding Models](https://huggingface.co/blog/matryoshka)",
+          "document_revision": "f9ae212bcd47b3a8a1725dc38f0cb55f455e2bf36b46b986c80f5aecc21a45f1",
+          "chunk_id": "ebe01181ca146c77118a99103431b3be5448010fe1561461a922bcfd11eaf1f9",
+          "section_id": "431a91d23f6cdbafedf3cfb5cc387528833a8b15ff286531f403d2649cf50928",
+          "start_char": 566,
+          "end_char": 677,
+          "id": "E5_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "5052c035688b09be8f508dd552ebec10ef3e0c97be8cd4d18d52d2d7d29cb431",
+          "source": "17_embedding_quantization.md",
+          "title": "Reducing Vector Precision",
+          "content": "## Practical implication\n\nMeasure the quality and memory trade-off on representative data. Lower precision and fewer dimensions are different changes to an embedding representation.\n\n",
+          "document_revision": "298546a13f158b4d8a1519f4b3160183715e63a96b45d41b69d91db88dc768bc",
+          "chunk_id": "db13a729409ad41c77df355f74134e941380c88a6ea6c1c485bbc23489c1c4ac",
+          "section_id": "241afbc0160647639ae1cbfb31cfeb3b05f1449b62a99b2334a23493421a7fc5",
+          "start_char": 383,
+          "end_char": 566,
+          "id": "E5_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd134b2350e854fe5726d06276ac677f003ebe9c3aef6f135b406c723ba248c2",
+          "source": "16_matryoshka_embeddings.md",
+          "title": "Embeddings with Nested Dimensions",
+          "content": "## Core idea\n\nMatryoshka embedding models are trained so useful information is retained in shorter prefixes of their output vectors. A system can use fewer dimensions for a cheaper initial search and retain longer vectors for a more detailed comparison. This behavior depends on the training method; arbitrary embedding dimensions are not automatically interchangeable.\n\n",
+          "document_revision": "f9ae212bcd47b3a8a1725dc38f0cb55f455e2bf36b46b986c80f5aecc21a45f1",
+          "chunk_id": "b8253aa9a578686574f06407e87e17de97b396df09a40d7dc55a727ded013310",
+          "section_id": "ce6268967bcced77e106ec2dc3040dccc99e8cd6cc36a9391abf0009174fd241",
+          "start_char": 0,
+          "end_char": 371,
+          "id": "E5_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "5052c035688b09be8f508dd552ebec10ef3e0c97be8cd4d18d52d2d7d29cb431",
+          "source": "17_embedding_quantization.md",
+          "title": "Reducing Vector Precision",
+          "content": "## Source\n\n[Hugging Face — Binary and Scalar Embedding Quantization for Significantly Faster and Cheaper Retrieval](https://huggingface.co/blog/embedding-quantization)",
+          "document_revision": "298546a13f158b4d8a1519f4b3160183715e63a96b45d41b69d91db88dc768bc",
+          "chunk_id": null,
+          "section_id": "20c4379d29b8abe168030b65a50cc4df7c08bb152ae9054976ca27cd8eb62cba",
+          "start_char": 566,
+          "end_char": 733,
+          "id": "E6_0",
+          "tool": "read"
+        }
+      ],
+      "stop_reason": "max_turns",
+      "execution_error": null,
+      "packet_sha256": "327075ff6c0ac76546dc713de9d5831f41f0553a3527f313db1f77650aaa8980"
+    },
+    "review": {
+      "packet_sha256": "327075ff6c0ac76546dc713de9d5831f41f0553a3527f313db1f77650aaa8980",
+      "status": "pending",
+      "reviewer": null,
+      "criteria": {
+        "fact_correct": null,
+        "fact_complete": null,
+        "claims_supported": null,
+        "citations_complete": null,
+        "task_fulfilled": null
+      },
+      "rationale": null
+    }
+  },
+  {
+    "packet": {
+      "schema_version": "arkb-output-review-v1",
+      "case": {
+        "id": "pilot_024",
+        "intent_family_id": "structure",
+        "task_type": "exploratory_retrieval",
+        "query": "收集两种避免片段脱离语境的方法：改切分边界和为片段补局部背景。",
+        "query_language": "zh",
+        "split": "dev",
+        "answerability": "answerable",
+        "query_origin": "assistant_authored",
+        "annotation_status": "provisional",
+        "reviewers": [],
+        "evidence_requirements": [
+          {
+            "id": "facet-1",
+            "weight": 1,
+            "critical": true,
+            "alternatives": [
+              [
+                "e-3a512fa4908fbf98"
+              ]
+            ]
+          },
+          {
+            "id": "facet-2",
+            "weight": 1,
+            "critical": true,
+            "alternatives": [
+              [
+                "e-44c7d3085e14752d"
+              ]
+            ]
+          }
+        ],
+        "required_facts": [
+          "边界保留完整含义；补充片段特定背景应对照原文。"
+        ],
+        "expected_behavior": "边界保留完整含义；补充片段特定背景应对照原文。"
+      },
+      "answer": "根据检索到的资料，以下是两种避免片段脱离语境的方法：\n\n---\n\n## 1. 改切分边界（Choosing Meaningful Chunk Boundaries）\n\n### 核心思想\n切片决定了从文档中存储和检索的单位。固定大小的切片控制长度，而内容感知的切片遵循段落或章节等边界。**片段应保留足够的上下文以便在独立检索时有用**。\n\n- 非常小的片段会失去意义\n- 过大的片段可能包含不相关内容\n\n### 实践建议\n测试切片是否针对实际问题和文档结构有效。当定义或条件本会被与它所修饰的主张分离时，**保留附近的上下文**。\n\n---\n\n## 2. 为片段补局部背景（Adding Document Context to Chunks）\n\n### 核心思想\n检索的段落可能包含有用的事实，但缺少解释该段落的公司、主题或时期所需的上下文。**上下文检索在构建嵌入和词汇索引条目之前，在该段落前附加一个针对该段落的具体简短说明**。该说明将段落置于更大的文档中。\n\n### 实践建议\n- **使用能够解决特定段落的上下文**，而不是到处附加相同的通用摘要\n- **在将其视为证据之前，检查添加的文本是否与源一致**\n\n---\n\n## 总结对比\n\n| 方法 | 核心策略 | 适用场景 |\n|------|----------|----------|\n| 改切分边界 | 调整切片位置，保留相关上下文 | 文档结构清晰、有明确段落/章节边界时 |\n| 补局部背景 | 在片段前添加针对性说明 | 片段本身信息完整但缺少解释性背景时 |\n\n这两种方法的核心目标一致：**确保检索的片段能够独立使用时保持语义完整性**，避免\"孤立的句子无法理解其含义\"的问题。",
+      "evidence": [
+        {
+          "document_id": "561f9d2a61d6a1eba4bba872cf5ad1c7e0d43350e4cc826333b8f0c921d44981",
+          "source": "15_chunk_boundaries.md",
+          "title": "Choosing Meaningful Chunk Boundaries",
+          "content": "## Practical implication\n\nTest chunking against actual questions and document structure. Preserve nearby context when a definition or condition would otherwise be separated from the claim it qualifies.\n\n",
+          "document_revision": "704bbc29a4c69e8699409119d01922c73b951dad7398c4ec4f1ee134d89762d4",
+          "chunk_id": "b417dd0d68d93fae484bd526d63ae9cefdc679692c1fa3be255cd96a6d8a0731",
+          "section_id": "c1a25399b612030d06baa7a111df0d1d33ce95e3f08132c2a7226d1cc9c2d629",
+          "start_char": 376,
+          "end_char": 579,
+          "id": "E0_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "561f9d2a61d6a1eba4bba872cf5ad1c7e0d43350e4cc826333b8f0c921d44981",
+          "source": "15_chunk_boundaries.md",
+          "title": "Choosing Meaningful Chunk Boundaries",
+          "content": "## Core idea\n\nChunking determines the unit stored and retrieved from a document. Fixed-size splitting controls length, while content-aware splitting follows boundaries such as paragraphs or sections. A fragment should retain enough context to be useful when retrieved independently. Very small fragments can lose meaning, while large fragments can include unrelated content.\n\n",
+          "document_revision": "704bbc29a4c69e8699409119d01922c73b951dad7398c4ec4f1ee134d89762d4",
+          "chunk_id": "f9a8d0d39784fb34fb98ae0e8ac601b5e4c30b5e3777043e22d16f1fbe5f85cf",
+          "section_id": "cee16bcc821c8385fadaf17dd443d582de7783d7f32c2022749237080448ad41",
+          "start_char": 0,
+          "end_char": 376,
+          "id": "E0_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "561f9d2a61d6a1eba4bba872cf5ad1c7e0d43350e4cc826333b8f0c921d44981",
+          "source": "15_chunk_boundaries.md",
+          "title": "Choosing Meaningful Chunk Boundaries",
+          "content": "## Source\n\n[Pinecone — Chunking Strategies for LLM Applications](https://www.pinecone.io/learn/chunking-strategies/)",
+          "document_revision": "704bbc29a4c69e8699409119d01922c73b951dad7398c4ec4f1ee134d89762d4",
+          "chunk_id": "4d2532d3cdb30b128fb2ca39cdc868e7e946c22b018bdb48def1747214671382",
+          "section_id": "c173bda4b5892fd4ea3ce9641fdcae568e92d757ee0af5c37d8643b2303e2204",
+          "start_char": 579,
+          "end_char": 695,
+          "id": "E0_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "a0661055864bb8dabba6bca8b8ed8f6818b70cad83ad4b2895e934aac160f53f",
+          "source": "12_contextual_retrieval.md",
+          "title": "Adding Document Context to Chunks",
+          "content": "## Practical implication\n\nUse context that resolves the particular passage, rather than attaching the same generic summary everywhere. Check the added text against the source before treating it as evidence.\n\n",
+          "document_revision": "1b63583006dac8d3a0a6619115e3feb3fecad68d6aefcbf5f938e30c02e1fcc0",
+          "chunk_id": "e03bc3bf7d73278d72ad09d4eb39a9087688f5e3762126d929e7f3b8d9a15e55",
+          "section_id": "a84a05203533417bb5983eede5d8a7ae1001c1d98d1446ce6f9f5d78f74b8c24",
+          "start_char": 321,
+          "end_char": 529,
+          "id": "E0_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "b8bf80d7b1464caa517b0a2cbbfbe3494f9e9fd850e72eea03c61dd9c9dd666b",
+          "source": "06_context_compaction.md",
+          "title": "Compaction and Persistent Agent Notes",
+          "content": "## Practical implication\n\nCheck what survives a context reset. An aggressively shortened summary can omit a constraint that becomes important later in the task.\n\n",
+          "document_revision": "a78dce08c9cafad1931a2f2073e5e2721fcb7f4e040c294911277e70d1dc9bb5",
+          "chunk_id": "10af5e2437faa5d71fa153dd191868dbb14f935306f0107901b9bbc103a3c8fb",
+          "section_id": "545d3ace82bdc4b6512a5c83e636d915d22eb44e3f03ae3427c05b989c09f03a",
+          "start_char": 380,
+          "end_char": 542,
+          "id": "E0_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "561f9d2a61d6a1eba4bba872cf5ad1c7e0d43350e4cc826333b8f0c921d44981",
+          "source": "15_chunk_boundaries.md",
+          "title": "Choosing Meaningful Chunk Boundaries",
+          "content": "## Core idea\n\nChunking determines the unit stored and retrieved from a document. Fixed-size splitting controls length, while content-aware splitting follows boundaries such as paragraphs or sections. A fragment should retain enough context to be useful when retrieved independently. Very small fragments can lose meaning, while large fragments can include unrelated content.\n\n## Practical implication\n\nTest chunking against actual questions and document structure. Preserve nearby context when a definition or condition would otherwise be separated from the claim it qualifies.\n\n## Source\n\n[Pinecone — Chunking Strategies for LLM Applications](https://www.pinecone.io/learn/chunking-strategies/)",
+          "document_revision": "704bbc29a4c69e8699409119d01922c73b951dad7398c4ec4f1ee134d89762d4",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": 0,
+          "end_char": 695,
+          "id": "E1_0",
+          "tool": "read"
+        },
+        {
+          "document_id": "a0661055864bb8dabba6bca8b8ed8f6818b70cad83ad4b2895e934aac160f53f",
+          "source": "12_contextual_retrieval.md",
+          "title": "Adding Document Context to Chunks",
+          "content": "## Core idea\n\nA retrieved passage may contain a useful fact but omit the company, subject, or period needed to interpret it. Contextual Retrieval prepends a short explanation specific to that passage before building its embedding and lexical index entry. The explanation situates the passage within the larger document.\n\n## Practical implication\n\nUse context that resolves the particular passage, rather than attaching the same generic summary everywhere. Check the added text against the source before treating it as evidence.\n\n## Source\n\n[Anthropic — Introducing Contextual Retrieval](https://www.anthropic.com/engineering/contextual-retrieval)",
+          "document_revision": "1b63583006dac8d3a0a6619115e3feb3fecad68d6aefcbf5f938e30c02e1fcc0",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": 0,
+          "end_char": 646,
+          "id": "E2_0",
+          "tool": "read"
+        },
+        {
+          "document_id": "b8bf80d7b1464caa517b0a2cbbfbe3494f9e9fd850e72eea03c61dd9c9dd666b",
+          "source": "06_context_compaction.md",
+          "title": "Compaction and Persistent Agent Notes",
+          "content": "## Core idea\n\nA long-running conversation can exceed the context available for the next model call. Compaction summarizes earlier history so work can continue with a smaller active context. Persistent notes keep selected facts outside that context for later retrieval. Useful summaries preserve decisions, unresolved problems, and dependencies while removing redundant material.\n\n## Practical implication\n\nCheck what survives a context reset. An aggressively shortened summary can omit a constraint that becomes important later in the task.\n\n## Source\n\n[Anthropic — Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)",
+          "document_revision": "a78dce08c9cafad1931a2f2073e5e2721fcb7f4e040c294911277e70d1dc9bb5",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": 0,
+          "end_char": 693,
+          "id": "E3_0",
+          "tool": "read"
+        }
+      ],
+      "stop_reason": "final",
+      "execution_error": null,
+      "packet_sha256": "c2eed4564d0eb0e136fc021456c4efd250ff8cd62849ac5934be394e154fda55"
+    },
+    "review": {
+      "packet_sha256": "c2eed4564d0eb0e136fc021456c4efd250ff8cd62849ac5934be394e154fda55",
+      "status": "pending",
+      "reviewer": null,
+      "criteria": {
+        "fact_correct": null,
+        "fact_complete": null,
+        "claims_supported": null,
+        "citations_complete": null,
+        "task_fulfilled": null
+      },
+      "rationale": null
+    }
+  },
+  {
+    "packet": {
+      "schema_version": "arkb-output-review-v1",
+      "case": {
+        "id": "pilot_001",
+        "intent_family_id": "control",
+        "task_type": "semantic_discovery",
+        "query": "我想让助手根据刚获得的信息决定下一步，而不是执行写死的步骤。找一篇能说明这种区别的笔记。",
+        "query_language": "zh",
+        "split": "dev",
+        "answerability": "answerable",
+        "query_origin": "assistant_authored",
+        "annotation_status": "provisional",
+        "reviewers": [],
+        "evidence_requirements": [
+          {
+            "id": "facet-1",
+            "weight": 1,
+            "critical": true,
+            "alternatives": [
+              [
+                "e-f7a85cf56b8e377f"
+              ]
+            ]
+          }
+        ],
+        "required_facts": [
+          "模型随新信息选择下一步动作，预定义步骤属于 workflow。"
+        ],
+        "expected_behavior": "模型随新信息选择下一步动作，预定义步骤属于 workflow。"
+      },
+      "answer": "找到了！这篇笔记清楚地说明了这种区别：\n\n## 《Workflows and Autonomous Agents》 (01_workflows_and_agents.md)\n\n### Core idea\n\n> **A workflow follows a sequence of steps chosen by its developer.**  \n> **An agent lets the model choose its next actions and tools as new information arrives.**\n\n**预测性任务（predictable tasks）通常适合工作流，而开放式任务（open-ended tasks）可以受益于智能体对环境反馈的响应。**\n\n---\n\n### 关键区别总结\n\n| 模式 | 决策方式 | 适用场景 |\n|------|----------|----------|\n| **Workflow** | 由开发者预先设定步骤序列 | 可预测、结构化的任务 |\n| **Agent** | 模型根据新信息动态选择下一步行动和工具 | 开放式、需要环境反馈的任务 |\n\n### Practical implication\n\n> Choose the amount of autonomy around the task. Tool access alone does not determine whether the control flow is a workflow or an agent.\n\n（选择合适的自主程度。仅拥有工具访问权限并不能决定控制流是工作流还是智能体。）\n\n这篇笔记来自 Anthropic 的《Building effective agents》文章，很好地说明了\"写死步骤\"与\"根据信息动态决策\"的区别。",
+      "evidence": [
+        {
+          "document_id": "2fe9bedd8c5558d97626668a499f8171f09e4fc59f6744a381023724cdee851a",
+          "source": "08_think_tool.md",
+          "title": "Reasoning Between Tool Calls",
+          "content": "## Practical implication\n\nEvaluate this pattern on sequential decisions that require interpreting tool output. Its role differs from reasoning performed before the model starts its response.\n\n",
+          "document_revision": "461e6285868758153beb6319652998cf21ae76560e64441bb9ca0f4fb7253043",
+          "chunk_id": "0a982ffd982f6b138e546e1cafc73f9ff56e84a85712df8dc2e0cae72555213f",
+          "section_id": "4469f61339fa3a51ad49cadad6de0fe3a5845d3ed52fc5d2b90fc7ab2650cfe5",
+          "start_char": 347,
+          "end_char": 539,
+          "id": "E0_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "56a5a53abac067c1af669ed5ec1811a96dc4dfccede9e92988cf65febc35d2ff",
+          "source": "22_process_supervision.md",
+          "title": "Feedback on Reasoning Steps",
+          "content": "## Source\n\n[OpenAI — Improving mathematical reasoning with process supervision](https://openai.com/index/improving-mathematical-reasoning-with-process-supervision/)",
+          "document_revision": "9e0744f84a7271ebd4c62ca39bf5fc13a69281051a944b7830bbd680a53d9cae",
+          "chunk_id": "00fc33faa8bef48fb8c89629ee9fccaa3246e4986c53916d22ac73a582e647e2",
+          "section_id": "e658411a4d745427455017c4060a4e4bdd9b0da4e505a9df6f11d88c043e3733",
+          "start_char": 543,
+          "end_char": 707,
+          "id": "E0_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "b1fbd7aca4a7d663d6f98ebfeee521cda233169b059a4c0fe387a607a8af7b06",
+          "source": "01_workflows_and_agents.md",
+          "title": "Workflows and Autonomous Agents",
+          "content": "## Core idea\n\nA workflow follows a sequence of steps chosen by its developer. An agent lets the model choose its next actions and tools as new information arrives. Predictable tasks often suit workflows, while open-ended tasks can benefit from an agent responding to environmental feedback.\n\n",
+          "document_revision": "ec307af16f0048ff663b6694d3a758ef946b9e73bb4985657660a51d09a3b684",
+          "chunk_id": "6d63be366584e239e3df518347aaeba415e61eb019f0bd83dfc83b3e579d65f8",
+          "section_id": "e9b46fe3c97028a4926379a67aaf2feb69071427b8f99d828e842168bcabf98b",
+          "start_char": 0,
+          "end_char": 292,
+          "id": "E0_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "2fe9bedd8c5558d97626668a499f8171f09e4fc59f6744a381023724cdee851a",
+          "source": "08_think_tool.md",
+          "title": "Reasoning Between Tool Calls",
+          "content": "## Core idea\n\nThe think-tool pattern gives an agent a designated step to review newly received information during a tool-use sequence. It is especially relevant when the next action depends on earlier results or detailed policies. The tool provides a place for reasoning; it does not itself fetch new evidence or modify the external environment.\n\n",
+          "document_revision": "461e6285868758153beb6319652998cf21ae76560e64441bb9ca0f4fb7253043",
+          "chunk_id": "0a5329092b224371c86807c1d8a52e7ae7dfa26e911bf19d49e8c2acf27fa004",
+          "section_id": "f39e329548be72269fd8693c5219a73d425272056a99734bab3075cae84e6528",
+          "start_char": 0,
+          "end_char": 347,
+          "id": "E0_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "8212f71e75fb40d6769b28bf94911d786ce045b1755fffffb40f1719a624691e",
+          "source": "pilot_service_3.md",
+          "title": "Fictional service F3",
+          "content": "Synthetic evaluation fixture. Service F3 delegates its retention policy to pilot_policy_3.md. The archived policy is not current.",
+          "document_revision": "c893dcda9dbe45de1ccfe014e621202f040b3600856f9f054324c8fc2eb33f03",
+          "chunk_id": "875f62f8eb4462347abf5ac506048d1fc0db9b782b0fa0a9504010da4803203f",
+          "section_id": "4c1a93cec23778ee2ab3fc3935700f58dbe1c121b934141642ade239b2ddb17f",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E0_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "b1fbd7aca4a7d663d6f98ebfeee521cda233169b059a4c0fe387a607a8af7b06",
+          "source": "01_workflows_and_agents.md",
+          "title": "Workflows and Autonomous Agents",
+          "content": "## Core idea\n\nA workflow follows a sequence of steps chosen by its developer. An agent lets the model choose its next actions and tools as new information arrives. Predictable tasks often suit workflows, while open-ended tasks can benefit from an agent responding to environmental feedback.\n\n## Practical implication\n\nChoose the amount of autonomy around the task. Tool access alone does not determine whether the control flow is a workflow or an agent.\n\n## Source\n\n[Anthropic — Building effective agents](https://www.anthropic.com/engineering/building-effective-agents)",
+          "document_revision": "ec307af16f0048ff663b6694d3a758ef946b9e73bb4985657660a51d09a3b684",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": 0,
+          "end_char": 570,
+          "id": "E1_0",
+          "tool": "read"
+        }
+      ],
+      "stop_reason": "final",
+      "execution_error": null,
+      "packet_sha256": "c69ec8b6ed377fe28437aad667d9ff4a09cd77df7a367326e3131e81d0650b63"
+    },
+    "review": {
+      "packet_sha256": "c69ec8b6ed377fe28437aad667d9ff4a09cd77df7a367326e3131e81d0650b63",
+      "status": "pending",
+      "reviewer": null,
+      "criteria": {
+        "fact_correct": null,
+        "fact_complete": null,
+        "claims_supported": null,
+        "citations_complete": null,
+        "task_fulfilled": null
+      },
+      "rationale": null
+    }
+  },
+  {
+    "packet": {
+      "schema_version": "arkb-output-review-v1",
+      "case": {
+        "id": "pilot_049",
+        "intent_family_id": "protocol",
+        "task_type": "direct_read",
+        "query": "只读取 10_mcp_connections.md，说明客户端与服务端的分工。 不要搜索。",
+        "query_language": "zh",
+        "split": "dev",
+        "answerability": "answerable",
+        "query_origin": "assistant_authored",
+        "annotation_status": "provisional",
+        "reviewers": [],
+        "evidence_requirements": [
+          {
+            "id": "facet-1",
+            "weight": 1,
+            "critical": true,
+            "alternatives": [
+              [
+                "e-9b2cef28ae0a4b0d"
+              ]
+            ]
+          }
+        ],
+        "required_facts": [
+          "服务端暴露集成；AI 应用内客户端连接它。"
+        ],
+        "expected_behavior": "服务端暴露集成；AI 应用内客户端连接它。",
+        "read_source": "10_mcp_connections.md"
+      },
+      "answer": "根据 `10_mcp_connections.md` 文件的内容，客户端与服务端的分工如下：\n\n---\n\n## 核心概念\n\nModel Context Protocol (MCP) 定义了一个通用接口，用于将 AI 应用程序与外部能力和数据连接。\n\n| 角色 | 职责 |\n|------|------|\n| **服务端 (Server)** | 暴露集成/功能，提供连接协议以访问能力和数据 |\n| **客户端 (Client)** | 在 AI 应用程序内部运行，连接到服务器 |\n\n---\n\n## 分工说明\n\n### 服务端 (Server)\n- **暴露集成**：向外部提供可被调用的能力和服务\n- **提供连接协议**：定义标准化的接口，使客户端能够访问能力和数据\n- **职责边界**：专注于能力的提供和接入\n\n### 客户端 (Client)\n- **位于 AI 应用程序内部**：作为应用程序的一部分运行\n- **连接服务器**：通过标准协议与服务器建立连接\n- **任务决策**：决定如何使用这些能力来完成特定任务（而非能力本身）\n\n---\n\n## 实际影响\n\n标准化这个边界可以减少为每个应用程序和数据源配对构建不同连接器的需求。使用客户端 - 服务端的区分来推理集成责任：**连接协议提供对能力的访问；应用程序仍然决定如何使用这些能力来完成一项任务。**",
+      "evidence": [
+        {
+          "document_id": "2123721705d738679547c630156287b0845af2db828f2c936077e8f39abfd489",
+          "source": "10_mcp_connections.md",
+          "title": "MCP Clients and Servers",
+          "content": "## Core idea\n\nThe Model Context Protocol defines a common interface for connecting AI applications to external capabilities and data. A server exposes an integration, while a client inside an AI application connects to that server. Standardizing this boundary reduces the need to build a different connector for every application and data-source pairing.\n\n## Practical implication\n\nUse the client-server distinction to reason about integration responsibilities. A connection protocol supplies access to capabilities; the application still decides how those capabilities serve a task.\n\n## Source\n\n[Anthropic — Introducing the Model Context Protocol](https://www.anthropic.com/news/model-context-protocol)",
+          "document_revision": "7b762f06a4d3257ccc721d824f9cf57e441aa939d1b8b58d1adea9084707ef32",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": 0,
+          "end_char": 703,
+          "id": "E0_0",
+          "tool": "read"
+        }
+      ],
+      "stop_reason": "final",
+      "execution_error": null,
+      "packet_sha256": "cd94c7e1ba6212a6717d72ac3d32eefe9d49c3bda3b6e28a5d8fe1069c82f95a"
+    },
+    "review": {
+      "packet_sha256": "cd94c7e1ba6212a6717d72ac3d32eefe9d49c3bda3b6e28a5d8fe1069c82f95a",
+      "status": "pending",
+      "reviewer": null,
+      "criteria": {
+        "fact_correct": null,
+        "fact_complete": null,
+        "claims_supported": null,
+        "citations_complete": null,
+        "task_fulfilled": null
+      },
+      "rationale": null
+    }
+  },
+  {
+    "packet": {
+      "schema_version": "arkb-output-review-v1",
+      "case": {
+        "id": "pilot_056",
+        "intent_family_id": "ambiguous_version",
+        "task_type": "evidence_gap",
+        "query": "请告诉我那个服务的新版保留期限。",
+        "query_language": "zh",
+        "split": "dev",
+        "answerability": "needs_clarification",
+        "query_origin": "assistant_authored",
+        "annotation_status": "provisional",
+        "reviewers": [],
+        "evidence_requirements": [],
+        "required_facts": [
+          "缺少服务身份，应询问具体服务，而不是任选 F1 到 F6。"
+        ],
+        "expected_behavior": "缺少服务身份，应询问具体服务，而不是任选 F1 到 F6。"
+      },
+      "answer": null,
+      "evidence": [
+        {
+          "document_id": "06dfab2cfffd4706d0f4134615a1dcd5eca5d9006f0b54f918322d6bf94b724f",
+          "source": "pilot_policy_1.md",
+          "title": "Current fictional policy P1",
+          "content": "Synthetic evaluation fixture. The current retention period is 21 days. For incident records, the exception is 3 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "612604e8b004006068e3c456a8eb71f6b861b79dbf71d2afa5d3a3a8c3eec0c2",
+          "chunk_id": "b1af1623d4a609196ca3a5bd5ab8edfc264d530b43ca92426094d3637983f137",
+          "section_id": "cf4fcd4c872fcce5805eeb3f248b0fd2606637052e44eab775f85c831be3544b",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E0_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "e892437ef7cc4be2f60d08bb8bf26226172484bee44ede4a102971c0a5a18a61",
+          "source": "pilot_policy_2.md",
+          "title": "Current fictional policy P2",
+          "content": "Synthetic evaluation fixture. The current retention period is 22 days. For incident records, the exception is 4 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "38cf2c3692b7c6e5b06eb5ced1b5aacd85958adaeadfc46389381df4e1686b9f",
+          "chunk_id": "15b69aab89d274bfad40dfffc1c566432b298f150f9e084cd2eaad0fa94aa31b",
+          "section_id": "321ce34d57f2a86b56e9a3c73e1ad3168903340f205fc66a2dd9eb9057ee7b78",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E0_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "c9b40cc63d9cce236515ef342b9b31be9a27b765ff9258e847f57a303cbec449",
+          "source": "pilot_policy_4.md",
+          "title": "Current fictional policy P4",
+          "content": "Synthetic evaluation fixture. The current retention period is 24 days. For incident records, the exception is 6 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "cd430d343e93a3a79d0a111f7e2045de2791a337fb0b861a25e9bc14a2ca2e39",
+          "chunk_id": "67926d5855459c1d3cbd38ca3904e035e7a2bfbf3e3e3963d7906bb0ca4edf88",
+          "section_id": "1e22af1f933fb6b284bc7cebdcc98fa01567a7a2abf40e7a83bbae292dd51309",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E0_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "0d9cd12793b1a0841bb2aa8768ee1636d11c0e5e299f877e5b192439bbf9eb6d",
+          "source": "pilot_policy_5.md",
+          "title": "Current fictional policy P5",
+          "content": "Synthetic evaluation fixture. The current retention period is 25 days. For incident records, the exception is 7 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "1b61c4c5bf4405e2a53d9177280e94aeb6e2c3f40f180b8355bf917269e4d2ad",
+          "chunk_id": "fd7b3c64854f811f642f75a78eef2f25751a0ff974e7eed62401c120f0938373",
+          "section_id": "0c8776769a7b41335b3bbaf5b591bc7446a9fd956736e6783e33e16d6c045ec5",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E0_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "b2a424caf677c61cc255778f6f86090ee2405addfec1192c50732c54d4d39ea3",
+          "source": "pilot_policy_3.md",
+          "title": "Current fictional policy P3",
+          "content": "Synthetic evaluation fixture. The current retention period is 23 days. For incident records, the exception is 5 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "f9400531c9f9d7ccb72ac2b50dd4489b87bf5bd2c0c605c1291e087dc1723f22",
+          "chunk_id": "a55b8d5f7ea53b4266c9dfd40934a9a0b95bb42a5d79b0075ba143141d1c49b8",
+          "section_id": "473726b7d34d27ec899dc04c343f4df1603a2e1ec3945041eca116fcf144962b",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E0_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "add7ffe8f92ddf1f6dc84762c39d70c1e1cf416dfc8488479c00eec2fd81b451",
+          "source": "34_agent_memory_lifecycle.md",
+          "title": "Agent Memory: Selection, Scope, Concurrent Updates, and Versions",
+          "content": "## Version the context used by a run\n\nLangChain's Context Hub describes versioned context files that can be committed and selected using revisions or environment-oriented tags. Pinning a revision helps reproduce which instructions or memories were used during an execution. Filesystem routing can also determine persistence: a designated memory prefix can use durable storage while other paths remain scoped to a thread. Consequently, the fact that an agent can create a file does not mean that file will survive into a later conversation. Version selection and path routing solve different problems. One identifies the content revision used; the other determines where content is stored and how long it remains available. Both affect whether a later run sees the intended material. This section summarizes source 4.\n\n",
+          "document_revision": "363b726dd45d7992192dd83b475f6436e0cc700e04c3033265417b8a795f1278",
+          "chunk_id": "6c36f72a66cda91dd35d6be993123120ca1952f6d28804a852e388b50e88cbf6",
+          "section_id": "89901b49904f77a7d028dfc0d3e04c88882d8c65fd070d8fe7cde964ae57ca38",
+          "start_char": 3023,
+          "end_char": 3841,
+          "id": "E1_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": "eb302be0e85220b1cad1b766f27f171bccdc03e42e353d4e4f056c6444b8ab9c",
+          "section_id": "7a5331f94d1b192e73c5b9579e359b3c04d7cf42cf8fc0cd6453be936eccca07",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E1_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "8103feebf873607f9a7ad510cea0488857844f99e777dd878ce6ff551bd12ae3",
+          "source": "33_graph_search_strategies.md",
+          "title": "GraphRAG Search: Global Summaries, Local Exploration, and Deferred Work",
+          "content": "## Sources\n\nAccessed 2026-09-05. Sections 1–4 correspond to the sources below; the scenario is original.\n\n1. [Microsoft Research — GraphRAG: new tool for complex data discovery](https://www.microsoft.com/en-us/research/blog/graphrag-new-tool-for-complex-data-discovery-now-on-github/)\n2. [Microsoft Research — Dynamic community selection](https://www.microsoft.com/en-us/research/blog/graphrag-improving-global-search-via-dynamic-community-selection/)\n3. [Microsoft Research — Introducing DRIFT Search](https://www.microsoft.com/en-us/research/blog/introducing-drift-search-combining-global-and-local-search-methods-to-improve-quality-and-efficiency/)\n4. [Microsoft Research — LazyGraphRAG](https://www.microsoft.com/en-us/research/blog/lazygraphrag-setting-a-new-standard-for-quality-and-cost/)",
+          "document_revision": "399cacadf1cbb865f22ec3cd629c56ec77f6ed58bdaf77e22260fc89ba7f6b7e",
+          "chunk_id": "9c79e83c6ca1e73f171b57fa6e29b6dba210236df45f31ab721a86f8fc9f096f",
+          "section_id": "c6420b000d7fc1f1db432d59ea5227528997a9693f7ca5398a5e4ba2340af7eb",
+          "start_char": 5369,
+          "end_char": 6164,
+          "id": "E1_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "8212f71e75fb40d6769b28bf94911d786ce045b1755fffffb40f1719a624691e",
+          "source": "pilot_service_3.md",
+          "title": "Fictional service F3",
+          "content": "Synthetic evaluation fixture. Service F3 delegates its retention policy to pilot_policy_3.md. The archived policy is not current.",
+          "document_revision": "c893dcda9dbe45de1ccfe014e621202f040b3600856f9f054324c8fc2eb33f03",
+          "chunk_id": "875f62f8eb4462347abf5ac506048d1fc0db9b782b0fa0a9504010da4803203f",
+          "section_id": "4c1a93cec23778ee2ab3fc3935700f58dbe1c121b934141642ade239b2ddb17f",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E1_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "ace629e50f2d0e0bedf74fc98b06632a8080506d9380bcb491a6a97f24be03e7",
+          "source": "13_hybrid_rank_fusion.md",
+          "title": "Combining Lexical and Vector Rankings",
+          "content": "## Practical implication\n\nEvaluate hybrid retrieval on both exact terminology and paraphrases. A fused result has a new ranking score whose interpretation differs from a cosine similarity value.\n\n",
+          "document_revision": "2215a9f60ff55d5e73c78cbc3d3d800bfd488c15f7d39f39abb3e358d5cb7f96",
+          "chunk_id": "8862b4d4e5a981b0a8e250592421953754ee4abee3069dd7abd618b717907f06",
+          "section_id": "30cdad8457d6cc192fd9954ab46051918ef66df02a1cb96dabc60ee3b4f390c8",
+          "start_char": 337,
+          "end_char": 533,
+          "id": "E1_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": "eb302be0e85220b1cad1b766f27f171bccdc03e42e353d4e4f056c6444b8ab9c",
+          "section_id": "7a5331f94d1b192e73c5b9579e359b3c04d7cf42cf8fc0cd6453be936eccca07",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "31fe27d69ebde81cad007ddff0897da5fa5424e650a94675fb581ca46526b502",
+          "source": "pilot_service_6.md",
+          "title": "Fictional service F6",
+          "content": "Synthetic evaluation fixture. Service F6 delegates its retention policy to pilot_policy_6.md. The archived policy is not current.",
+          "document_revision": "9015892151d97ed81d985383bffc895a718b0ed1b3c7050642f5ef672f84552b",
+          "chunk_id": "b79f34a85e6b6d10e4bcef8c297489c1e7a3bf770f26a96dd5d6615c4f3b077b",
+          "section_id": "378c854676afe0a238caa3f2d12470018de9cd52c18453f2d02c426dec9159e6",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "8212f71e75fb40d6769b28bf94911d786ce045b1755fffffb40f1719a624691e",
+          "source": "pilot_service_3.md",
+          "title": "Fictional service F3",
+          "content": "Synthetic evaluation fixture. Service F3 delegates its retention policy to pilot_policy_3.md. The archived policy is not current.",
+          "document_revision": "c893dcda9dbe45de1ccfe014e621202f040b3600856f9f054324c8fc2eb33f03",
+          "chunk_id": "875f62f8eb4462347abf5ac506048d1fc0db9b782b0fa0a9504010da4803203f",
+          "section_id": "4c1a93cec23778ee2ab3fc3935700f58dbe1c121b934141642ade239b2ddb17f",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "ead6a2da8cfa909a5070cf0266dd9148ebc412326878c738e7ef771c6b324d32",
+          "source": "pilot_service_2.md",
+          "title": "Fictional service F2",
+          "content": "Synthetic evaluation fixture. Service F2 delegates its retention policy to pilot_policy_2.md. The archived policy is not current.",
+          "document_revision": "1d4eebe6f33eb2f741fb0bd94f2fbd44e3cd2b38d22be52403bd0478e875336d",
+          "chunk_id": "ceb5199f1d2435ce54ee74c3670cbef7f4b57c8875141d13417b89776bbffe3c",
+          "section_id": "60890b0d8cc533f9b064310e8f84f2ed2245142e6eab9fcaf2c8e8c56b2c9bfa",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "fc329c858d44fcd4af9ccf162637061005cc2c195a2f5a03edda015ccebb9d02",
+          "source": "pilot_service_5.md",
+          "title": "Fictional service F5",
+          "content": "Synthetic evaluation fixture. Service F5 delegates its retention policy to pilot_policy_5.md. The archived policy is not current.",
+          "document_revision": "c86f2b6894ece360c1869f0fa37d8a2c65d71fc7c519a9cd905dd994fdbf50b9",
+          "chunk_id": "797e110c96c15dbc16366f9fab42a97bf21bafaa9bf49ba9d281a031f6505565",
+          "section_id": "6609b0445a3cc6a4843628f216a5a6a0196f9da4fd038e56a53dac10adf02eb4",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": "eb302be0e85220b1cad1b766f27f171bccdc03e42e353d4e4f056c6444b8ab9c",
+          "section_id": "7a5331f94d1b192e73c5b9579e359b3c04d7cf42cf8fc0cd6453be936eccca07",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E3_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "31fe27d69ebde81cad007ddff0897da5fa5424e650a94675fb581ca46526b502",
+          "source": "pilot_service_6.md",
+          "title": "Fictional service F6",
+          "content": "Synthetic evaluation fixture. Service F6 delegates its retention policy to pilot_policy_6.md. The archived policy is not current.",
+          "document_revision": "9015892151d97ed81d985383bffc895a718b0ed1b3c7050642f5ef672f84552b",
+          "chunk_id": "b79f34a85e6b6d10e4bcef8c297489c1e7a3bf770f26a96dd5d6615c4f3b077b",
+          "section_id": "378c854676afe0a238caa3f2d12470018de9cd52c18453f2d02c426dec9159e6",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E3_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "ead6a2da8cfa909a5070cf0266dd9148ebc412326878c738e7ef771c6b324d32",
+          "source": "pilot_service_2.md",
+          "title": "Fictional service F2",
+          "content": "Synthetic evaluation fixture. Service F2 delegates its retention policy to pilot_policy_2.md. The archived policy is not current.",
+          "document_revision": "1d4eebe6f33eb2f741fb0bd94f2fbd44e3cd2b38d22be52403bd0478e875336d",
+          "chunk_id": "ceb5199f1d2435ce54ee74c3670cbef7f4b57c8875141d13417b89776bbffe3c",
+          "section_id": "60890b0d8cc533f9b064310e8f84f2ed2245142e6eab9fcaf2c8e8c56b2c9bfa",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E3_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "8212f71e75fb40d6769b28bf94911d786ce045b1755fffffb40f1719a624691e",
+          "source": "pilot_service_3.md",
+          "title": "Fictional service F3",
+          "content": "Synthetic evaluation fixture. Service F3 delegates its retention policy to pilot_policy_3.md. The archived policy is not current.",
+          "document_revision": "c893dcda9dbe45de1ccfe014e621202f040b3600856f9f054324c8fc2eb33f03",
+          "chunk_id": "875f62f8eb4462347abf5ac506048d1fc0db9b782b0fa0a9504010da4803203f",
+          "section_id": "4c1a93cec23778ee2ab3fc3935700f58dbe1c121b934141642ade239b2ddb17f",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E3_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd2e5fdc79eac45a1ce3c35aa5563344685f3bc11e55398bbaeb0fe594be1b34",
+          "source": "pilot_service_1.md",
+          "title": "Fictional service F1",
+          "content": "Synthetic evaluation fixture. Service F1 delegates its retention policy to pilot_policy_1.md. The archived policy is not current.",
+          "document_revision": "7d947d435e744fad6299ec103cfddb666a60611f3851509eb1afc968615f66f1",
+          "chunk_id": "f2aab9656d47a715c967b15fde8da6329d3f4f4f4d08f0c568673e06bd86b4c0",
+          "section_id": "a4fe06df0622fad983ffaaf3c2fd8b1f2a8a60ed23556297b592e8f0e1eb2d46",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E3_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": "eb302be0e85220b1cad1b766f27f171bccdc03e42e353d4e4f056c6444b8ab9c",
+          "section_id": "7a5331f94d1b192e73c5b9579e359b3c04d7cf42cf8fc0cd6453be936eccca07",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E4_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "31fe27d69ebde81cad007ddff0897da5fa5424e650a94675fb581ca46526b502",
+          "source": "pilot_service_6.md",
+          "title": "Fictional service F6",
+          "content": "Synthetic evaluation fixture. Service F6 delegates its retention policy to pilot_policy_6.md. The archived policy is not current.",
+          "document_revision": "9015892151d97ed81d985383bffc895a718b0ed1b3c7050642f5ef672f84552b",
+          "chunk_id": "b79f34a85e6b6d10e4bcef8c297489c1e7a3bf770f26a96dd5d6615c4f3b077b",
+          "section_id": "378c854676afe0a238caa3f2d12470018de9cd52c18453f2d02c426dec9159e6",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E4_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "8212f71e75fb40d6769b28bf94911d786ce045b1755fffffb40f1719a624691e",
+          "source": "pilot_service_3.md",
+          "title": "Fictional service F3",
+          "content": "Synthetic evaluation fixture. Service F3 delegates its retention policy to pilot_policy_3.md. The archived policy is not current.",
+          "document_revision": "c893dcda9dbe45de1ccfe014e621202f040b3600856f9f054324c8fc2eb33f03",
+          "chunk_id": "875f62f8eb4462347abf5ac506048d1fc0db9b782b0fa0a9504010da4803203f",
+          "section_id": "4c1a93cec23778ee2ab3fc3935700f58dbe1c121b934141642ade239b2ddb17f",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E4_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "ead6a2da8cfa909a5070cf0266dd9148ebc412326878c738e7ef771c6b324d32",
+          "source": "pilot_service_2.md",
+          "title": "Fictional service F2",
+          "content": "Synthetic evaluation fixture. Service F2 delegates its retention policy to pilot_policy_2.md. The archived policy is not current.",
+          "document_revision": "1d4eebe6f33eb2f741fb0bd94f2fbd44e3cd2b38d22be52403bd0478e875336d",
+          "chunk_id": "ceb5199f1d2435ce54ee74c3670cbef7f4b57c8875141d13417b89776bbffe3c",
+          "section_id": "60890b0d8cc533f9b064310e8f84f2ed2245142e6eab9fcaf2c8e8c56b2c9bfa",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E4_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "06dfab2cfffd4706d0f4134615a1dcd5eca5d9006f0b54f918322d6bf94b724f",
+          "source": "pilot_policy_1.md",
+          "title": "Current fictional policy P1",
+          "content": "Synthetic evaluation fixture. The current retention period is 21 days. For incident records, the exception is 3 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "612604e8b004006068e3c456a8eb71f6b861b79dbf71d2afa5d3a3a8c3eec0c2",
+          "chunk_id": "b1af1623d4a609196ca3a5bd5ab8edfc264d530b43ca92426094d3637983f137",
+          "section_id": "cf4fcd4c872fcce5805eeb3f248b0fd2606637052e44eab775f85c831be3544b",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E4_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "06dfab2cfffd4706d0f4134615a1dcd5eca5d9006f0b54f918322d6bf94b724f",
+          "source": "pilot_policy_1.md",
+          "title": "Current fictional policy P1",
+          "content": "Synthetic evaluation fixture. The current retention period is 21 days. For incident records, the exception is 3 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "612604e8b004006068e3c456a8eb71f6b861b79dbf71d2afa5d3a3a8c3eec0c2",
+          "chunk_id": "b1af1623d4a609196ca3a5bd5ab8edfc264d530b43ca92426094d3637983f137",
+          "section_id": "cf4fcd4c872fcce5805eeb3f248b0fd2606637052e44eab775f85c831be3544b",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E5_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "e892437ef7cc4be2f60d08bb8bf26226172484bee44ede4a102971c0a5a18a61",
+          "source": "pilot_policy_2.md",
+          "title": "Current fictional policy P2",
+          "content": "Synthetic evaluation fixture. The current retention period is 22 days. For incident records, the exception is 4 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "38cf2c3692b7c6e5b06eb5ced1b5aacd85958adaeadfc46389381df4e1686b9f",
+          "chunk_id": "15b69aab89d274bfad40dfffc1c566432b298f150f9e084cd2eaad0fa94aa31b",
+          "section_id": "321ce34d57f2a86b56e9a3c73e1ad3168903340f205fc66a2dd9eb9057ee7b78",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E5_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "b2a424caf677c61cc255778f6f86090ee2405addfec1192c50732c54d4d39ea3",
+          "source": "pilot_policy_3.md",
+          "title": "Current fictional policy P3",
+          "content": "Synthetic evaluation fixture. The current retention period is 23 days. For incident records, the exception is 5 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "f9400531c9f9d7ccb72ac2b50dd4489b87bf5bd2c0c605c1291e087dc1723f22",
+          "chunk_id": "a55b8d5f7ea53b4266c9dfd40934a9a0b95bb42a5d79b0075ba143141d1c49b8",
+          "section_id": "473726b7d34d27ec899dc04c343f4df1603a2e1ec3945041eca116fcf144962b",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E5_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "0d9cd12793b1a0841bb2aa8768ee1636d11c0e5e299f877e5b192439bbf9eb6d",
+          "source": "pilot_policy_5.md",
+          "title": "Current fictional policy P5",
+          "content": "Synthetic evaluation fixture. The current retention period is 25 days. For incident records, the exception is 7 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "1b61c4c5bf4405e2a53d9177280e94aeb6e2c3f40f180b8355bf917269e4d2ad",
+          "chunk_id": "fd7b3c64854f811f642f75a78eef2f25751a0ff974e7eed62401c120f0938373",
+          "section_id": "0c8776769a7b41335b3bbaf5b591bc7446a9fd956736e6783e33e16d6c045ec5",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E5_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "c9b40cc63d9cce236515ef342b9b31be9a27b765ff9258e847f57a303cbec449",
+          "source": "pilot_policy_4.md",
+          "title": "Current fictional policy P4",
+          "content": "Synthetic evaluation fixture. The current retention period is 24 days. For incident records, the exception is 6 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "cd430d343e93a3a79d0a111f7e2045de2791a337fb0b861a25e9bc14a2ca2e39",
+          "chunk_id": "67926d5855459c1d3cbd38ca3904e035e7a2bfbf3e3e3963d7906bb0ca4edf88",
+          "section_id": "1e22af1f933fb6b284bc7cebdcc98fa01567a7a2abf40e7a83bbae292dd51309",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E5_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "06dfab2cfffd4706d0f4134615a1dcd5eca5d9006f0b54f918322d6bf94b724f",
+          "source": "pilot_policy_1.md",
+          "title": "Current fictional policy P1",
+          "content": "Synthetic evaluation fixture. The current retention period is 21 days. For incident records, the exception is 3 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "612604e8b004006068e3c456a8eb71f6b861b79dbf71d2afa5d3a3a8c3eec0c2",
+          "chunk_id": "b1af1623d4a609196ca3a5bd5ab8edfc264d530b43ca92426094d3637983f137",
+          "section_id": "cf4fcd4c872fcce5805eeb3f248b0fd2606637052e44eab775f85c831be3544b",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E6_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "e892437ef7cc4be2f60d08bb8bf26226172484bee44ede4a102971c0a5a18a61",
+          "source": "pilot_policy_2.md",
+          "title": "Current fictional policy P2",
+          "content": "Synthetic evaluation fixture. The current retention period is 22 days. For incident records, the exception is 4 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "38cf2c3692b7c6e5b06eb5ced1b5aacd85958adaeadfc46389381df4e1686b9f",
+          "chunk_id": "15b69aab89d274bfad40dfffc1c566432b298f150f9e084cd2eaad0fa94aa31b",
+          "section_id": "321ce34d57f2a86b56e9a3c73e1ad3168903340f205fc66a2dd9eb9057ee7b78",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E6_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "b2a424caf677c61cc255778f6f86090ee2405addfec1192c50732c54d4d39ea3",
+          "source": "pilot_policy_3.md",
+          "title": "Current fictional policy P3",
+          "content": "Synthetic evaluation fixture. The current retention period is 23 days. For incident records, the exception is 5 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "f9400531c9f9d7ccb72ac2b50dd4489b87bf5bd2c0c605c1291e087dc1723f22",
+          "chunk_id": "a55b8d5f7ea53b4266c9dfd40934a9a0b95bb42a5d79b0075ba143141d1c49b8",
+          "section_id": "473726b7d34d27ec899dc04c343f4df1603a2e1ec3945041eca116fcf144962b",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E6_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "0d9cd12793b1a0841bb2aa8768ee1636d11c0e5e299f877e5b192439bbf9eb6d",
+          "source": "pilot_policy_5.md",
+          "title": "Current fictional policy P5",
+          "content": "Synthetic evaluation fixture. The current retention period is 25 days. For incident records, the exception is 7 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "1b61c4c5bf4405e2a53d9177280e94aeb6e2c3f40f180b8355bf917269e4d2ad",
+          "chunk_id": "fd7b3c64854f811f642f75a78eef2f25751a0ff974e7eed62401c120f0938373",
+          "section_id": "0c8776769a7b41335b3bbaf5b591bc7446a9fd956736e6783e33e16d6c045ec5",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E6_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "c9b40cc63d9cce236515ef342b9b31be9a27b765ff9258e847f57a303cbec449",
+          "source": "pilot_policy_4.md",
+          "title": "Current fictional policy P4",
+          "content": "Synthetic evaluation fixture. The current retention period is 24 days. For incident records, the exception is 6 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "cd430d343e93a3a79d0a111f7e2045de2791a337fb0b861a25e9bc14a2ca2e39",
+          "chunk_id": "67926d5855459c1d3cbd38ca3904e035e7a2bfbf3e3e3963d7906bb0ca4edf88",
+          "section_id": "1e22af1f933fb6b284bc7cebdcc98fa01567a7a2abf40e7a83bbae292dd51309",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E6_4",
+          "tool": "search"
+        }
+      ],
+      "stop_reason": "max_turns",
+      "execution_error": null,
+      "packet_sha256": "3a9326737d3e87b4a7416b594ecdffd29415e3f62badd70bf59170914aba2a17"
+    },
+    "review": {
+      "packet_sha256": "3a9326737d3e87b4a7416b594ecdffd29415e3f62badd70bf59170914aba2a17",
+      "status": "pending",
+      "reviewer": null,
+      "criteria": {
+        "fact_correct": null,
+        "fact_complete": null,
+        "claims_supported": null,
+        "citations_complete": null,
+        "task_fulfilled": null
+      },
+      "rationale": null
+    }
+  },
+  {
+    "packet": {
+      "schema_version": "arkb-output-review-v1",
+      "case": {
+        "id": "pilot_054",
+        "intent_family_id": "missing_private_fact",
+        "task_type": "evidence_gap",
+        "query": "知识库记录的虚构项目 ZX-NOT-RECORDED 的验收口令是什么？",
+        "query_language": "zh",
+        "split": "dev",
+        "answerability": "unanswerable",
+        "query_origin": "assistant_authored",
+        "annotation_status": "provisional",
+        "reviewers": [],
+        "evidence_requirements": [],
+        "required_facts": [
+          "知识库没有这个项目或口令，明确无法确定。"
+        ],
+        "expected_behavior": "知识库没有这个项目或口令，明确无法确定。"
+      },
+      "answer": null,
+      "evidence": [
+        {
+          "document_id": "31fe27d69ebde81cad007ddff0897da5fa5424e650a94675fb581ca46526b502",
+          "source": "pilot_service_6.md",
+          "title": "Fictional service F6",
+          "content": "Synthetic evaluation fixture. Service F6 delegates its retention policy to pilot_policy_6.md. The archived policy is not current.",
+          "document_revision": "9015892151d97ed81d985383bffc895a718b0ed1b3c7050642f5ef672f84552b",
+          "chunk_id": "b79f34a85e6b6d10e4bcef8c297489c1e7a3bf770f26a96dd5d6615c4f3b077b",
+          "section_id": "378c854676afe0a238caa3f2d12470018de9cd52c18453f2d02c426dec9159e6",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E0_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "fc329c858d44fcd4af9ccf162637061005cc2c195a2f5a03edda015ccebb9d02",
+          "source": "pilot_service_5.md",
+          "title": "Fictional service F5",
+          "content": "Synthetic evaluation fixture. Service F5 delegates its retention policy to pilot_policy_5.md. The archived policy is not current.",
+          "document_revision": "c86f2b6894ece360c1869f0fa37d8a2c65d71fc7c519a9cd905dd994fdbf50b9",
+          "chunk_id": "797e110c96c15dbc16366f9fab42a97bf21bafaa9bf49ba9d281a031f6505565",
+          "section_id": "6609b0445a3cc6a4843628f216a5a6a0196f9da4fd038e56a53dac10adf02eb4",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E0_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": "eb302be0e85220b1cad1b766f27f171bccdc03e42e353d4e4f056c6444b8ab9c",
+          "section_id": "7a5331f94d1b192e73c5b9579e359b3c04d7cf42cf8fc0cd6453be936eccca07",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E0_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "ead6a2da8cfa909a5070cf0266dd9148ebc412326878c738e7ef771c6b324d32",
+          "source": "pilot_service_2.md",
+          "title": "Fictional service F2",
+          "content": "Synthetic evaluation fixture. Service F2 delegates its retention policy to pilot_policy_2.md. The archived policy is not current.",
+          "document_revision": "1d4eebe6f33eb2f741fb0bd94f2fbd44e3cd2b38d22be52403bd0478e875336d",
+          "chunk_id": "ceb5199f1d2435ce54ee74c3670cbef7f4b57c8875141d13417b89776bbffe3c",
+          "section_id": "60890b0d8cc533f9b064310e8f84f2ed2245142e6eab9fcaf2c8e8c56b2c9bfa",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E0_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd2e5fdc79eac45a1ce3c35aa5563344685f3bc11e55398bbaeb0fe594be1b34",
+          "source": "pilot_service_1.md",
+          "title": "Fictional service F1",
+          "content": "Synthetic evaluation fixture. Service F1 delegates its retention policy to pilot_policy_1.md. The archived policy is not current.",
+          "document_revision": "7d947d435e744fad6299ec103cfddb666a60611f3851509eb1afc968615f66f1",
+          "chunk_id": "f2aab9656d47a715c967b15fde8da6329d3f4f4f4d08f0c568673e06bd86b4c0",
+          "section_id": "a4fe06df0622fad983ffaaf3c2fd8b1f2a8a60ed23556297b592e8f0e1eb2d46",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E0_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "e892437ef7cc4be2f60d08bb8bf26226172484bee44ede4a102971c0a5a18a61",
+          "source": "pilot_policy_2.md",
+          "title": "Current fictional policy P2",
+          "content": "Synthetic evaluation fixture. The current retention period is 22 days. For incident records, the exception is 4 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "38cf2c3692b7c6e5b06eb5ced1b5aacd85958adaeadfc46389381df4e1686b9f",
+          "chunk_id": "15b69aab89d274bfad40dfffc1c566432b298f150f9e084cd2eaad0fa94aa31b",
+          "section_id": "321ce34d57f2a86b56e9a3c73e1ad3168903340f205fc66a2dd9eb9057ee7b78",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E1_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "c182014721193e67184e7f00a8d5c14536da4aeae0d31f1a911ea7c34c3311bd",
+          "source": "pilot_archive_2.md",
+          "title": "Archived fictional policy F2",
+          "content": "Synthetic evaluation distractor. Service F2 used to keep all records for 82 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "9ec8aba84e0acf1f002f6e86e4cdc3c8a3e76e4d82caa34b7e99e65ed2a2b71c",
+          "chunk_id": "784936484cf34ad61b42c2a49101b2334c7a35b33fee9849ebfca42608d6da91",
+          "section_id": "33629aab1e126e1942b52a9e140d05fc02ba1a1a534cd4775feffd907ac6847e",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E1_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "06dfab2cfffd4706d0f4134615a1dcd5eca5d9006f0b54f918322d6bf94b724f",
+          "source": "pilot_policy_1.md",
+          "title": "Current fictional policy P1",
+          "content": "Synthetic evaluation fixture. The current retention period is 21 days. For incident records, the exception is 3 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "612604e8b004006068e3c456a8eb71f6b861b79dbf71d2afa5d3a3a8c3eec0c2",
+          "chunk_id": "b1af1623d4a609196ca3a5bd5ab8edfc264d530b43ca92426094d3637983f137",
+          "section_id": "cf4fcd4c872fcce5805eeb3f248b0fd2606637052e44eab775f85c831be3544b",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E1_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "431689d72c834d1a5c2b285af9bb5eaf9bd48c7e4d80fc78ffe76e51b3d59b00",
+          "source": "pilot_archive_3.md",
+          "title": "Archived fictional policy F3",
+          "content": "Synthetic evaluation distractor. Service F3 used to keep all records for 83 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "0861d385f83a2820a2f1a264d834f66a45a15aab9f113ccca7148fa6a3c789c4",
+          "chunk_id": "ca7607716df81156eddf93fd316bdaa46399ef06cfbfea76d8380fb8f30e4b26",
+          "section_id": "c47ef21a7fca4a0363b12afb11601f03daa864c9e8c479ae5df523041a1baee4",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E1_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "5ebc06b0a6dc1b9dae25656a05bd59f3b417d9c74555373ab37f1213ede27a43",
+          "source": "pilot_archive_6.md",
+          "title": "Archived fictional policy F6",
+          "content": "Synthetic evaluation distractor. Service F6 used to keep all records for 86 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "d2bed7f73a20f8ea4f4416fe1f1ffad45ef7390a1b65bed705475673b255fd90",
+          "chunk_id": "102c05e14a33d0196a87658b50eb374f252231eab5dbfe1fdfc88d5b63425381",
+          "section_id": "51e05f7db2cc13a000c97df82f154e9c2d8ecf6758d999a745fb29d6e1175f49",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E1_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "431689d72c834d1a5c2b285af9bb5eaf9bd48c7e4d80fc78ffe76e51b3d59b00",
+          "source": "pilot_archive_3.md",
+          "title": "Archived fictional policy F3",
+          "content": "Synthetic evaluation distractor. Service F3 used to keep all records for 83 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "0861d385f83a2820a2f1a264d834f66a45a15aab9f113ccca7148fa6a3c789c4",
+          "chunk_id": "ca7607716df81156eddf93fd316bdaa46399ef06cfbfea76d8380fb8f30e4b26",
+          "section_id": "c47ef21a7fca4a0363b12afb11601f03daa864c9e8c479ae5df523041a1baee4",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E3_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": "eb302be0e85220b1cad1b766f27f171bccdc03e42e353d4e4f056c6444b8ab9c",
+          "section_id": "7a5331f94d1b192e73c5b9579e359b3c04d7cf42cf8fc0cd6453be936eccca07",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E3_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "01c61c51bac9b339b78398063c752d8bcc1ed17342496d2fdcb54e233f00ae33",
+          "source": "pilot_archive_1.md",
+          "title": "Archived fictional policy F1",
+          "content": "Synthetic evaluation distractor. Service F1 used to keep all records for 81 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "cbacb7ee72cedd14976a2f156d6a40ad6941acbaff682e9e3b233a5e536cedc6",
+          "chunk_id": "799364c120fe035dc5dd418617e46ba0a77446a185c9d962177c840c19dabbc1",
+          "section_id": "af5f3666420542da7e8470781a54ef6c1a3cf80ecef1c7e99b03bf4fa674231c",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E3_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "5ebc06b0a6dc1b9dae25656a05bd59f3b417d9c74555373ab37f1213ede27a43",
+          "source": "pilot_archive_6.md",
+          "title": "Archived fictional policy F6",
+          "content": "Synthetic evaluation distractor. Service F6 used to keep all records for 86 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "d2bed7f73a20f8ea4f4416fe1f1ffad45ef7390a1b65bed705475673b255fd90",
+          "chunk_id": "102c05e14a33d0196a87658b50eb374f252231eab5dbfe1fdfc88d5b63425381",
+          "section_id": "51e05f7db2cc13a000c97df82f154e9c2d8ecf6758d999a745fb29d6e1175f49",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E3_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "c182014721193e67184e7f00a8d5c14536da4aeae0d31f1a911ea7c34c3311bd",
+          "source": "pilot_archive_2.md",
+          "title": "Archived fictional policy F2",
+          "content": "Synthetic evaluation distractor. Service F2 used to keep all records for 82 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "9ec8aba84e0acf1f002f6e86e4cdc3c8a3e76e4d82caa34b7e99e65ed2a2b71c",
+          "chunk_id": "784936484cf34ad61b42c2a49101b2334c7a35b33fee9849ebfca42608d6da91",
+          "section_id": "33629aab1e126e1942b52a9e140d05fc02ba1a1a534cd4775feffd907ac6847e",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E3_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "ead6a2da8cfa909a5070cf0266dd9148ebc412326878c738e7ef771c6b324d32",
+          "source": "pilot_service_2.md",
+          "title": "Fictional service F2",
+          "content": "Synthetic evaluation fixture. Service F2 delegates its retention policy to pilot_policy_2.md. The archived policy is not current.",
+          "document_revision": "1d4eebe6f33eb2f741fb0bd94f2fbd44e3cd2b38d22be52403bd0478e875336d",
+          "chunk_id": "ceb5199f1d2435ce54ee74c3670cbef7f4b57c8875141d13417b89776bbffe3c",
+          "section_id": "60890b0d8cc533f9b064310e8f84f2ed2245142e6eab9fcaf2c8e8c56b2c9bfa",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E4_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": "eb302be0e85220b1cad1b766f27f171bccdc03e42e353d4e4f056c6444b8ab9c",
+          "section_id": "7a5331f94d1b192e73c5b9579e359b3c04d7cf42cf8fc0cd6453be936eccca07",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E4_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "fc329c858d44fcd4af9ccf162637061005cc2c195a2f5a03edda015ccebb9d02",
+          "source": "pilot_service_5.md",
+          "title": "Fictional service F5",
+          "content": "Synthetic evaluation fixture. Service F5 delegates its retention policy to pilot_policy_5.md. The archived policy is not current.",
+          "document_revision": "c86f2b6894ece360c1869f0fa37d8a2c65d71fc7c519a9cd905dd994fdbf50b9",
+          "chunk_id": "797e110c96c15dbc16366f9fab42a97bf21bafaa9bf49ba9d281a031f6505565",
+          "section_id": "6609b0445a3cc6a4843628f216a5a6a0196f9da4fd038e56a53dac10adf02eb4",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E4_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd2e5fdc79eac45a1ce3c35aa5563344685f3bc11e55398bbaeb0fe594be1b34",
+          "source": "pilot_service_1.md",
+          "title": "Fictional service F1",
+          "content": "Synthetic evaluation fixture. Service F1 delegates its retention policy to pilot_policy_1.md. The archived policy is not current.",
+          "document_revision": "7d947d435e744fad6299ec103cfddb666a60611f3851509eb1afc968615f66f1",
+          "chunk_id": "f2aab9656d47a715c967b15fde8da6329d3f4f4f4d08f0c568673e06bd86b4c0",
+          "section_id": "a4fe06df0622fad983ffaaf3c2fd8b1f2a8a60ed23556297b592e8f0e1eb2d46",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E4_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "31fe27d69ebde81cad007ddff0897da5fa5424e650a94675fb581ca46526b502",
+          "source": "pilot_service_6.md",
+          "title": "Fictional service F6",
+          "content": "Synthetic evaluation fixture. Service F6 delegates its retention policy to pilot_policy_6.md. The archived policy is not current.",
+          "document_revision": "9015892151d97ed81d985383bffc895a718b0ed1b3c7050642f5ef672f84552b",
+          "chunk_id": "b79f34a85e6b6d10e4bcef8c297489c1e7a3bf770f26a96dd5d6615c4f3b077b",
+          "section_id": "378c854676afe0a238caa3f2d12470018de9cd52c18453f2d02c426dec9159e6",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E4_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "178e203fe1fecc0da6d153b9c525431943602e1f2815a192f85738e25024f353",
+          "source": "02_tool_interface_design.md",
+          "title": "Tool Interfaces for Language Models",
+          "content": "## Practical implication\n\nTest tool interfaces on realistic tasks. Inspect incorrect calls and unnecessary output before adding more tools to the same agent.\n\n",
+          "document_revision": "8e692bf4049a06133bfe77e26fb70b852c84d35ae547c781c9e14e1828d9b00f",
+          "chunk_id": "44382c8e3c574577b66499a3ed321ec912981e0e64d9a2847fd9054f522e816e",
+          "section_id": "04ae96fcf0de28ef5bc27000f79dc8e557d4315e4c60ef94d511302d9127f7a2",
+          "start_char": 343,
+          "end_char": 502,
+          "id": "E5_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "fc329c858d44fcd4af9ccf162637061005cc2c195a2f5a03edda015ccebb9d02",
+          "source": "pilot_service_5.md",
+          "title": "Fictional service F5",
+          "content": "Synthetic evaluation fixture. Service F5 delegates its retention policy to pilot_policy_5.md. The archived policy is not current.",
+          "document_revision": "c86f2b6894ece360c1869f0fa37d8a2c65d71fc7c519a9cd905dd994fdbf50b9",
+          "chunk_id": "797e110c96c15dbc16366f9fab42a97bf21bafaa9bf49ba9d281a031f6505565",
+          "section_id": "6609b0445a3cc6a4843628f216a5a6a0196f9da4fd038e56a53dac10adf02eb4",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E5_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": "eb302be0e85220b1cad1b766f27f171bccdc03e42e353d4e4f056c6444b8ab9c",
+          "section_id": "7a5331f94d1b192e73c5b9579e359b3c04d7cf42cf8fc0cd6453be936eccca07",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E5_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "31fe27d69ebde81cad007ddff0897da5fa5424e650a94675fb581ca46526b502",
+          "source": "pilot_service_6.md",
+          "title": "Fictional service F6",
+          "content": "Synthetic evaluation fixture. Service F6 delegates its retention policy to pilot_policy_6.md. The archived policy is not current.",
+          "document_revision": "9015892151d97ed81d985383bffc895a718b0ed1b3c7050642f5ef672f84552b",
+          "chunk_id": "b79f34a85e6b6d10e4bcef8c297489c1e7a3bf770f26a96dd5d6615c4f3b077b",
+          "section_id": "378c854676afe0a238caa3f2d12470018de9cd52c18453f2d02c426dec9159e6",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E5_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "8212f71e75fb40d6769b28bf94911d786ce045b1755fffffb40f1719a624691e",
+          "source": "pilot_service_3.md",
+          "title": "Fictional service F3",
+          "content": "Synthetic evaluation fixture. Service F3 delegates its retention policy to pilot_policy_3.md. The archived policy is not current.",
+          "document_revision": "c893dcda9dbe45de1ccfe014e621202f040b3600856f9f054324c8fc2eb33f03",
+          "chunk_id": "875f62f8eb4462347abf5ac506048d1fc0db9b782b0fa0a9504010da4803203f",
+          "section_id": "4c1a93cec23778ee2ab3fc3935700f58dbe1c121b934141642ade239b2ddb17f",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E5_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "ead6a2da8cfa909a5070cf0266dd9148ebc412326878c738e7ef771c6b324d32",
+          "source": "pilot_service_2.md",
+          "title": "Fictional service F2",
+          "content": "Synthetic evaluation fixture. Service F2 delegates its retention policy to pilot_policy_2.md. The archived policy is not current.",
+          "document_revision": "1d4eebe6f33eb2f741fb0bd94f2fbd44e3cd2b38d22be52403bd0478e875336d",
+          "chunk_id": "ceb5199f1d2435ce54ee74c3670cbef7f4b57c8875141d13417b89776bbffe3c",
+          "section_id": "60890b0d8cc533f9b064310e8f84f2ed2245142e6eab9fcaf2c8e8c56b2c9bfa",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E6_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd2e5fdc79eac45a1ce3c35aa5563344685f3bc11e55398bbaeb0fe594be1b34",
+          "source": "pilot_service_1.md",
+          "title": "Fictional service F1",
+          "content": "Synthetic evaluation fixture. Service F1 delegates its retention policy to pilot_policy_1.md. The archived policy is not current.",
+          "document_revision": "7d947d435e744fad6299ec103cfddb666a60611f3851509eb1afc968615f66f1",
+          "chunk_id": "f2aab9656d47a715c967b15fde8da6329d3f4f4f4d08f0c568673e06bd86b4c0",
+          "section_id": "a4fe06df0622fad983ffaaf3c2fd8b1f2a8a60ed23556297b592e8f0e1eb2d46",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E6_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": "eb302be0e85220b1cad1b766f27f171bccdc03e42e353d4e4f056c6444b8ab9c",
+          "section_id": "7a5331f94d1b192e73c5b9579e359b3c04d7cf42cf8fc0cd6453be936eccca07",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E6_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "31fe27d69ebde81cad007ddff0897da5fa5424e650a94675fb581ca46526b502",
+          "source": "pilot_service_6.md",
+          "title": "Fictional service F6",
+          "content": "Synthetic evaluation fixture. Service F6 delegates its retention policy to pilot_policy_6.md. The archived policy is not current.",
+          "document_revision": "9015892151d97ed81d985383bffc895a718b0ed1b3c7050642f5ef672f84552b",
+          "chunk_id": "b79f34a85e6b6d10e4bcef8c297489c1e7a3bf770f26a96dd5d6615c4f3b077b",
+          "section_id": "378c854676afe0a238caa3f2d12470018de9cd52c18453f2d02c426dec9159e6",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E6_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "fc329c858d44fcd4af9ccf162637061005cc2c195a2f5a03edda015ccebb9d02",
+          "source": "pilot_service_5.md",
+          "title": "Fictional service F5",
+          "content": "Synthetic evaluation fixture. Service F5 delegates its retention policy to pilot_policy_5.md. The archived policy is not current.",
+          "document_revision": "c86f2b6894ece360c1869f0fa37d8a2c65d71fc7c519a9cd905dd994fdbf50b9",
+          "chunk_id": "797e110c96c15dbc16366f9fab42a97bf21bafaa9bf49ba9d281a031f6505565",
+          "section_id": "6609b0445a3cc6a4843628f216a5a6a0196f9da4fd038e56a53dac10adf02eb4",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E6_4",
+          "tool": "search"
+        }
+      ],
+      "stop_reason": "max_turns",
+      "execution_error": null,
+      "packet_sha256": "ad14a6e3c51bd4aace04a109728eca8e1a877d9ade3776e05ddddce2ecec032b"
+    },
+    "review": {
+      "packet_sha256": "ad14a6e3c51bd4aace04a109728eca8e1a877d9ade3776e05ddddce2ecec032b",
+      "status": "pending",
+      "reviewer": null,
+      "criteria": {
+        "fact_correct": null,
+        "fact_complete": null,
+        "claims_supported": null,
+        "citations_complete": null,
+        "task_fulfilled": null
+      },
+      "rationale": null
+    }
+  },
+  {
+    "packet": {
+      "schema_version": "arkb-output-review-v1",
+      "case": {
+        "id": "pilot_053",
+        "intent_family_id": "missing_measurement",
+        "task_type": "evidence_gap",
+        "query": "根据知识库，给出这个本地系统昨天测得的平均检索延迟，精确到毫秒。",
+        "query_language": "zh",
+        "split": "dev",
+        "answerability": "unanswerable",
+        "query_origin": "assistant_authored",
+        "annotation_status": "provisional",
+        "reviewers": [],
+        "evidence_requirements": [],
+        "required_facts": [
+          "笔记没有提供本系统昨天的延迟测量，不能用一般性说明推算。"
+        ],
+        "expected_behavior": "笔记没有提供本系统昨天的延迟测量，不能用一般性说明推算。"
+      },
+      "answer": null,
+      "evidence": [
+        {
+          "document_id": "8103feebf873607f9a7ad510cea0488857844f99e777dd878ce6ff551bd12ae3",
+          "source": "33_graph_search_strategies.md",
+          "title": "GraphRAG Search: Global Summaries, Local Exploration, and Deferred Work",
+          "content": "## Defer expensive reasoning until a query arrives\n\nLazyGraphRAG explores a different balance between indexing and query-time computation. It builds a graph using noun phrases and their co-occurrence, with community structure, without requiring the same LLM-generated summaries during indexing. Query-time exploration then performs relevance testing and selective reasoning over the collection. Its search combines broad exploration with deeper investigation of promising areas. A relevance test budget controls how much assessment is allowed, providing a way to vary effort and quality. Moving computation later can make ingestion cheaper, but does not make answering free. The tradeoff depends on corpus update frequency, query volume, and how much query-specific investigation is required. This is a research design whose reported results should be interpreted within its evaluated setting. This section summarizes source 4.\n\n",
+          "document_revision": "399cacadf1cbb865f22ec3cd629c56ec77f6ed58bdaf77e22260fc89ba7f6b7e",
+          "chunk_id": "6ab64a016fdfb8b7439bbf16f0037f7b91a44ea3c7a8b4fda6b9ac4a75dbaae2",
+          "section_id": "f9132c9649739091b250fd3213457f06165b46c3ea5261fa08f922f85a4b2bf1",
+          "start_char": 3077,
+          "end_char": 4006,
+          "id": "E1_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "b2a424caf677c61cc255778f6f86090ee2405addfec1192c50732c54d4d39ea3",
+          "source": "pilot_policy_3.md",
+          "title": "Current fictional policy P3",
+          "content": "Synthetic evaluation fixture. The current retention period is 23 days. For incident records, the exception is 5 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "f9400531c9f9d7ccb72ac2b50dd4489b87bf5bd2c0c605c1291e087dc1723f22",
+          "chunk_id": "a55b8d5f7ea53b4266c9dfd40934a9a0b95bb42a5d79b0075ba143141d1c49b8",
+          "section_id": "473726b7d34d27ec899dc04c343f4df1603a2e1ec3945041eca116fcf144962b",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E1_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "e892437ef7cc4be2f60d08bb8bf26226172484bee44ede4a102971c0a5a18a61",
+          "source": "pilot_policy_2.md",
+          "title": "Current fictional policy P2",
+          "content": "Synthetic evaluation fixture. The current retention period is 22 days. For incident records, the exception is 4 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "38cf2c3692b7c6e5b06eb5ced1b5aacd85958adaeadfc46389381df4e1686b9f",
+          "chunk_id": "15b69aab89d274bfad40dfffc1c566432b298f150f9e084cd2eaad0fa94aa31b",
+          "section_id": "321ce34d57f2a86b56e9a3c73e1ad3168903340f205fc66a2dd9eb9057ee7b78",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E1_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "06dfab2cfffd4706d0f4134615a1dcd5eca5d9006f0b54f918322d6bf94b724f",
+          "source": "pilot_policy_1.md",
+          "title": "Current fictional policy P1",
+          "content": "Synthetic evaluation fixture. The current retention period is 21 days. For incident records, the exception is 3 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "612604e8b004006068e3c456a8eb71f6b861b79dbf71d2afa5d3a3a8c3eec0c2",
+          "chunk_id": "b1af1623d4a609196ca3a5bd5ab8edfc264d530b43ca92426094d3637983f137",
+          "section_id": "cf4fcd4c872fcce5805eeb3f248b0fd2606637052e44eab775f85c831be3544b",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E1_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "0d9cd12793b1a0841bb2aa8768ee1636d11c0e5e299f877e5b192439bbf9eb6d",
+          "source": "pilot_policy_5.md",
+          "title": "Current fictional policy P5",
+          "content": "Synthetic evaluation fixture. The current retention period is 25 days. For incident records, the exception is 7 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "1b61c4c5bf4405e2a53d9177280e94aeb6e2c3f40f180b8355bf917269e4d2ad",
+          "chunk_id": "fd7b3c64854f811f642f75a78eef2f25751a0ff974e7eed62401c120f0938373",
+          "section_id": "0c8776769a7b41335b3bbaf5b591bc7446a9fd956736e6783e33e16d6c045ec5",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E1_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "e892437ef7cc4be2f60d08bb8bf26226172484bee44ede4a102971c0a5a18a61",
+          "source": "pilot_policy_2.md",
+          "title": "Current fictional policy P2",
+          "content": "Synthetic evaluation fixture. The current retention period is 22 days. For incident records, the exception is 4 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "38cf2c3692b7c6e5b06eb5ced1b5aacd85958adaeadfc46389381df4e1686b9f",
+          "chunk_id": "15b69aab89d274bfad40dfffc1c566432b298f150f9e084cd2eaad0fa94aa31b",
+          "section_id": "321ce34d57f2a86b56e9a3c73e1ad3168903340f205fc66a2dd9eb9057ee7b78",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E2_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "0d9cd12793b1a0841bb2aa8768ee1636d11c0e5e299f877e5b192439bbf9eb6d",
+          "source": "pilot_policy_5.md",
+          "title": "Current fictional policy P5",
+          "content": "Synthetic evaluation fixture. The current retention period is 25 days. For incident records, the exception is 7 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "1b61c4c5bf4405e2a53d9177280e94aeb6e2c3f40f180b8355bf917269e4d2ad",
+          "chunk_id": "fd7b3c64854f811f642f75a78eef2f25751a0ff974e7eed62401c120f0938373",
+          "section_id": "0c8776769a7b41335b3bbaf5b591bc7446a9fd956736e6783e33e16d6c045ec5",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E2_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "b2a424caf677c61cc255778f6f86090ee2405addfec1192c50732c54d4d39ea3",
+          "source": "pilot_policy_3.md",
+          "title": "Current fictional policy P3",
+          "content": "Synthetic evaluation fixture. The current retention period is 23 days. For incident records, the exception is 5 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "f9400531c9f9d7ccb72ac2b50dd4489b87bf5bd2c0c605c1291e087dc1723f22",
+          "chunk_id": "a55b8d5f7ea53b4266c9dfd40934a9a0b95bb42a5d79b0075ba143141d1c49b8",
+          "section_id": "473726b7d34d27ec899dc04c343f4df1603a2e1ec3945041eca116fcf144962b",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E2_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "06dfab2cfffd4706d0f4134615a1dcd5eca5d9006f0b54f918322d6bf94b724f",
+          "source": "pilot_policy_1.md",
+          "title": "Current fictional policy P1",
+          "content": "Synthetic evaluation fixture. The current retention period is 21 days. For incident records, the exception is 3 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "612604e8b004006068e3c456a8eb71f6b861b79dbf71d2afa5d3a3a8c3eec0c2",
+          "chunk_id": "b1af1623d4a609196ca3a5bd5ab8edfc264d530b43ca92426094d3637983f137",
+          "section_id": "cf4fcd4c872fcce5805eeb3f248b0fd2606637052e44eab775f85c831be3544b",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E2_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "c9b40cc63d9cce236515ef342b9b31be9a27b765ff9258e847f57a303cbec449",
+          "source": "pilot_policy_4.md",
+          "title": "Current fictional policy P4",
+          "content": "Synthetic evaluation fixture. The current retention period is 24 days. For incident records, the exception is 6 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "cd430d343e93a3a79d0a111f7e2045de2791a337fb0b861a25e9bc14a2ca2e39",
+          "chunk_id": "67926d5855459c1d3cbd38ca3904e035e7a2bfbf3e3e3963d7906bb0ca4edf88",
+          "section_id": "1e22af1f933fb6b284bc7cebdcc98fa01567a7a2abf40e7a83bbae292dd51309",
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E2_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "7d97d5c666316b8dabba40ee10de4f6da7171c5e25e06414142a1ae964e1b4dc",
+          "source": "38_agent_evaluation_and_observability.md",
+          "title": "Agent Evaluation: Harnesses, Infrastructure, Traces, and Conversation Tests",
+          "content": "## Test the final turn against real preceding context\n\nLangChain's evaluation-readiness guidance describes N-1 testing: retain the real preceding conversation and generate only the final turn under evaluation. This avoids compounding the behavior of a synthetic user and agent across an entirely simulated conversation. It also makes it easier to isolate a specific response while preserving the history that response depends on. Evaluation can examine the final output, the trajectory of actions, and the resulting state separately. A reference solution can help establish that a task is feasible, while positive and negative examples clarify the expected behavior. A fluent completion claim is insufficient when success requires an external artifact or a state change. The test must inspect the relevant outcome directly. This section summarizes source 4.\n\n",
+          "document_revision": "188694424e58f60978b8a00df90792abe572ddadadefe41a8204de8bb9e6c542",
+          "chunk_id": "1725912ae162e67a3a40c5f45cc922f7a4cf147c960a47593f692ab8b3e6f431",
+          "section_id": "450bf86f5003bf6a07b2c99dae29264591e00649d36920b5e09602849a86f66d",
+          "start_char": 2959,
+          "end_char": 3818,
+          "id": "E3_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "7d97d5c666316b8dabba40ee10de4f6da7171c5e25e06414142a1ae964e1b4dc",
+          "source": "38_agent_evaluation_and_observability.md",
+          "title": "Agent Evaluation: Harnesses, Infrastructure, Traces, and Conversation Tests",
+          "content": "## Sources\n\nAccessed 2026-09-05. Sections 1–4 correspond to the sources below; the scenario is original.\n\n1. [Anthropic — SWE-bench and agent scaffolding](https://www.anthropic.com/engineering/swe-bench-sonnet)\n2. [Anthropic — Infrastructure noise in agent benchmarks](https://www.anthropic.com/engineering/infrastructure-noise)\n3. [LangChain — Agent observability powers agent evaluation](https://www.langchain.com/blog/agent-observability-powers-agent-evaluation)\n4. [LangChain — Agent evaluation readiness checklist](https://www.langchain.com/blog/agent-evaluation-readiness-checklist)",
+          "document_revision": "188694424e58f60978b8a00df90792abe572ddadadefe41a8204de8bb9e6c542",
+          "chunk_id": "9718b965e44fc5d99fc3c992954467b305d8b28c429e8a7338d547fc21f12f88",
+          "section_id": "2af52a26a95b400412e8225562d299fe681c3f64f6b5ff664598ee887ec60787",
+          "start_char": 5118,
+          "end_char": 5706,
+          "id": "E3_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "7d97d5c666316b8dabba40ee10de4f6da7171c5e25e06414142a1ae964e1b4dc",
+          "source": "38_agent_evaluation_and_observability.md",
+          "title": "Agent Evaluation: Harnesses, Infrastructure, Traces, and Conversation Tests",
+          "content": "An agent's final sentence is only one observation about its behavior. Evaluation also depends on the tools, environment, execution history, and actual state produced. This note connects four perspectives on measuring agent systems and explains why a benchmark score should be interpreted with its execution conditions.\n\n",
+          "document_revision": "188694424e58f60978b8a00df90792abe572ddadadefe41a8204de8bb9e6c542",
+          "chunk_id": "d896f434094afae673995238b4b4bce028b37d2c0feb9f66c0f788d86784580a",
+          "section_id": "7c5dc3a3da86d3729b5f6d745336f4d2d4ce2e12a0755fcfa2b39a716dd99fb4",
+          "start_char": 0,
+          "end_char": 320,
+          "id": "E3_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd2e5fdc79eac45a1ce3c35aa5563344685f3bc11e55398bbaeb0fe594be1b34",
+          "source": "pilot_service_1.md",
+          "title": "Fictional service F1",
+          "content": "Synthetic evaluation fixture. Service F1 delegates its retention policy to pilot_policy_1.md. The archived policy is not current.",
+          "document_revision": "7d947d435e744fad6299ec103cfddb666a60611f3851509eb1afc968615f66f1",
+          "chunk_id": "f2aab9656d47a715c967b15fde8da6329d3f4f4f4d08f0c568673e06bd86b4c0",
+          "section_id": "a4fe06df0622fad983ffaaf3c2fd8b1f2a8a60ed23556297b592e8f0e1eb2d46",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E3_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "178e203fe1fecc0da6d153b9c525431943602e1f2815a192f85738e25024f353",
+          "source": "02_tool_interface_design.md",
+          "title": "Tool Interfaces for Language Models",
+          "content": "## Practical implication\n\nTest tool interfaces on realistic tasks. Inspect incorrect calls and unnecessary output before adding more tools to the same agent.\n\n",
+          "document_revision": "8e692bf4049a06133bfe77e26fb70b852c84d35ae547c781c9e14e1828d9b00f",
+          "chunk_id": "44382c8e3c574577b66499a3ed321ec912981e0e64d9a2847fd9054f522e816e",
+          "section_id": "04ae96fcf0de28ef5bc27000f79dc8e557d4315e4c60ef94d511302d9127f7a2",
+          "start_char": 343,
+          "end_char": 502,
+          "id": "E3_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "8103feebf873607f9a7ad510cea0488857844f99e777dd878ce6ff551bd12ae3",
+          "source": "33_graph_search_strategies.md",
+          "title": "GraphRAG Search: Global Summaries, Local Exploration, and Deferred Work",
+          "content": "## Illustrative scenario: a collection of project retrospectives\n\nConsider an imaginary archive of project retrospectives. One question asks which recurring causes delayed delivery across the archive. Another asks which dependency blocked a particular project. This scenario is original and contains no actual company records. The first question calls for coverage across projects; the second needs precise evidence from a smaller connected neighborhood.\n\nA global summary could help identify themes such as unclear ownership or dependency changes, but a reviewer would still want source passages supporting any specific project claim. If dynamic selection excludes a relevant community too early, the synthesis may appear coherent while missing a substantial theme. Recording selected communities would help distinguish that error from poor answer writing.\n\nA DRIFT-style investigation might begin with the recurring themes, then ask focused follow-up questions about exceptions. A lazy approach would spend less effort generating reports before anyone asks a question, while allocating more work when the question arrives. A useful experiment would compare the same questions and evidence requirements across these choices. Measuring only the number of retrieved documents would overlook whether the search actually covered the requested parts of the archive.\n\n",
+          "document_revision": "399cacadf1cbb865f22ec3cd629c56ec77f6ed58bdaf77e22260fc89ba7f6b7e",
+          "chunk_id": "3e2f99f13c83de3e903e32280e0c0b8acb8bff2f28a262fee58d803b3ce9c789",
+          "section_id": "1ae88ba1c3eb072346efe35d6d6a6abdad153a1eaf3e5e479a7b9c3460ba9e9f",
+          "start_char": 4006,
+          "end_char": 5369,
+          "id": "E4_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "8103feebf873607f9a7ad510cea0488857844f99e777dd878ce6ff551bd12ae3",
+          "source": "33_graph_search_strategies.md",
+          "title": "GraphRAG Search: Global Summaries, Local Exploration, and Deferred Work",
+          "content": "## Sources\n\nAccessed 2026-09-05. Sections 1–4 correspond to the sources below; the scenario is original.\n\n1. [Microsoft Research — GraphRAG: new tool for complex data discovery](https://www.microsoft.com/en-us/research/blog/graphrag-new-tool-for-complex-data-discovery-now-on-github/)\n2. [Microsoft Research — Dynamic community selection](https://www.microsoft.com/en-us/research/blog/graphrag-improving-global-search-via-dynamic-community-selection/)\n3. [Microsoft Research — Introducing DRIFT Search](https://www.microsoft.com/en-us/research/blog/introducing-drift-search-combining-global-and-local-search-methods-to-improve-quality-and-efficiency/)\n4. [Microsoft Research — LazyGraphRAG](https://www.microsoft.com/en-us/research/blog/lazygraphrag-setting-a-new-standard-for-quality-and-cost/)",
+          "document_revision": "399cacadf1cbb865f22ec3cd629c56ec77f6ed58bdaf77e22260fc89ba7f6b7e",
+          "chunk_id": "9c79e83c6ca1e73f171b57fa6e29b6dba210236df45f31ab721a86f8fc9f096f",
+          "section_id": "c6420b000d7fc1f1db432d59ea5227528997a9693f7ca5398a5e4ba2340af7eb",
+          "start_char": 5369,
+          "end_char": 6164,
+          "id": "E4_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "661fc4c47dad67cb857e88b8927dd5c241f84ebd10e1b9e17ddb50f504f16421",
+          "source": "03_dynamic_tool_discovery.md",
+          "title": "Discovering Tools on Demand",
+          "content": "## Practical implication\n\nKeep essential tools immediately available and make the larger catalog searchable. Discovering an operation and executing that operation are separate steps.\n\n",
+          "document_revision": "497278de0e2c85a8b687e99610f3ed87aabdf350d271acf12e7e860037c8e982",
+          "chunk_id": "7e3edce399f568fc4326bcf965ea397b708d5c75b450d348da4a2faf95001488",
+          "section_id": "66553557f9805e79fbab139706ab44c806255875f46b79ea09c1aaa9eb60bf95",
+          "start_char": 325,
+          "end_char": 509,
+          "id": "E4_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "8103feebf873607f9a7ad510cea0488857844f99e777dd878ce6ff551bd12ae3",
+          "source": "33_graph_search_strategies.md",
+          "title": "GraphRAG Search: Global Summaries, Local Exploration, and Deferred Work",
+          "content": "## Defer expensive reasoning until a query arrives\n\nLazyGraphRAG explores a different balance between indexing and query-time computation. It builds a graph using noun phrases and their co-occurrence, with community structure, without requiring the same LLM-generated summaries during indexing. Query-time exploration then performs relevance testing and selective reasoning over the collection. Its search combines broad exploration with deeper investigation of promising areas. A relevance test budget controls how much assessment is allowed, providing a way to vary effort and quality. Moving computation later can make ingestion cheaper, but does not make answering free. The tradeoff depends on corpus update frequency, query volume, and how much query-specific investigation is required. This is a research design whose reported results should be interpreted within its evaluated setting. This section summarizes source 4.\n\n",
+          "document_revision": "399cacadf1cbb865f22ec3cd629c56ec77f6ed58bdaf77e22260fc89ba7f6b7e",
+          "chunk_id": "6ab64a016fdfb8b7439bbf16f0037f7b91a44ea3c7a8b4fda6b9ac4a75dbaae2",
+          "section_id": "f9132c9649739091b250fd3213457f06165b46c3ea5261fa08f922f85a4b2bf1",
+          "start_char": 3077,
+          "end_char": 4006,
+          "id": "E4_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "7d97d5c666316b8dabba40ee10de4f6da7171c5e25e06414142a1ae964e1b4dc",
+          "source": "38_agent_evaluation_and_observability.md",
+          "title": "Agent Evaluation: Harnesses, Infrastructure, Traces, and Conversation Tests",
+          "content": "An agent's final sentence is only one observation about its behavior. Evaluation also depends on the tools, environment, execution history, and actual state produced. This note connects four perspectives on measuring agent systems and explains why a benchmark score should be interpreted with its execution conditions.\n\n",
+          "document_revision": "188694424e58f60978b8a00df90792abe572ddadadefe41a8204de8bb9e6c542",
+          "chunk_id": "d896f434094afae673995238b4b4bce028b37d2c0feb9f66c0f788d86784580a",
+          "section_id": "7c5dc3a3da86d3729b5f6d745336f4d2d4ce2e12a0755fcfa2b39a716dd99fb4",
+          "start_char": 0,
+          "end_char": 320,
+          "id": "E4_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "7d19d51c3e8d37bfacd6d4f70f049a237d92387e7d2f0e64fe95ead021c54557",
+          "source": "37_multimodal_evidence_retrieval.md",
+          "title": "Multimodal Retrieval: Pages, Tables, Image Identifiers, and Time",
+          "content": "Documents can express evidence through layout, charts, figures, speech, and text. A retrieval pipeline must decide which representation to search and which original material the generator needs to inspect. This note follows that distinction across page-image retrieval, structured table context, and audiovisual records. The final scenario is invented.\n\n",
+          "document_revision": "175ebd4df6a8b581a477c7852cdb793ddecfb54a82ad801d4483035a00154fad",
+          "chunk_id": "5e6d7ede6e6c00f0c347978bf9904d3d838d7c77c7484e147d61f30cd361fb60",
+          "section_id": "6325523bb742f77941cf594c8af9426662750863d5356313ccee36af71c92525",
+          "start_char": 0,
+          "end_char": 354,
+          "id": "E5_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "8103feebf873607f9a7ad510cea0488857844f99e777dd878ce6ff551bd12ae3",
+          "source": "33_graph_search_strategies.md",
+          "title": "GraphRAG Search: Global Summaries, Local Exploration, and Deferred Work",
+          "content": "## Illustrative scenario: a collection of project retrospectives\n\nConsider an imaginary archive of project retrospectives. One question asks which recurring causes delayed delivery across the archive. Another asks which dependency blocked a particular project. This scenario is original and contains no actual company records. The first question calls for coverage across projects; the second needs precise evidence from a smaller connected neighborhood.\n\nA global summary could help identify themes such as unclear ownership or dependency changes, but a reviewer would still want source passages supporting any specific project claim. If dynamic selection excludes a relevant community too early, the synthesis may appear coherent while missing a substantial theme. Recording selected communities would help distinguish that error from poor answer writing.\n\nA DRIFT-style investigation might begin with the recurring themes, then ask focused follow-up questions about exceptions. A lazy approach would spend less effort generating reports before anyone asks a question, while allocating more work when the question arrives. A useful experiment would compare the same questions and evidence requirements across these choices. Measuring only the number of retrieved documents would overlook whether the search actually covered the requested parts of the archive.\n\n",
+          "document_revision": "399cacadf1cbb865f22ec3cd629c56ec77f6ed58bdaf77e22260fc89ba7f6b7e",
+          "chunk_id": "3e2f99f13c83de3e903e32280e0c0b8acb8bff2f28a262fee58d803b3ce9c789",
+          "section_id": "1ae88ba1c3eb072346efe35d6d6a6abdad153a1eaf3e5e479a7b9c3460ba9e9f",
+          "start_char": 4006,
+          "end_char": 5369,
+          "id": "E5_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "8103feebf873607f9a7ad510cea0488857844f99e777dd878ce6ff551bd12ae3",
+          "source": "33_graph_search_strategies.md",
+          "title": "GraphRAG Search: Global Summaries, Local Exploration, and Deferred Work",
+          "content": "## Defer expensive reasoning until a query arrives\n\nLazyGraphRAG explores a different balance between indexing and query-time computation. It builds a graph using noun phrases and their co-occurrence, with community structure, without requiring the same LLM-generated summaries during indexing. Query-time exploration then performs relevance testing and selective reasoning over the collection. Its search combines broad exploration with deeper investigation of promising areas. A relevance test budget controls how much assessment is allowed, providing a way to vary effort and quality. Moving computation later can make ingestion cheaper, but does not make answering free. The tradeoff depends on corpus update frequency, query volume, and how much query-specific investigation is required. This is a research design whose reported results should be interpreted within its evaluated setting. This section summarizes source 4.\n\n",
+          "document_revision": "399cacadf1cbb865f22ec3cd629c56ec77f6ed58bdaf77e22260fc89ba7f6b7e",
+          "chunk_id": "6ab64a016fdfb8b7439bbf16f0037f7b91a44ea3c7a8b4fda6b9ac4a75dbaae2",
+          "section_id": "f9132c9649739091b250fd3213457f06165b46c3ea5261fa08f922f85a4b2bf1",
+          "start_char": 3077,
+          "end_char": 4006,
+          "id": "E5_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "661fc4c47dad67cb857e88b8927dd5c241f84ebd10e1b9e17ddb50f504f16421",
+          "source": "03_dynamic_tool_discovery.md",
+          "title": "Discovering Tools on Demand",
+          "content": "## Practical implication\n\nKeep essential tools immediately available and make the larger catalog searchable. Discovering an operation and executing that operation are separate steps.\n\n",
+          "document_revision": "497278de0e2c85a8b687e99610f3ed87aabdf350d271acf12e7e860037c8e982",
+          "chunk_id": "7e3edce399f568fc4326bcf965ea397b708d5c75b450d348da4a2faf95001488",
+          "section_id": "66553557f9805e79fbab139706ab44c806255875f46b79ea09c1aaa9eb60bf95",
+          "start_char": 325,
+          "end_char": 509,
+          "id": "E5_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "fc329c858d44fcd4af9ccf162637061005cc2c195a2f5a03edda015ccebb9d02",
+          "source": "pilot_service_5.md",
+          "title": "Fictional service F5",
+          "content": "Synthetic evaluation fixture. Service F5 delegates its retention policy to pilot_policy_5.md. The archived policy is not current.",
+          "document_revision": "c86f2b6894ece360c1869f0fa37d8a2c65d71fc7c519a9cd905dd994fdbf50b9",
+          "chunk_id": "797e110c96c15dbc16366f9fab42a97bf21bafaa9bf49ba9d281a031f6505565",
+          "section_id": "6609b0445a3cc6a4843628f216a5a6a0196f9da4fd038e56a53dac10adf02eb4",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E5_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "7d97d5c666316b8dabba40ee10de4f6da7171c5e25e06414142a1ae964e1b4dc",
+          "source": "38_agent_evaluation_and_observability.md",
+          "title": "Agent Evaluation: Harnesses, Infrastructure, Traces, and Conversation Tests",
+          "content": "An agent's final sentence is only one observation about its behavior. Evaluation also depends on the tools, environment, execution history, and actual state produced. This note connects four perspectives on measuring agent systems and explains why a benchmark score should be interpreted with its execution conditions.\n\n",
+          "document_revision": "188694424e58f60978b8a00df90792abe572ddadadefe41a8204de8bb9e6c542",
+          "chunk_id": "d896f434094afae673995238b4b4bce028b37d2c0feb9f66c0f788d86784580a",
+          "section_id": "7c5dc3a3da86d3729b5f6d745336f4d2d4ce2e12a0755fcfa2b39a716dd99fb4",
+          "start_char": 0,
+          "end_char": 320,
+          "id": "E6_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "ead6a2da8cfa909a5070cf0266dd9148ebc412326878c738e7ef771c6b324d32",
+          "source": "pilot_service_2.md",
+          "title": "Fictional service F2",
+          "content": "Synthetic evaluation fixture. Service F2 delegates its retention policy to pilot_policy_2.md. The archived policy is not current.",
+          "document_revision": "1d4eebe6f33eb2f741fb0bd94f2fbd44e3cd2b38d22be52403bd0478e875336d",
+          "chunk_id": "ceb5199f1d2435ce54ee74c3670cbef7f4b57c8875141d13417b89776bbffe3c",
+          "section_id": "60890b0d8cc533f9b064310e8f84f2ed2245142e6eab9fcaf2c8e8c56b2c9bfa",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E6_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd2e5fdc79eac45a1ce3c35aa5563344685f3bc11e55398bbaeb0fe594be1b34",
+          "source": "pilot_service_1.md",
+          "title": "Fictional service F1",
+          "content": "Synthetic evaluation fixture. Service F1 delegates its retention policy to pilot_policy_1.md. The archived policy is not current.",
+          "document_revision": "7d947d435e744fad6299ec103cfddb666a60611f3851509eb1afc968615f66f1",
+          "chunk_id": "f2aab9656d47a715c967b15fde8da6329d3f4f4f4d08f0c568673e06bd86b4c0",
+          "section_id": "a4fe06df0622fad983ffaaf3c2fd8b1f2a8a60ed23556297b592e8f0e1eb2d46",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E6_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "31fe27d69ebde81cad007ddff0897da5fa5424e650a94675fb581ca46526b502",
+          "source": "pilot_service_6.md",
+          "title": "Fictional service F6",
+          "content": "Synthetic evaluation fixture. Service F6 delegates its retention policy to pilot_policy_6.md. The archived policy is not current.",
+          "document_revision": "9015892151d97ed81d985383bffc895a718b0ed1b3c7050642f5ef672f84552b",
+          "chunk_id": "b79f34a85e6b6d10e4bcef8c297489c1e7a3bf770f26a96dd5d6615c4f3b077b",
+          "section_id": "378c854676afe0a238caa3f2d12470018de9cd52c18453f2d02c426dec9159e6",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E6_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "8212f71e75fb40d6769b28bf94911d786ce045b1755fffffb40f1719a624691e",
+          "source": "pilot_service_3.md",
+          "title": "Fictional service F3",
+          "content": "Synthetic evaluation fixture. Service F3 delegates its retention policy to pilot_policy_3.md. The archived policy is not current.",
+          "document_revision": "c893dcda9dbe45de1ccfe014e621202f040b3600856f9f054324c8fc2eb33f03",
+          "chunk_id": "875f62f8eb4462347abf5ac506048d1fc0db9b782b0fa0a9504010da4803203f",
+          "section_id": "4c1a93cec23778ee2ab3fc3935700f58dbe1c121b934141642ade239b2ddb17f",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E6_4",
+          "tool": "search"
+        }
+      ],
+      "stop_reason": "max_turns",
+      "execution_error": null,
+      "packet_sha256": "27bc8de52e0ca37872a0ef410d1eb076a5242fd6e77beafccceb638ea393878b"
+    },
+    "review": {
+      "packet_sha256": "27bc8de52e0ca37872a0ef410d1eb076a5242fd6e77beafccceb638ea393878b",
+      "status": "pending",
+      "reviewer": null,
+      "criteria": {
+        "fact_correct": null,
+        "fact_complete": null,
+        "claims_supported": null,
+        "citations_complete": null,
+        "task_fulfilled": null
+      },
+      "rationale": null
+    }
+  },
+  {
+    "packet": {
+      "schema_version": "arkb-output-review-v1",
+      "case": {
+        "id": "pilot_040",
+        "intent_family_id": "synthetic_retention_family",
+        "task_type": "multi_hop_qa",
+        "query": "虚构服务 F4 当前普通记录与事件记录分别保留多久？沿服务说明查找现行规范，并排除旧版本。",
+        "query_language": "zh",
+        "split": "dev",
+        "answerability": "answerable",
+        "query_origin": "assistant_authored",
+        "annotation_status": "provisional",
+        "reviewers": [],
+        "evidence_requirements": [
+          {
+            "id": "joint-evidence",
+            "weight": 1,
+            "critical": true,
+            "alternatives": [
+              [
+                "e-ccd89664b7aa497a",
+                "e-67a2ae68af499ec4"
+              ]
+            ]
+          }
+        ],
+        "required_facts": [
+          "先确认服务所引用的现行规范：普通记录 24 天，事件记录 6 天；旧的 84 天不适用。"
+        ],
+        "expected_behavior": "先确认服务所引用的现行规范：普通记录 24 天，事件记录 6 天；旧的 84 天不适用。"
+      },
+      "answer": "根据现行规范，虚构服务 F4 的记录保留期限如下：\n\n| 记录类型 | 保留期限 |\n|---------|---------|\n| **普通记录** | 24 天 |\n| **事件记录** | 6 天（例外情况） |\n\n**依据来源：**\n- 当前政策文件：`pilot_policy_4.md`（修订版本：cd430d343e93a3a79d0a111f7e2045de2791a337fb0b861a25e9bc14a2ca2e39）\n- 服务 F4 将保留策略委托给该政策文件\n\n**排除的旧版本：**\n- `pilot_archive_4.md`（修订版本：22a51db250b4ad2365556f6e8ef53316736867f9a538171f5000a3dae053b488）\n  - 旧政策：所有记录保留 84 天\n  - 状态：已被取代，不可作为当前政策使用\n\n**说明：**\n- 普通记录的 24 天保留期限适用于服务 F4 的所有常规记录\n- 事件记录（incident records）适用 6 天的例外保留期限\n- 该规范仅适用于链接到 `pilot_policy_4.md` 的服务",
+      "evidence": [
+        {
+          "document_id": "1b3134bc1bbc581dbda3273d1c04aa461d6c1c6648469dc1ee51f7cbb8af6efd",
+          "source": "pilot_archive_4.md",
+          "title": "Archived fictional policy F4",
+          "content": "Synthetic evaluation distractor. Service F4 used to keep all records for 84 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "22a51db250b4ad2365556f6e8ef53316736867f9a538171f5000a3dae053b488",
+          "chunk_id": "5c1f64b2cbc2a05a905b1885af58348cee3a1ea347014c1a924a219cb0569d28",
+          "section_id": "c98d9e8555a7530c230bd4f5d717280edc221dff5dedc39090594ae325ebdce5",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E0_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": "eb302be0e85220b1cad1b766f27f171bccdc03e42e353d4e4f056c6444b8ab9c",
+          "section_id": "7a5331f94d1b192e73c5b9579e359b3c04d7cf42cf8fc0cd6453be936eccca07",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E0_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "5ebc06b0a6dc1b9dae25656a05bd59f3b417d9c74555373ab37f1213ede27a43",
+          "source": "pilot_archive_6.md",
+          "title": "Archived fictional policy F6",
+          "content": "Synthetic evaluation distractor. Service F6 used to keep all records for 86 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "d2bed7f73a20f8ea4f4416fe1f1ffad45ef7390a1b65bed705475673b255fd90",
+          "chunk_id": "102c05e14a33d0196a87658b50eb374f252231eab5dbfe1fdfc88d5b63425381",
+          "section_id": "51e05f7db2cc13a000c97df82f154e9c2d8ecf6758d999a745fb29d6e1175f49",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E0_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "c182014721193e67184e7f00a8d5c14536da4aeae0d31f1a911ea7c34c3311bd",
+          "source": "pilot_archive_2.md",
+          "title": "Archived fictional policy F2",
+          "content": "Synthetic evaluation distractor. Service F2 used to keep all records for 82 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "9ec8aba84e0acf1f002f6e86e4cdc3c8a3e76e4d82caa34b7e99e65ed2a2b71c",
+          "chunk_id": "784936484cf34ad61b42c2a49101b2334c7a35b33fee9849ebfca42608d6da91",
+          "section_id": "33629aab1e126e1942b52a9e140d05fc02ba1a1a534cd4775feffd907ac6847e",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E0_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "431689d72c834d1a5c2b285af9bb5eaf9bd48c7e4d80fc78ffe76e51b3d59b00",
+          "source": "pilot_archive_3.md",
+          "title": "Archived fictional policy F3",
+          "content": "Synthetic evaluation distractor. Service F3 used to keep all records for 83 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "0861d385f83a2820a2f1a264d834f66a45a15aab9f113ccca7148fa6a3c789c4",
+          "chunk_id": "ca7607716df81156eddf93fd316bdaa46399ef06cfbfea76d8380fb8f30e4b26",
+          "section_id": "c47ef21a7fca4a0363b12afb11601f03daa864c9e8c479ae5df523041a1baee4",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E0_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E1_0",
+          "tool": "read"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": "eb302be0e85220b1cad1b766f27f171bccdc03e42e353d4e4f056c6444b8ab9c",
+          "section_id": "7a5331f94d1b192e73c5b9579e359b3c04d7cf42cf8fc0cd6453be936eccca07",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "31fe27d69ebde81cad007ddff0897da5fa5424e650a94675fb581ca46526b502",
+          "source": "pilot_service_6.md",
+          "title": "Fictional service F6",
+          "content": "Synthetic evaluation fixture. Service F6 delegates its retention policy to pilot_policy_6.md. The archived policy is not current.",
+          "document_revision": "9015892151d97ed81d985383bffc895a718b0ed1b3c7050642f5ef672f84552b",
+          "chunk_id": "b79f34a85e6b6d10e4bcef8c297489c1e7a3bf770f26a96dd5d6615c4f3b077b",
+          "section_id": "378c854676afe0a238caa3f2d12470018de9cd52c18453f2d02c426dec9159e6",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "ead6a2da8cfa909a5070cf0266dd9148ebc412326878c738e7ef771c6b324d32",
+          "source": "pilot_service_2.md",
+          "title": "Fictional service F2",
+          "content": "Synthetic evaluation fixture. Service F2 delegates its retention policy to pilot_policy_2.md. The archived policy is not current.",
+          "document_revision": "1d4eebe6f33eb2f741fb0bd94f2fbd44e3cd2b38d22be52403bd0478e875336d",
+          "chunk_id": "ceb5199f1d2435ce54ee74c3670cbef7f4b57c8875141d13417b89776bbffe3c",
+          "section_id": "60890b0d8cc533f9b064310e8f84f2ed2245142e6eab9fcaf2c8e8c56b2c9bfa",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "8212f71e75fb40d6769b28bf94911d786ce045b1755fffffb40f1719a624691e",
+          "source": "pilot_service_3.md",
+          "title": "Fictional service F3",
+          "content": "Synthetic evaluation fixture. Service F3 delegates its retention policy to pilot_policy_3.md. The archived policy is not current.",
+          "document_revision": "c893dcda9dbe45de1ccfe014e621202f040b3600856f9f054324c8fc2eb33f03",
+          "chunk_id": "875f62f8eb4462347abf5ac506048d1fc0db9b782b0fa0a9504010da4803203f",
+          "section_id": "4c1a93cec23778ee2ab3fc3935700f58dbe1c121b934141642ade239b2ddb17f",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "1b3134bc1bbc581dbda3273d1c04aa461d6c1c6648469dc1ee51f7cbb8af6efd",
+          "source": "pilot_archive_4.md",
+          "title": "Archived fictional policy F4",
+          "content": "Synthetic evaluation distractor. Service F4 used to keep all records for 84 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "22a51db250b4ad2365556f6e8ef53316736867f9a538171f5000a3dae053b488",
+          "chunk_id": "5c1f64b2cbc2a05a905b1885af58348cee3a1ea347014c1a924a219cb0569d28",
+          "section_id": "c98d9e8555a7530c230bd4f5d717280edc221dff5dedc39090594ae325ebdce5",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E2_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "c9b40cc63d9cce236515ef342b9b31be9a27b765ff9258e847f57a303cbec449",
+          "source": "pilot_policy_4.md",
+          "title": "Current fictional policy P4",
+          "content": "Synthetic evaluation fixture. The current retention period is 24 days. For incident records, the exception is 6 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "cd430d343e93a3a79d0a111f7e2045de2791a337fb0b861a25e9bc14a2ca2e39",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E3_0",
+          "tool": "read"
+        }
+      ],
+      "stop_reason": "final",
+      "execution_error": null,
+      "packet_sha256": "084b207a24d560d5378c706b9cb5a63a235dc60bad123e97ea5549560c6ea175"
+    },
+    "review": {
+      "packet_sha256": "084b207a24d560d5378c706b9cb5a63a235dc60bad123e97ea5549560c6ea175",
+      "status": "pending",
+      "reviewer": null,
+      "criteria": {
+        "fact_correct": null,
+        "fact_complete": null,
+        "claims_supported": null,
+        "citations_complete": null,
+        "task_fulfilled": null
+      },
+      "rationale": null
+    }
+  },
+  {
+    "packet": {
+      "schema_version": "arkb-output-review-v1",
+      "case": {
+        "id": "pilot_017",
+        "intent_family_id": "handoff",
+        "task_type": "exploratory_retrieval",
+        "query": "准备一份跨会话任务交接指南，收集摘要保留内容与下一轮工作检查流程。",
+        "query_language": "zh",
+        "split": "dev",
+        "answerability": "answerable",
+        "query_origin": "assistant_authored",
+        "annotation_status": "provisional",
+        "reviewers": [],
+        "evidence_requirements": [
+          {
+            "id": "facet-1",
+            "weight": 1,
+            "critical": true,
+            "alternatives": [
+              [
+                "e-bd1d5450234dacdc"
+              ]
+            ]
+          },
+          {
+            "id": "facet-2",
+            "weight": 1,
+            "critical": true,
+            "alternatives": [
+              [
+                "e-6b915e99721de1f8"
+              ]
+            ]
+          }
+        ],
+        "required_facts": [
+          "摘要保存约束与未完成事项；新会话检查交接产物并验证工作。"
+        ],
+        "expected_behavior": "摘要保存约束与未完成事项；新会话检查交接产物并验证工作。"
+      },
+      "answer": "根据收集到的资料，我为您整理了一份**跨会话任务交接指南**：\n\n---\n\n# 📋 跨会话任务交接指南\n\n## 一、摘要保留内容（Handoff Artifacts）\n\n### 1.1 核心原则\n- **书面完成声明不足以作为证据** - 功能状态应反映对实际应用的检查\n- **未完成的工作应在交接中可见** - 避免信息丢失导致后续工作受阻\n\n### 1.2 必须保留的内容清单\n\n| 类别 | 内容项 | 说明 |\n|------|--------|------|\n| **环境准备** | 项目结构、依赖配置、运行环境 | 确保新会话可复现初始状态 |\n| **功能列表** | 已完成/进行中/待办功能清单 | 明确工作范围边界 |\n| **进度记录** | 当前执行状态、下一步行动建议 | 避免重复劳动 |\n| **未决问题** | 已知限制、假设、待验证项 | 防止遗漏关键约束 |\n| **依赖关系** | 模块间依赖、外部服务接口 | 确保上下文完整性 |\n\n### 1.3 摘要压缩注意事项\n- ✅ **保留**：决策点、未解决问题、依赖关系\n- ❌ **避免**：冗余材料、重复信息、临时性观察\n- ⚠️ **检查**：压缩后是否遗漏后续任务中重要的约束条件\n\n---\n\n## 二、下一轮工作检查流程（Verification Process）\n\n### 2.1 交接前检查清单\n\n```\n┌─────────────────────────────────────────────────────────────┐\n│                    交接前验证流程                            │\n├─────────────────────────────────────────────────────────────┤\n│                                                             │\n│  [ ] 1. 验证工作应用的实际状态                              │\n│     - 运行测试确认功能是否正常工作                           │\n│     - 检查日志记录异常和错误                                │\n│                                                             │\n│  [ ] 2. 审查任务日志（Task Ledger）                          │\n│     - 已知事实和假设是否准确                                 │\n│     - 总体计划是否仍然适用                                   │\n│                                                             │\n│  [ ] 3. 审查进度日志（Progress Ledger）                       │\n│     - 当前执行是否进展顺利                                  │\n│     - 下一步行动建议是否清晰                                 │\n│                                                             │\n│  [ ] 4. 检查未决问题清单                                      │\n│     - 记录已知限制和假设                                     │\n│     - 标记需要后续验证的项                                   │\n│                                                             │\n│  [ ] 5. 确认交接文档完整性                                    │\n│     - 状态变更是否明确                                       │\n│     - 下一步目标是否可见                                      │\n│                                                             │\n└─────────────────────────────────────────────────────────────┘\n```\n\n### 2.2 交接后验证步骤\n\n| 阶段 | 检查项 | 责任人 |\n|------|--------|--------|\n| **接收阶段** | 确认摘要内容完整性 | 新会话代理 |\n| **验证阶段** | 运行应用检查功能状态 | 新会话代理 |\n| **评估阶段** | 对比交接前后差异 | 新会话代理 |\n| **更新阶段** | 记录新的进度和未决问题 | 新会话代理 |\n\n### 2.3 关键检查点\n\n1. **重复工作检测** - 识别是否已有相同任务被多次执行\n2. **证据完整性** - 确认每个声明都有文档支持\n3. **资源使用评估** - 不仅关注完成速度，还要考虑总资源消耗\n4. **计划有效性** - 验证原始计划是否仍然适用\n\n---\n\n## 三、最佳实践建议\n\n### 3.1 任务日志与进度日志分离\n- **任务日志（Task Ledger）**：持有已知事实、临时假设和总体计划\n- **进度日志（Progress Ledger）**：跟踪当前执行状态和下一步行动\n- **作用区分**：前者描述问题和意图，后者帮助评估最新行动\n\n### 3.2 明确交接机制\n- 使用**状态更新 + 路由决策**的组合方式\n- 交接应包含两部分：\n  - **控制转移**：确定谁将采取下一步行动\n  - **状态更新**：确定接收者可用的信息内容\n\n### 3.3 避免常见陷阱\n- ❌ 仅凭\"工人活跃\"消息判断计划仍然有效\n- ❌ 将多次搜索尝试视为进展（可能只是重复劳动）\n- ❌ 过度压缩导致关键约束丢失\n- ❌ 未验证实际应用状态就标记完成\n\n---\n\n## 四、参考来源\n\n1. **Anthropic** - Effective harnesses for long-running agents\n2. **Anthropic** - Effective context engineering for AI agents\n3. **Microsoft Research** - Magentic-One multi-agent system\n4. **Google Research** - Scaling agent systems\n5. **LangChain** - Command tool for multi-agent architectures\n\n---\n\n> **核心要点**：跨会话交接的核心是确保信息完整性和工作连续性。书面声明不足以证明完成，必须通过实际验证和明确的文档记录来建立可信的交接状态。",
+      "evidence": [
+        {
+          "document_id": "505eabadb01076d14e92ea1149f16cbdcd01dedca0921d8fe83017eba0272f31",
+          "source": "07_long_running_harnesses.md",
+          "title": "Handoffs Between Coding Sessions",
+          "content": "## Practical implication\n\nA written completion claim is insufficient evidence. Feature status should reflect checks of the working application, and unfinished work should remain visible in the handoff.\n\n",
+          "document_revision": "28eca61bc30d43e2d3f40fa6380323f1ba2d7016a06022a2597b95742e5c2f90",
+          "chunk_id": "1cf8b205945982d2117538015de0d35f5eefaf9cd187a37c2fa191d141b48995",
+          "section_id": "f81539284e00001ec494ce3fd8c387f01ffd2a8e871c4980909570173b166dc4",
+          "start_char": 335,
+          "end_char": 538,
+          "id": "E0_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "b8bf80d7b1464caa517b0a2cbbfbe3494f9e9fd850e72eea03c61dd9c9dd666b",
+          "source": "06_context_compaction.md",
+          "title": "Compaction and Persistent Agent Notes",
+          "content": "## Practical implication\n\nCheck what survives a context reset. An aggressively shortened summary can omit a constraint that becomes important later in the task.\n\n",
+          "document_revision": "a78dce08c9cafad1931a2f2073e5e2721fcb7f4e040c294911277e70d1dc9bb5",
+          "chunk_id": "10af5e2437faa5d71fa153dd191868dbb14f935306f0107901b9bbc103a3c8fb",
+          "section_id": "545d3ace82bdc4b6512a5c83e636d915d22eb44e3f03ae3427c05b989c09f03a",
+          "start_char": 380,
+          "end_char": 542,
+          "id": "E0_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "5febd8f7e2a42ebf15168ebeba2ffa5214d798fdb692d5ca451fb7e10f97077a",
+          "source": "31_multi_agent_coordination.md",
+          "title": "Multi-Agent Research: Delegation, Shared State, and Coordination Costs",
+          "content": "## Illustrative scenario: comparing three deployment options\n\nSuppose a team asks an assistant to compare three imaginary deployment options. This is a hypothetical exercise, not a reported vendor deployment. The lead assigns one worker to each option and asks for a short table of supported features, unresolved questions, and links to the relevant documentation. Workers must distinguish documented facts from assumptions. A fourth worker is not automatically useful: it needs a distinct investigation, such as checking whether the proposed comparison uses equivalent configurations.\n\nAfter one worker repeatedly encounters missing documentation, the lead records that limitation and changes the research plan. It does not treat another search attempt as progress by itself. Each worker saves its findings once, and the lead reads the artifacts when composing the comparison. Before transferring control to a reviewer, the system records which options remain uncertain and which artifacts support each claim. A useful evaluation would inspect duplicated work, missing evidence, and final comparison quality alongside total resource use. Faster completion alone would not show that delegation improved the research.\n\n",
+          "document_revision": "bfb855ed8e017969e30e49f60190998c6cdf81b8811a88ba516d46ae3693be1b",
+          "chunk_id": "9db735bcf88dfa0c0378fe08e71285388ddfce7b2b04dfe63d0edfbb23f5cb1f",
+          "section_id": "32a6dc5228f27b799c5de071ac8e9ee4a9c7a0a88f8476360abb35c0ade0e905",
+          "start_char": 3970,
+          "end_char": 5188,
+          "id": "E0_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "505eabadb01076d14e92ea1149f16cbdcd01dedca0921d8fe83017eba0272f31",
+          "source": "07_long_running_harnesses.md",
+          "title": "Handoffs Between Coding Sessions",
+          "content": "## Core idea\n\nAn agent harness can help a coding project continue across fresh context windows. An initial session prepares the environment, a feature list, and progress records. Later sessions inspect those artifacts, complete a manageable part of the work, verify it, and leave an updated account of the state for the next session.\n\n",
+          "document_revision": "28eca61bc30d43e2d3f40fa6380323f1ba2d7016a06022a2597b95742e5c2f90",
+          "chunk_id": "4142b6ce86e4a0a2a427e36a5918d861b85a2efff6cd98ce40eefa0868c947c8",
+          "section_id": "bc1c1a55753de9e984a24b64dd1cbc307a13d387822c826dda119bfca9e666fa",
+          "start_char": 0,
+          "end_char": 335,
+          "id": "E0_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "5febd8f7e2a42ebf15168ebeba2ffa5214d798fdb692d5ca451fb7e10f97077a",
+          "source": "31_multi_agent_coordination.md",
+          "title": "Multi-Agent Research: Delegation, Shared State, and Coordination Costs",
+          "content": "## Separate planning from progress tracking\n\nMicrosoft's Magentic-One uses an Orchestrator with specialist agents for browsing, files, coding, and terminal execution. It distinguishes two records. The Task Ledger holds the known facts, tentative assumptions, and overall plan. The Progress Ledger tracks the current execution, including whether work is advancing and which agent should act next. The orchestrator uses an outer planning loop and an inner execution loop. Repeated stalls can cause it to revisit the Task Ledger and devise a different plan, rather than endlessly issue the same assignment. These records serve different purposes: one describes the problem and intended approach, while the other helps assess the latest actions. A message saying that a worker is active is therefore not equivalent to evidence that the original plan is still sound. This section summarizes source 2.\n\n",
+          "document_revision": "bfb855ed8e017969e30e49f60190998c6cdf81b8811a88ba516d46ae3693be1b",
+          "chunk_id": "771017a6eb3c753d9d926fb64fb99dc91dc18125c6d08d34f42df547b021d603",
+          "section_id": "e7e154102422fefe356d4b1595fec0148e49bcfc2e5d28de066c93c9563038eb",
+          "start_char": 1316,
+          "end_char": 2213,
+          "id": "E0_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "505eabadb01076d14e92ea1149f16cbdcd01dedca0921d8fe83017eba0272f31",
+          "source": "07_long_running_harnesses.md",
+          "title": "Handoffs Between Coding Sessions",
+          "content": "## Core idea\n\nAn agent harness can help a coding project continue across fresh context windows. An initial session prepares the environment, a feature list, and progress records. Later sessions inspect those artifacts, complete a manageable part of the work, verify it, and leave an updated account of the state for the next session.\n\n## Practical implication\n\nA written completion claim is insufficient evidence. Feature status should reflect checks of the working application, and unfinished work should remain visible in the handoff.\n\n## Source\n\n[Anthropic — Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)",
+          "document_revision": "28eca61bc30d43e2d3f40fa6380323f1ba2d7016a06022a2597b95742e5c2f90",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": 0,
+          "end_char": 689,
+          "id": "E1_0",
+          "tool": "read"
+        },
+        {
+          "document_id": "b8bf80d7b1464caa517b0a2cbbfbe3494f9e9fd850e72eea03c61dd9c9dd666b",
+          "source": "06_context_compaction.md",
+          "title": "Compaction and Persistent Agent Notes",
+          "content": "## Core idea\n\nA long-running conversation can exceed the context available for the next model call. Compaction summarizes earlier history so work can continue with a smaller active context. Persistent notes keep selected facts outside that context for later retrieval. Useful summaries preserve decisions, unresolved problems, and dependencies while removing redundant material.\n\n## Practical implication\n\nCheck what survives a context reset. An aggressively shortened summary can omit a constraint that becomes important later in the task.\n\n## Source\n\n[Anthropic — Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)",
+          "document_revision": "a78dce08c9cafad1931a2f2073e5e2721fcb7f4e040c294911277e70d1dc9bb5",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": 0,
+          "end_char": 693,
+          "id": "E2_0",
+          "tool": "read"
+        },
+        {
+          "document_id": "5febd8f7e2a42ebf15168ebeba2ffa5214d798fdb692d5ca451fb7e10f97077a",
+          "source": "31_multi_agent_coordination.md",
+          "title": "Multi-Agent Research: Delegation, Shared State, and Coordination Costs",
+          "content": "A research assistant may need to explore independent sources, reconcile partial findings, and preserve a coherent plan. These activities put different demands on an agent architecture. This note connects four designs without assuming that adding more workers always improves the result. The final scenario is an original illustration.\n\n## Delegate bounded investigations\n\nAnthropic describes a lead researcher that plans work and delegates independent investigations to subagents. Separate contexts let workers explore different directions without filling the leader's context with every intermediate observation. The leader must still integrate their findings. Effective assignments specify the objective, expected output, useful tools, source expectations, and boundaries. Vague delegation can produce duplicate searches or leave important topics uncovered. Workers can write artifacts and return references, avoiding repeated paraphrasing through several agents. This also makes supporting material available for later inspection. The architecture is useful when work can be divided and when the value of broader investigation justifies additional tokens. Delegation itself does not establish that a conclusion is well supported; synthesis and source checking remain necessary. This section summarizes source 1.\n\n## Separate planning from progress tracking\n\nMicrosoft's Magentic-One uses an Orchestrator with specialist agents for browsing, files, coding, and terminal execution. It distinguishes two records. The Task Ledger holds the known facts, tentative assumptions, and overall plan. The Progress Ledger tracks the current execution, including whether work is advancing and which agent should act next. The orchestrator uses an outer planning loop and an inner execution loop. Repeated stalls can cause it to revisit the Task Ledger and devise a different plan, rather than endlessly issue the same assignment. These records serve different purposes: one describes the problem and intended approach, while the other helps assess the latest actions. A message saying that a worker is active is therefore not equivalent to evidence that the original plan is still sound. This section summarizes source 2.\n\n## Match coordination to the task\n\nGoogle Research studies agent systems under controlled configurations and finds that coordination interacts with task structure. Parallelizable work can benefit from multiple investigators, while tasks with strong sequential dependencies may suffer from communication overhead and fragmented reasoning. Tool-heavy work can incur a coordination tax when agents repeatedly exchange observations and negotiate control. The topology also affects how mistakes travel: a worker's error may be checked, contained, or repeated by other participants. Consequently, an architecture comparison should hold the task and relevant resource constraints in view. A successful multi-agent benchmark does not imply that every serial workflow should become a team. The practical design question is which useful independent work becomes possible and what communication it requires. This section summarizes source 3.\n\n## Make handoffs explicit\n\nLangGraph's Command design combines a state update with a routing decision. A node can return an update describing changed shared state and a goto destination identifying the next node. A handoff may also route to a parent graph. The two pieces should be understood separately: transferring control determines who acts next, while updating state determines what information that participant can use. Declared possible destinations can support graph visualization even when the next step is selected dynamically. This is a control-flow mechanism, not a guarantee that the recipient understands the task or has received complete evidence. Explicit handoffs make such responsibilities easier to inspect because the state change and destination are visible together. This section summarizes source 4.\n\n## Illustrative scenario: comparing three deployment options\n\nSuppose a team asks an assistant to compare three imaginary deployment options. This is a hypothetical exercise, not a reported vendor deployment. The lead assigns one worker to each option and asks for a short table of supported features, unresolved questions, and links to the relevant documentation. Workers must distinguish documented facts from assumptions. A fourth worker is not automatically useful: it needs a distinct investigation, such as checking whether the proposed comparison uses equivalent configurations.\n\nAfter one worker repeatedly encounters missing documentation, the lead records that limitation and changes the research plan. It does not treat another search attempt as progress by itself. Each worker saves its findings once, and the lead reads the artifacts when composing the comparison. Before transferring control to a reviewer, the system records which options remain uncertain and which artifacts support each claim. A useful evaluation would inspect duplicated work, missing evidence, and final comparison quality alongside total resource use. Faster completion alone would not show that delegation improved the research.\n\n## Sources\n\nAccessed 2026-09-05. Sections 1–4 correspond to the sources below; the scenario is original.\n\n1. [Anthropic — How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system)\n2. [Microsoft Research — Magentic-One](https://www.microsoft.com/en-us/research/articles/magentic-one-a-generalist-multi-agent-system-for-solving-complex-tasks/)\n3. [Google Research — Towards a science of scaling agent systems](https://research.google/blog/towards-a-science-of-scaling-agent-systems-when-and-why-agent-systems-work/)\n4. [LangChain — Command: a new tool for multi-agent architectures](https://www.langchain.com/blog/command-a-new-tool-for-multi-agent-architectures-in-langgraph)",
+          "document_revision": "bfb855ed8e017969e30e49f60190998c6cdf81b8811a88ba516d46ae3693be1b",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": 0,
+          "end_char": 5917,
+          "id": "E3_0",
+          "tool": "read"
+        }
+      ],
+      "stop_reason": "final",
+      "execution_error": null,
+      "packet_sha256": "0759411e95938ccc7352d96db388ae9311a76c5c560c806c77ced1b2575d0fb5"
+    },
+    "review": {
+      "packet_sha256": "0759411e95938ccc7352d96db388ae9311a76c5c560c806c77ced1b2575d0fb5",
+      "status": "pending",
+      "reviewer": null,
+      "criteria": {
+        "fact_correct": null,
+        "fact_complete": null,
+        "claims_supported": null,
+        "citations_complete": null,
+        "task_fulfilled": null
+      },
+      "rationale": null
+    }
+  },
+  {
+    "packet": {
+      "schema_version": "arkb-output-review-v1",
+      "case": {
+        "id": "pilot_057",
+        "intent_family_id": "provided_text",
+        "task_type": "no_retrieval",
+        "query": "只按给出的数字计算：4 加 9 等于多少？",
+        "query_language": "zh",
+        "split": "dev",
+        "answerability": "not_applicable",
+        "query_origin": "assistant_authored",
+        "annotation_status": "provisional",
+        "reviewers": [],
+        "evidence_requirements": [],
+        "required_facts": [
+          "13"
+        ],
+        "expected_behavior": "13"
+      },
+      "answer": "4 + 9 = 13",
+      "evidence": [],
+      "stop_reason": "final",
+      "execution_error": null,
+      "packet_sha256": "0ea55f4d7e126f89ee7ab1b302fbdbd5d5e00393136a07fb771bb656b0d2876b"
+    },
+    "review": {
+      "packet_sha256": "0ea55f4d7e126f89ee7ab1b302fbdbd5d5e00393136a07fb771bb656b0d2876b",
+      "status": "pending",
+      "reviewer": null,
+      "criteria": {
+        "fact_correct": null,
+        "fact_complete": null,
+        "claims_supported": null,
+        "citations_complete": null,
+        "task_fulfilled": null
+      },
+      "rationale": null
+    }
+  },
+  {
+    "packet": {
+      "schema_version": "arkb-output-review-v1",
+      "case": {
+        "id": "pilot_037",
+        "intent_family_id": "synthetic_retention_family",
+        "task_type": "multi_hop_qa",
+        "query": "虚构服务 F1 当前普通记录与事件记录分别保留多久？沿服务说明查找现行规范，并排除旧版本。",
+        "query_language": "zh",
+        "split": "dev",
+        "answerability": "answerable",
+        "query_origin": "assistant_authored",
+        "annotation_status": "provisional",
+        "reviewers": [],
+        "evidence_requirements": [
+          {
+            "id": "joint-evidence",
+            "weight": 1,
+            "critical": true,
+            "alternatives": [
+              [
+                "e-721cf72ba095cda9",
+                "e-cfcd2712f06eddaf"
+              ]
+            ]
+          }
+        ],
+        "required_facts": [
+          "先确认服务所引用的现行规范：普通记录 21 天，事件记录 3 天；旧的 81 天不适用。"
+        ],
+        "expected_behavior": "先确认服务所引用的现行规范：普通记录 21 天，事件记录 3 天；旧的 81 天不适用。"
+      },
+      "answer": "根据现行规范，虚构服务 F1 的记录保留时间如下：\n\n| 记录类型 | 保留期限 |\n|---------|---------|\n| **普通记录** | 21 天 |\n| **事件记录** | 3 天（例外情况） |\n\n**依据来源：**\n- 现行政策文件：`pilot_policy_1.md`（当前修订版：612604e8b004006068e3c456a8eb71f6b861b79dbf71d2afa5d3a3a8c3eec0c2）\n- 服务 F1 委托其保留策略到该政策文件\n\n**注意：** 旧版本归档文件（如 pilot_archive_1.md）显示 F1 曾将所有记录保留 81 天，但该版本已被标记为过时且不得作为当前政策使用。",
+      "evidence": [
+        {
+          "document_id": "01c61c51bac9b339b78398063c752d8bcc1ed17342496d2fdcb54e233f00ae33",
+          "source": "pilot_archive_1.md",
+          "title": "Archived fictional policy F1",
+          "content": "Synthetic evaluation distractor. Service F1 used to keep all records for 81 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "cbacb7ee72cedd14976a2f156d6a40ad6941acbaff682e9e3b233a5e536cedc6",
+          "chunk_id": "799364c120fe035dc5dd418617e46ba0a77446a185c9d962177c840c19dabbc1",
+          "section_id": "af5f3666420542da7e8470781a54ef6c1a3cf80ecef1c7e99b03bf4fa674231c",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E0_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd2e5fdc79eac45a1ce3c35aa5563344685f3bc11e55398bbaeb0fe594be1b34",
+          "source": "pilot_service_1.md",
+          "title": "Fictional service F1",
+          "content": "Synthetic evaluation fixture. Service F1 delegates its retention policy to pilot_policy_1.md. The archived policy is not current.",
+          "document_revision": "7d947d435e744fad6299ec103cfddb666a60611f3851509eb1afc968615f66f1",
+          "chunk_id": "f2aab9656d47a715c967b15fde8da6329d3f4f4f4d08f0c568673e06bd86b4c0",
+          "section_id": "a4fe06df0622fad983ffaaf3c2fd8b1f2a8a60ed23556297b592e8f0e1eb2d46",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E0_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "5ebc06b0a6dc1b9dae25656a05bd59f3b417d9c74555373ab37f1213ede27a43",
+          "source": "pilot_archive_6.md",
+          "title": "Archived fictional policy F6",
+          "content": "Synthetic evaluation distractor. Service F6 used to keep all records for 86 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "d2bed7f73a20f8ea4f4416fe1f1ffad45ef7390a1b65bed705475673b255fd90",
+          "chunk_id": "102c05e14a33d0196a87658b50eb374f252231eab5dbfe1fdfc88d5b63425381",
+          "section_id": "51e05f7db2cc13a000c97df82f154e9c2d8ecf6758d999a745fb29d6e1175f49",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E0_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "1b3134bc1bbc581dbda3273d1c04aa461d6c1c6648469dc1ee51f7cbb8af6efd",
+          "source": "pilot_archive_4.md",
+          "title": "Archived fictional policy F4",
+          "content": "Synthetic evaluation distractor. Service F4 used to keep all records for 84 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "22a51db250b4ad2365556f6e8ef53316736867f9a538171f5000a3dae053b488",
+          "chunk_id": "5c1f64b2cbc2a05a905b1885af58348cee3a1ea347014c1a924a219cb0569d28",
+          "section_id": "c98d9e8555a7530c230bd4f5d717280edc221dff5dedc39090594ae325ebdce5",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E0_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "431689d72c834d1a5c2b285af9bb5eaf9bd48c7e4d80fc78ffe76e51b3d59b00",
+          "source": "pilot_archive_3.md",
+          "title": "Archived fictional policy F3",
+          "content": "Synthetic evaluation distractor. Service F3 used to keep all records for 83 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "0861d385f83a2820a2f1a264d834f66a45a15aab9f113ccca7148fa6a3c789c4",
+          "chunk_id": "ca7607716df81156eddf93fd316bdaa46399ef06cfbfea76d8380fb8f30e4b26",
+          "section_id": "c47ef21a7fca4a0363b12afb11601f03daa864c9e8c479ae5df523041a1baee4",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E0_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd2e5fdc79eac45a1ce3c35aa5563344685f3bc11e55398bbaeb0fe594be1b34",
+          "source": "pilot_service_1.md",
+          "title": "Fictional service F1",
+          "content": "Synthetic evaluation fixture. Service F1 delegates its retention policy to pilot_policy_1.md. The archived policy is not current.",
+          "document_revision": "7d947d435e744fad6299ec103cfddb666a60611f3851509eb1afc968615f66f1",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E1_0",
+          "tool": "read"
+        },
+        {
+          "document_id": "01c61c51bac9b339b78398063c752d8bcc1ed17342496d2fdcb54e233f00ae33",
+          "source": "pilot_archive_1.md",
+          "title": "Archived fictional policy F1",
+          "content": "Synthetic evaluation distractor. Service F1 used to keep all records for 81 days. This archived edition has been superseded and must not be used as the current policy.",
+          "document_revision": "cbacb7ee72cedd14976a2f156d6a40ad6941acbaff682e9e3b233a5e536cedc6",
+          "chunk_id": "799364c120fe035dc5dd418617e46ba0a77446a185c9d962177c840c19dabbc1",
+          "section_id": "af5f3666420542da7e8470781a54ef6c1a3cf80ecef1c7e99b03bf4fa674231c",
+          "start_char": 0,
+          "end_char": 167,
+          "id": "E2_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "fd2e5fdc79eac45a1ce3c35aa5563344685f3bc11e55398bbaeb0fe594be1b34",
+          "source": "pilot_service_1.md",
+          "title": "Fictional service F1",
+          "content": "Synthetic evaluation fixture. Service F1 delegates its retention policy to pilot_policy_1.md. The archived policy is not current.",
+          "document_revision": "7d947d435e744fad6299ec103cfddb666a60611f3851509eb1afc968615f66f1",
+          "chunk_id": "f2aab9656d47a715c967b15fde8da6329d3f4f4f4d08f0c568673e06bd86b4c0",
+          "section_id": "a4fe06df0622fad983ffaaf3c2fd8b1f2a8a60ed23556297b592e8f0e1eb2d46",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "176a7a200ad0dfe19710fea18cbefed350b7ce7adddbd827eb816bd2c4c74e75",
+          "source": "pilot_service_4.md",
+          "title": "Fictional service F4",
+          "content": "Synthetic evaluation fixture. Service F4 delegates its retention policy to pilot_policy_4.md. The archived policy is not current.",
+          "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+          "chunk_id": "eb302be0e85220b1cad1b766f27f171bccdc03e42e353d4e4f056c6444b8ab9c",
+          "section_id": "7a5331f94d1b192e73c5b9579e359b3c04d7cf42cf8fc0cd6453be936eccca07",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "8212f71e75fb40d6769b28bf94911d786ce045b1755fffffb40f1719a624691e",
+          "source": "pilot_service_3.md",
+          "title": "Fictional service F3",
+          "content": "Synthetic evaluation fixture. Service F3 delegates its retention policy to pilot_policy_3.md. The archived policy is not current.",
+          "document_revision": "c893dcda9dbe45de1ccfe014e621202f040b3600856f9f054324c8fc2eb33f03",
+          "chunk_id": "875f62f8eb4462347abf5ac506048d1fc0db9b782b0fa0a9504010da4803203f",
+          "section_id": "4c1a93cec23778ee2ab3fc3935700f58dbe1c121b934141642ade239b2ddb17f",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "ead6a2da8cfa909a5070cf0266dd9148ebc412326878c738e7ef771c6b324d32",
+          "source": "pilot_service_2.md",
+          "title": "Fictional service F2",
+          "content": "Synthetic evaluation fixture. Service F2 delegates its retention policy to pilot_policy_2.md. The archived policy is not current.",
+          "document_revision": "1d4eebe6f33eb2f741fb0bd94f2fbd44e3cd2b38d22be52403bd0478e875336d",
+          "chunk_id": "ceb5199f1d2435ce54ee74c3670cbef7f4b57c8875141d13417b89776bbffe3c",
+          "section_id": "60890b0d8cc533f9b064310e8f84f2ed2245142e6eab9fcaf2c8e8c56b2c9bfa",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E2_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "06dfab2cfffd4706d0f4134615a1dcd5eca5d9006f0b54f918322d6bf94b724f",
+          "source": "pilot_policy_1.md",
+          "title": "Current fictional policy P1",
+          "content": "Synthetic evaluation fixture. The current retention period is 21 days. For incident records, the exception is 3 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "612604e8b004006068e3c456a8eb71f6b861b79dbf71d2afa5d3a3a8c3eec0c2",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": null,
+          "end_char": null,
+          "id": "E3_0",
+          "tool": "match"
+        },
+        {
+          "document_id": "06dfab2cfffd4706d0f4134615a1dcd5eca5d9006f0b54f918322d6bf94b724f",
+          "source": "pilot_policy_1.md",
+          "title": "Current fictional policy P1",
+          "content": "Synthetic evaluation fixture. The current retention period is 21 days. For incident records, the exception is 3 days. Both rules apply only to the service that links to this policy.",
+          "document_revision": "612604e8b004006068e3c456a8eb71f6b861b79dbf71d2afa5d3a3a8c3eec0c2",
+          "chunk_id": null,
+          "section_id": null,
+          "start_char": 0,
+          "end_char": 181,
+          "id": "E4_0",
+          "tool": "read"
+        }
+      ],
+      "stop_reason": "final",
+      "execution_error": null,
+      "packet_sha256": "d729d1548c06f155e3338cfa7bf012b88e28ebe675f9ef265363767a0d225a1d"
+    },
+    "review": {
+      "packet_sha256": "d729d1548c06f155e3338cfa7bf012b88e28ebe675f9ef265363767a0d225a1d",
+      "status": "pending",
+      "reviewer": null,
+      "criteria": {
+        "fact_correct": null,
+        "fact_complete": null,
+        "claims_supported": null,
+        "citations_complete": null,
+        "task_fulfilled": null
+      },
+      "rationale": null
+    }
+  },
+  {
+    "packet": {
+      "schema_version": "arkb-output-review-v1",
+      "case": {
+        "id": "pilot_013",
+        "intent_family_id": "control",
+        "task_type": "exploratory_retrieval",
+        "query": "准备一份阅读清单，分别解释谁来决定下一步动作，以及工具结果到达后如何复核信息。",
+        "query_language": "zh",
+        "split": "dev",
+        "answerability": "answerable",
+        "query_origin": "assistant_authored",
+        "annotation_status": "provisional",
+        "reviewers": [],
+        "evidence_requirements": [
+          {
+            "id": "facet-1",
+            "weight": 1,
+            "critical": true,
+            "alternatives": [
+              [
+                "e-f7a85cf56b8e377f"
+              ]
+            ]
+          },
+          {
+            "id": "facet-2",
+            "weight": 1,
+            "critical": true,
+            "alternatives": [
+              [
+                "e-031ea6d8ada180d0"
+              ]
+            ]
+          }
+        ],
+        "required_facts": [
+          "分别覆盖控制流自主性与工具调用间的复核。"
+        ],
+        "expected_behavior": "分别覆盖控制流自主性与工具调用间的复核。"
+      },
+      "answer": null,
+      "evidence": [
+        {
+          "document_id": "56a5a53abac067c1af669ed5ec1811a96dc4dfccede9e92988cf65febc35d2ff",
+          "source": "22_process_supervision.md",
+          "title": "Feedback on Reasoning Steps",
+          "content": "## Source\n\n[OpenAI — Improving mathematical reasoning with process supervision](https://openai.com/index/improving-mathematical-reasoning-with-process-supervision/)",
+          "document_revision": "9e0744f84a7271ebd4c62ca39bf5fc13a69281051a944b7830bbd680a53d9cae",
+          "chunk_id": "00fc33faa8bef48fb8c89629ee9fccaa3246e4986c53916d22ac73a582e647e2",
+          "section_id": "e658411a4d745427455017c4060a4e4bdd9b0da4e505a9df6f11d88c043e3733",
+          "start_char": 543,
+          "end_char": 707,
+          "id": "E0_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "2fe9bedd8c5558d97626668a499f8171f09e4fc59f6744a381023724cdee851a",
+          "source": "08_think_tool.md",
+          "title": "Reasoning Between Tool Calls",
+          "content": "## Practical implication\n\nEvaluate this pattern on sequential decisions that require interpreting tool output. Its role differs from reasoning performed before the model starts its response.\n\n",
+          "document_revision": "461e6285868758153beb6319652998cf21ae76560e64441bb9ca0f4fb7253043",
+          "chunk_id": "0a982ffd982f6b138e546e1cafc73f9ff56e84a85712df8dc2e0cae72555213f",
+          "section_id": "4469f61339fa3a51ad49cadad6de0fe3a5845d3ed52fc5d2b90fc7ab2650cfe5",
+          "start_char": 347,
+          "end_char": 539,
+          "id": "E0_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "2fe9bedd8c5558d97626668a499f8171f09e4fc59f6744a381023724cdee851a",
+          "source": "08_think_tool.md",
+          "title": "Reasoning Between Tool Calls",
+          "content": "## Core idea\n\nThe think-tool pattern gives an agent a designated step to review newly received information during a tool-use sequence. It is especially relevant when the next action depends on earlier results or detailed policies. The tool provides a place for reasoning; it does not itself fetch new evidence or modify the external environment.\n\n",
+          "document_revision": "461e6285868758153beb6319652998cf21ae76560e64441bb9ca0f4fb7253043",
+          "chunk_id": "0a5329092b224371c86807c1d8a52e7ae7dfa26e911bf19d49e8c2acf27fa004",
+          "section_id": "f39e329548be72269fd8693c5219a73d425272056a99734bab3075cae84e6528",
+          "start_char": 0,
+          "end_char": 347,
+          "id": "E0_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "ead6a2da8cfa909a5070cf0266dd9148ebc412326878c738e7ef771c6b324d32",
+          "source": "pilot_service_2.md",
+          "title": "Fictional service F2",
+          "content": "Synthetic evaluation fixture. Service F2 delegates its retention policy to pilot_policy_2.md. The archived policy is not current.",
+          "document_revision": "1d4eebe6f33eb2f741fb0bd94f2fbd44e3cd2b38d22be52403bd0478e875336d",
+          "chunk_id": "ceb5199f1d2435ce54ee74c3670cbef7f4b57c8875141d13417b89776bbffe3c",
+          "section_id": "60890b0d8cc533f9b064310e8f84f2ed2245142e6eab9fcaf2c8e8c56b2c9bfa",
+          "start_char": 0,
+          "end_char": 129,
+          "id": "E0_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "b1fbd7aca4a7d663d6f98ebfeee521cda233169b059a4c0fe387a607a8af7b06",
+          "source": "01_workflows_and_agents.md",
+          "title": "Workflows and Autonomous Agents",
+          "content": "## Core idea\n\nA workflow follows a sequence of steps chosen by its developer. An agent lets the model choose its next actions and tools as new information arrives. Predictable tasks often suit workflows, while open-ended tasks can benefit from an agent responding to environmental feedback.\n\n",
+          "document_revision": "ec307af16f0048ff663b6694d3a758ef946b9e73bb4985657660a51d09a3b684",
+          "chunk_id": "6d63be366584e239e3df518347aaeba415e61eb019f0bd83dfc83b3e579d65f8",
+          "section_id": "e9b46fe3c97028a4926379a67aaf2feb69071427b8f99d828e842168bcabf98b",
+          "start_char": 0,
+          "end_char": 292,
+          "id": "E0_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "178e203fe1fecc0da6d153b9c525431943602e1f2815a192f85738e25024f353",
+          "source": "02_tool_interface_design.md",
+          "title": "Tool Interfaces for Language Models",
+          "content": "## Practical implication\n\nTest tool interfaces on realistic tasks. Inspect incorrect calls and unnecessary output before adding more tools to the same agent.\n\n",
+          "document_revision": "8e692bf4049a06133bfe77e26fb70b852c84d35ae547c781c9e14e1828d9b00f",
+          "chunk_id": "44382c8e3c574577b66499a3ed321ec912981e0e64d9a2847fd9054f522e816e",
+          "section_id": "04ae96fcf0de28ef5bc27000f79dc8e557d4315e4c60ef94d511302d9127f7a2",
+          "start_char": 343,
+          "end_char": 502,
+          "id": "E1_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "2fe9bedd8c5558d97626668a499f8171f09e4fc59f6744a381023724cdee851a",
+          "source": "08_think_tool.md",
+          "title": "Reasoning Between Tool Calls",
+          "content": "## Core idea\n\nThe think-tool pattern gives an agent a designated step to review newly received information during a tool-use sequence. It is especially relevant when the next action depends on earlier results or detailed policies. The tool provides a place for reasoning; it does not itself fetch new evidence or modify the external environment.\n\n",
+          "document_revision": "461e6285868758153beb6319652998cf21ae76560e64441bb9ca0f4fb7253043",
+          "chunk_id": "0a5329092b224371c86807c1d8a52e7ae7dfa26e911bf19d49e8c2acf27fa004",
+          "section_id": "f39e329548be72269fd8693c5219a73d425272056a99734bab3075cae84e6528",
+          "start_char": 0,
+          "end_char": 347,
+          "id": "E1_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "661fc4c47dad67cb857e88b8927dd5c241f84ebd10e1b9e17ddb50f504f16421",
+          "source": "03_dynamic_tool_discovery.md",
+          "title": "Discovering Tools on Demand",
+          "content": "## Practical implication\n\nKeep essential tools immediately available and make the larger catalog searchable. Discovering an operation and executing that operation are separate steps.\n\n",
+          "document_revision": "497278de0e2c85a8b687e99610f3ed87aabdf350d271acf12e7e860037c8e982",
+          "chunk_id": "7e3edce399f568fc4326bcf965ea397b708d5c75b450d348da4a2faf95001488",
+          "section_id": "66553557f9805e79fbab139706ab44c806255875f46b79ea09c1aaa9eb60bf95",
+          "start_char": 325,
+          "end_char": 509,
+          "id": "E1_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "d9a3e0e8acc84b25e1e21f88768a78586d1fea5278b2a4c11225b1534872e267",
+          "source": "21_speculative_decoding.md",
+          "title": "Drafting and Verifying Tokens",
+          "content": "## Source\n\n[Google Research — Looking back at speculative decoding](https://research.google/blog/looking-back-at-speculative-decoding/)",
+          "document_revision": "746fac1cf076649cf704734e047c69a92235fefd88f4393634d8376a61c497ea",
+          "chunk_id": "deda0df9d114b77750c74b42360e845fbaee544dc4c2fb10e7e821540f5daa13",
+          "section_id": "8e0771430ed20a3b6f4baf41a3a9a4fc0c3f95a27c72db481dc892987188321c",
+          "start_char": 566,
+          "end_char": 701,
+          "id": "E1_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "2fe9bedd8c5558d97626668a499f8171f09e4fc59f6744a381023724cdee851a",
+          "source": "08_think_tool.md",
+          "title": "Reasoning Between Tool Calls",
+          "content": "## Practical implication\n\nEvaluate this pattern on sequential decisions that require interpreting tool output. Its role differs from reasoning performed before the model starts its response.\n\n",
+          "document_revision": "461e6285868758153beb6319652998cf21ae76560e64441bb9ca0f4fb7253043",
+          "chunk_id": "0a982ffd982f6b138e546e1cafc73f9ff56e84a85712df8dc2e0cae72555213f",
+          "section_id": "4469f61339fa3a51ad49cadad6de0fe3a5845d3ed52fc5d2b90fc7ab2650cfe5",
+          "start_char": 347,
+          "end_char": 539,
+          "id": "E1_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "b1fbd7aca4a7d663d6f98ebfeee521cda233169b059a4c0fe387a607a8af7b06",
+          "source": "01_workflows_and_agents.md",
+          "title": "Workflows and Autonomous Agents",
+          "content": "## Core idea\n\nA workflow follows a sequence of steps chosen by its developer. An agent lets the model choose its next actions and tools as new information arrives. Predictable tasks often suit workflows, while open-ended tasks can benefit from an agent responding to environmental feedback.\n\n",
+          "document_revision": "ec307af16f0048ff663b6694d3a758ef946b9e73bb4985657660a51d09a3b684",
+          "chunk_id": null,
+          "section_id": "e9b46fe3c97028a4926379a67aaf2feb69071427b8f99d828e842168bcabf98b",
+          "start_char": 0,
+          "end_char": 292,
+          "id": "E2_0",
+          "tool": "read"
+        },
+        {
+          "document_id": "2fe9bedd8c5558d97626668a499f8171f09e4fc59f6744a381023724cdee851a",
+          "source": "08_think_tool.md",
+          "title": "Reasoning Between Tool Calls",
+          "content": "## Core idea\n\nThe think-tool pattern gives an agent a designated step to review newly received information during a tool-use sequence. It is especially relevant when the next action depends on earlier results or detailed policies. The tool provides a place for reasoning; it does not itself fetch new evidence or modify the external environment.\n\n",
+          "document_revision": "461e6285868758153beb6319652998cf21ae76560e64441bb9ca0f4fb7253043",
+          "chunk_id": null,
+          "section_id": "f39e329548be72269fd8693c5219a73d425272056a99734bab3075cae84e6528",
+          "start_char": 0,
+          "end_char": 347,
+          "id": "E3_0",
+          "tool": "read"
+        },
+        {
+          "document_id": "2fe9bedd8c5558d97626668a499f8171f09e4fc59f6744a381023724cdee851a",
+          "source": "08_think_tool.md",
+          "title": "Reasoning Between Tool Calls",
+          "content": "## Practical implication\n\nEvaluate this pattern on sequential decisions that require interpreting tool output. Its role differs from reasoning performed before the model starts its response.\n\n",
+          "document_revision": "461e6285868758153beb6319652998cf21ae76560e64441bb9ca0f4fb7253043",
+          "chunk_id": null,
+          "section_id": "4469f61339fa3a51ad49cadad6de0fe3a5845d3ed52fc5d2b90fc7ab2650cfe5",
+          "start_char": 347,
+          "end_char": 539,
+          "id": "E4_0",
+          "tool": "read"
+        },
+        {
+          "document_id": "178e203fe1fecc0da6d153b9c525431943602e1f2815a192f85738e25024f353",
+          "source": "02_tool_interface_design.md",
+          "title": "Tool Interfaces for Language Models",
+          "content": "## Practical implication\n\nTest tool interfaces on realistic tasks. Inspect incorrect calls and unnecessary output before adding more tools to the same agent.\n\n",
+          "document_revision": "8e692bf4049a06133bfe77e26fb70b852c84d35ae547c781c9e14e1828d9b00f",
+          "chunk_id": "44382c8e3c574577b66499a3ed321ec912981e0e64d9a2847fd9054f522e816e",
+          "section_id": "04ae96fcf0de28ef5bc27000f79dc8e557d4315e4c60ef94d511302d9127f7a2",
+          "start_char": 343,
+          "end_char": 502,
+          "id": "E5_0",
+          "tool": "search"
+        },
+        {
+          "document_id": "661fc4c47dad67cb857e88b8927dd5c241f84ebd10e1b9e17ddb50f504f16421",
+          "source": "03_dynamic_tool_discovery.md",
+          "title": "Discovering Tools on Demand",
+          "content": "## Practical implication\n\nKeep essential tools immediately available and make the larger catalog searchable. Discovering an operation and executing that operation are separate steps.\n\n",
+          "document_revision": "497278de0e2c85a8b687e99610f3ed87aabdf350d271acf12e7e860037c8e982",
+          "chunk_id": "7e3edce399f568fc4326bcf965ea397b708d5c75b450d348da4a2faf95001488",
+          "section_id": "66553557f9805e79fbab139706ab44c806255875f46b79ea09c1aaa9eb60bf95",
+          "start_char": 325,
+          "end_char": 509,
+          "id": "E5_1",
+          "tool": "search"
+        },
+        {
+          "document_id": "d152e7c934cfa11c8f019793fec90087a54e0b3bbc89c8e8b7dbcabb996623fe",
+          "source": "26_simpleqa_factuality.md",
+          "title": "Short Questions for Factuality Evaluation",
+          "content": "## Core idea\n\nSimpleQA focuses on short factual questions with a single verifiable answer. Its reference construction uses independent checking, and its grading separates correct, incorrect, and unattempted answers. Restricting answer length makes factual checking more manageable than grading a long response containing many claims.\n\n",
+          "document_revision": "6254c3ae0bb3807dde1b73738c7d620511728a5c582f76da0a6bedd71506fb2e",
+          "chunk_id": "a2a23bf01943cd4e171c5ea1d3d21f4dc243e12d09a3e7fcb4f6bec63e3e2a02",
+          "section_id": "f914597da58e5711a8b8d4dad7eabfa9d006798625e91b3828629c777cd3b4c1",
+          "start_char": 0,
+          "end_char": 335,
+          "id": "E5_2",
+          "tool": "search"
+        },
+        {
+          "document_id": "2fe9bedd8c5558d97626668a499f8171f09e4fc59f6744a381023724cdee851a",
+          "source": "08_think_tool.md",
+          "title": "Reasoning Between Tool Calls",
+          "content": "## Core idea\n\nThe think-tool pattern gives an agent a designated step to review newly received information during a tool-use sequence. It is especially relevant when the next action depends on earlier results or detailed policies. The tool provides a place for reasoning; it does not itself fetch new evidence or modify the external environment.\n\n",
+          "document_revision": "461e6285868758153beb6319652998cf21ae76560e64441bb9ca0f4fb7253043",
+          "chunk_id": "0a5329092b224371c86807c1d8a52e7ae7dfa26e911bf19d49e8c2acf27fa004",
+          "section_id": "f39e329548be72269fd8693c5219a73d425272056a99734bab3075cae84e6528",
+          "start_char": 0,
+          "end_char": 347,
+          "id": "E5_3",
+          "tool": "search"
+        },
+        {
+          "document_id": "060b6ffb936b649dfbc3db89cba33d8bcc9e37fad8400e656a1fb09e0436d1b3",
+          "source": "24_deliberative_alignment.md",
+          "title": "Reasoning with Learned Safety Specifications",
+          "content": "## Practical implication\n\nEvaluate both harmful compliance and refusal of benign requests. Correct calibration requires distinguishing the cases rather than maximizing refusal alone.\n\n",
+          "document_revision": "40edcd59fc56b93fbb325f573d41e74daaf99fc92b91d145b75235808aa312df",
+          "chunk_id": "8c1996141fa748326cca9b098f98eb688c34eb7c9f0895be3424fd721aafd4ec",
+          "section_id": "52018f1dad87d5cae548a7ed53ec9af88e600fe2e7000076c571f7aba2387245",
+          "start_char": 428,
+          "end_char": 612,
+          "id": "E5_4",
+          "tool": "search"
+        },
+        {
+          "document_id": "178e203fe1fecc0da6d153b9c525431943602e1f2815a192f85738e25024f353",
+          "source": "02_tool_interface_design.md",
+          "title": "Tool Interfaces for Language Models",
+          "content": "## Practical implication\n\nTest tool interfaces on realistic tasks. Inspect incorrect calls and unnecessary output before adding more tools to the same agent.\n\n",
+          "document_revision": "8e692bf4049a06133bfe77e26fb70b852c84d35ae547c781c9e14e1828d9b00f",
+          "chunk_id": null,
+          "section_id": "04ae96fcf0de28ef5bc27000f79dc8e557d4315e4c60ef94d511302d9127f7a2",
+          "start_char": 343,
+          "end_char": 502,
+          "id": "E6_0",
+          "tool": "read"
+        }
+      ],
+      "stop_reason": "max_turns",
+      "execution_error": null,
+      "packet_sha256": "4b41b56a23ba79dc0e9580d0cb4d6796094375173f1a9435009a433eeb09ecc4"
+    },
+    "review": {
+      "packet_sha256": "4b41b56a23ba79dc0e9580d0cb4d6796094375173f1a9435009a433eeb09ecc4",
+      "status": "pending",
+      "reviewer": null,
+      "criteria": {
+        "fact_correct": null,
+        "fact_complete": null,
+        "claims_supported": null,
+        "citations_complete": null,
+        "task_fulfilled": null
+      },
+      "rationale": null
+    }
+  }
+]

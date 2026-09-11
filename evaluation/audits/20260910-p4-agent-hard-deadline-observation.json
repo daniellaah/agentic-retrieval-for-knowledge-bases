@@ -1,0 +1,33 @@
+{
+  "scope": "First actual v2 Bright SO attempt only; complete matrix still running",
+  "case_index": 0,
+  "query_id": "7",
+  "elapsed_ms": 180098.72987493873,
+  "error": {
+    "stage": "tool_execution",
+    "type": "EvaluationDeadlineExceeded",
+    "message": "Evaluation hard deadline of 180 seconds exceeded."
+  },
+  "response": null,
+  "stop_reason": "error",
+  "models": 1,
+  "tools": [
+    {
+      "name": "match",
+      "arguments": {
+        "query": "pandas add column based on conditionals",
+        "target": "content"
+      },
+      "status": "error",
+      "elapsed_ms": 173898.7189589534,
+      "error": {
+        "stage": "tool_execution",
+        "type": "EvaluationDeadlineExceeded",
+        "message": "Evaluation hard deadline of 180 seconds exceeded."
+      }
+    }
+  ],
+  "protocol_sha256": "6460b798132093e82db31b192cdf4b00bfe18a6f177c1751a9d23067d3f041e5",
+  "row_sha256": "e2d1119919eeaa0ceab93fda44a669bb26f4ae7b68ffdd8a906ee29a9368c3c5",
+  "release_eligible": false
+}

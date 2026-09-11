@@ -15,7 +15,7 @@ from tests.agent.helpers import reply, tool_call
 @pytest.fixture
 def trace_tools():
     tools = Mock(spec=AgentTools, tool_definitions=Mock(return_value=TOOL_DEFINITIONS))
-    tools.read.side_effect = lambda **args: {'result': {'source': args['source'], 'content': '中文 café'}}
+    tools.read.side_effect = lambda **args: {'result': {'source': args['source'], 'content': 'éø café'}}
     tools.match.return_value = {'query': 'needle', 'results': []}
     return tools
 
@@ -23,17 +23,17 @@ def trace_tools():
 def test_final_trace_records_query_turns_order_arguments_results_and_exact_response(trace_tools):
     calls = [tool_call('read', source='a.md'), tool_call('read', source='b.md')]
     client = Mock()
-    client.chat.side_effect = [reply('Reading', calls=calls), reply(calls=[calls[0]]), reply('  答案\n')]
+    client.chat.side_effect = [reply('Reading', calls=calls), reply(calls=[calls[0]]), reply('  Answer\n')]
     with Runtime() as runtime:
-        result = runtime.run_agent('  查找笔记\n', client=client, tools=trace_tools, model='fake')
+        result = runtime.run_agent('  Find notes\n', client=client, tools=trace_tools, model='fake')
 
     trace = result.trace
     assert isinstance(trace, AgentTrace)
     assert asdict(trace) == {
-        'query': '  查找笔记\n', 'turns': 3, 'final_response': '  答案\n', 'stop_reason': 'final',
+        'query': '  Find notes\n', 'turns': 3, 'final_response': '  Answer\n', 'stop_reason': 'final',
         'tool_calls': [
             {'turn': turn, 'name': 'read', 'arguments': {'source': source},
-             'result': {'result': {'source': source, 'content': '中文 café'}}}
+             'result': {'result': {'source': source, 'content': 'éø café'}}}
             for turn, source in [(1, 'a.md'), (1, 'b.md'), (2, 'a.md')]
         ],
     }
@@ -46,14 +46,14 @@ def test_final_trace_records_query_turns_order_arguments_results_and_exact_respo
     trace.tool_calls[0].arguments['source'] = 'changed.md'
     trace.tool_calls[0].result['result']['content'] = 'changed'
     assert result.trace.tool_calls[0].arguments == {'source': 'a.md'}
-    assert result.trace.tool_calls[0].result['result']['content'] == '中文 café'
+    assert result.trace.tool_calls[0].result['result']['content'] == 'éø café'
 
 
 def test_direct_final_has_no_tool_trajectory(trace_tools):
-    client = Mock(chat=Mock(return_value=reply('你好')))
-    result = run_agent('你好', client=client, tools=trace_tools, model='fake', max_turns=1)
-    assert asdict(result.trace) == {'query': '你好', 'turns': 1, 'tool_calls': [],
-                                  'final_response': '你好', 'stop_reason': 'final'}
+    client = Mock(chat=Mock(return_value=reply('Hello')))
+    result = run_agent('Hello', client=client, tools=trace_tools, model='fake', max_turns=1)
+    assert asdict(result.trace) == {'query': 'Hello', 'turns': 1, 'tool_calls': [],
+                                  'final_response': 'Hello', 'stop_reason': 'final'}
     assert trace_tools.mock_calls == [call.tool_definitions()]
 
 
@@ -89,7 +89,7 @@ def test_model_error_preserves_completed_trajectory_and_counts_failed_request(
     assert [m['role'] for m in result.state.messages] == ['system', 'user'] + ['assistant', 'tool'] * completed_turns
     assert len(trace.tool_calls) == completed_turns
     if completed_turns:
-        assert trace.tool_calls[0].result == {'result': {'source': 'a.md', 'content': '中文 café'}}
+        assert trace.tool_calls[0].result == {'result': {'source': 'a.md', 'content': 'éø café'}}
     assert client.chat.call_count == completed_turns + 1
     assert trace_tools.read.call_count == completed_turns
 
@@ -125,7 +125,7 @@ def test_protocol_errors_keep_prior_observations_without_claiming_a_final(trace_
         run_agent('Read notes', client=client, tools=trace_tools, model='fake')
     trace = raised.value.agent_result.trace
     assert trace.turns == 2 and trace.stop_reason == 'error' and trace.final_response is None
-    assert trace.tool_calls[0].result == {'result': {'source': 'a.md', 'content': '中文 café'}}
+    assert trace.tool_calls[0].result == {'result': {'source': 'a.md', 'content': 'éø café'}}
     assert client.chat.call_count == 2
 
 

@@ -1,0 +1,142 @@
+{
+  "track": "musique",
+  "attempts": 200,
+  "stop_reasons": {
+    "final": 49,
+    "max_turns": 82,
+    "error": 7,
+    "budget": 62
+  },
+  "budget_stop_reasons": {
+    "null": 138,
+    "max_evidence_tokens": 62
+  },
+  "human_reviewed": 0,
+  "release_eligible": false,
+  "quality_status": "pending independent output review",
+  "failure_tags": {
+    "no_final_response": 151,
+    "invalid_or_unfinished_structured_output": 192,
+    "answerability_wrong_or_undefined": 192,
+    "known_support_not_selected_in_answer": 94,
+    "answerable_answer_string_f1_below_one": 94,
+    "all_known_support_sources_submitted_but_answer_string_f1_below_one": 75,
+    "execution_error:tool_execution": 7,
+    "budget:max_evidence_tokens": 62,
+    "known_positive_documents_not_returned": 28,
+    "known_positive_delivery_loss": 3
+  },
+  "failure_tag_scope": "Overlapping descriptive flags; missing a labeled document does not prove every relevant passage is absent. Do not sum these as mutually exclusive failure rates.",
+  "coverage_scope": "All unique documents with nonempty body excerpts, in tool order. These are document-level proxies, not claim support or official Agent answer quality.",
+  "metrics": {
+    "answer_f1": 0.07238095238095238,
+    "answer_em": 0.06,
+    "support_f1": 0.07333333333333333,
+    "group_answer_sufficiency_f1": 0.0,
+    "group_support_sufficiency_f1": 0.0,
+    "answerability_accuracy": 0.04,
+    "groups": 100,
+    "rows": 200
+  },
+  "by_hops": {
+    "2": {
+      "metrics": {
+        "answer_f1": 0.21288515406162464,
+        "answer_em": 0.17647058823529413,
+        "support_f1": 0.2156862745098039,
+        "group_answer_sufficiency_f1": 0.0,
+        "group_support_sufficiency_f1": 0.0,
+        "answerability_accuracy": 0.11764705882352941,
+        "groups": 34,
+        "rows": 68
+      },
+      "stop_reasons": {
+        "final": 31,
+        "max_turns": 22,
+        "error": 4,
+        "budget": 11
+      },
+      "valid_structured_outputs": 8
+    },
+    "3": {
+      "metrics": {
+        "answer_f1": 0.0,
+        "answer_em": 0.0,
+        "support_f1": 0.0,
+        "group_answer_sufficiency_f1": 0.0,
+        "group_support_sufficiency_f1": 0.0,
+        "answerability_accuracy": 0.0,
+        "groups": 33,
+        "rows": 66
+      },
+      "stop_reasons": {
+        "max_turns": 27,
+        "final": 14,
+        "budget": 24,
+        "error": 1
+      },
+      "valid_structured_outputs": 0
+    },
+    "4": {
+      "metrics": {
+        "answer_f1": 0.0,
+        "answer_em": 0.0,
+        "support_f1": 0.0,
+        "group_answer_sufficiency_f1": 0.0,
+        "group_support_sufficiency_f1": 0.0,
+        "answerability_accuracy": 0.0,
+        "groups": 33,
+        "rows": 66
+      },
+      "stop_reasons": {
+        "final": 4,
+        "budget": 27,
+        "max_turns": 33,
+        "error": 2
+      },
+      "valid_structured_outputs": 0
+    }
+  },
+  "answerability_confusion": {
+    "true": {
+      "true": 8,
+      "undefined": 92
+    },
+    "false": {
+      "undefined": 100
+    }
+  },
+  "slice_scope": "Fixed 2/3/4-hop selection strata; all attempts retained. Confusion keys are gold answerability then predicted answerability. Undefined includes failed or invalid structured output; it is not a correct abstention.",
+  "paired_bootstrap": {
+    "unit": "complete original pair",
+    "seed": 20260910,
+    "resamples": 2000,
+    "ci95": {
+      "answer_f1": [
+        0.026666666666666665,
+        0.12238095238095237
+      ],
+      "answer_em": [
+        0.02,
+        0.11
+      ],
+      "support_f1": [
+        0.03,
+        0.12333333333333332
+      ],
+      "group_answer_sufficiency_f1": [
+        0.0,
+        0.0
+      ],
+      "group_support_sufficiency_f1": [
+        0.0,
+        0.0
+      ],
+      "answerability_accuracy": [
+        0.015,
+        0.065
+      ]
+    },
+    "limits": "Exploratory sampling intervals on this selected mixture; no multiple-comparison correction, no model retrials, and no correction for public-data training exposure."
+  }
+}

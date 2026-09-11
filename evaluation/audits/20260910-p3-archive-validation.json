@@ -1,0 +1,20 @@
+{
+  "archive": "evaluation/experiments/artifacts/p3-controlled-20260910.tar.gz",
+  "archive_sha256": "95152e411c318310ca9962a60298c9946a1b1e9f255fd3a98714a14468043dc8",
+  "extracted_replay": {
+    "valid": true,
+    "agent_rows": 48,
+    "synthesis_rows": 0,
+    "component_rows": 184,
+    "token_counts_replayed": true,
+    "release_eligible": false
+  },
+  "release_gate_exit_code": 2,
+  "release_output": [
+    "{\"valid\": true, \"agent_rows\": 48, \"synthesis_rows\": 0, \"component_rows\": 184, \"token_counts_replayed\": true, \"release_eligible\": false}",
+    "{\"release_eligible\": false, \"blockers\": [\"provisional_dataset\", \"independent_output_review_incomplete\", \"development_diagnostic_not_release_test\"]}"
+  ],
+  "tampered_candidate_input_rejected": true,
+  "verifier_sha256": "9317cd4e5b3dcfacb2af019b0cb72e89974f971195883df4dddcccbc8f53f8ef",
+  "limits": "File integrity and deterministic replay only; no independent annotation/answer truth certification."
+}

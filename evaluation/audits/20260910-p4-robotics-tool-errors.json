@@ -1,0 +1,100 @@
+{
+  "run": "p4-bright-robotics-agent-v2",
+  "rows_sha256": "412232291c58aeb2e343df5b151c5e25a410beb3a37a0a8e049bc98b23d29198",
+  "audit_sha256": "0f95b32cf7582ac760ef9f5d7a86c3b1f51e64096baaf21725e2e34495b683f5",
+  "tool_failures": [
+    {
+      "case_index": 3,
+      "id": "17",
+      "tool": "read",
+      "arguments": {
+        "document_id": "9df59308dd75307dcfa10673ca7ffd1c9bf96a2c3b04f18f0e3210938a020b43",
+        "source": "c942edcd8b18f371b597916635a42ae1802f0efac3aa956a316cf8dc8ba96a1b.md",
+        "start_char": 0,
+        "end_char": 1000
+      },
+      "error": {
+        "stage": "tool_execution",
+        "type": "ValueError",
+        "message": "Character range is outside the current document body."
+      },
+      "target_document_exists": true,
+      "source": "c942edcd8b18f371b597916635a42ae1802f0efac3aa956a316cf8dc8ba96a1b.md",
+      "document_revision": "8eed65597ca59f098c3a0a7357e645cc6d77197922c84bf8bf8044df639196d9",
+      "body_characters": 55,
+      "start_char_invalid_type": false,
+      "start_char_exceeds_body": false,
+      "end_char_invalid_type": false,
+      "end_char_exceeds_body": true
+    },
+    {
+      "case_index": 14,
+      "id": "58",
+      "tool": "read",
+      "arguments": {
+        "document_id": "b55ec1fde3a250f684b34c26dabec44e4da277d47e42b3c84c275d74dc584784",
+        "start_char": 0,
+        "end_char": 1000
+      },
+      "error": {
+        "stage": "tool_execution",
+        "type": "ValueError",
+        "message": "Character range is outside the current document body."
+      },
+      "target_document_exists": true,
+      "source": "0f488b8dc6e3d426a3c861509c98fab35c08e84a46fe9e37a88ccacd034142f8.md",
+      "document_revision": "57259a233bb552557396dad61c92a979602d48b5ca7fb7ca6cc07156a034461f",
+      "body_characters": 104,
+      "start_char_invalid_type": false,
+      "start_char_exceeds_body": false,
+      "end_char_invalid_type": false,
+      "end_char_exceeds_body": true
+    },
+    {
+      "case_index": 18,
+      "id": "72",
+      "tool": "read",
+      "arguments": {
+        "document_id": "44a25bae0c3f9329b02e77b92980791be4783131f946ce41e3e58121dca8cb13",
+        "section_id": "ff07bc1f22663b466a37002ddc7749ee08c4fd34307a9bdd26912e0c0a9ac289"
+      },
+      "error": {
+        "stage": "tool_execution",
+        "type": "LookupError",
+        "message": "Unknown section: ff07bc1f22663b466a37002ddc7749ee08c4fd34307a9bdd26912e0c0a9ac289."
+      },
+      "target_document_exists": true,
+      "source": "236449e45744dd0a16ebae4845c1d587ad8fd1273921fb7006ce3bd0a8b03915.md",
+      "document_revision": "e419cae561bccbdc07130a92d25628d70b6a862354d2e7636d7e7b5293a8dd08",
+      "body_characters": 4056,
+      "section_exists_in_target": false,
+      "prior_returned_document_ids_for_section": [
+        "440cd1b9e66e1c8d6b68bcdadec7f4edaf5b5b8771449ff1ac9087661ccc01ab"
+      ],
+      "mixed_document_and_section_from_different_hits": true
+    },
+    {
+      "case_index": 22,
+      "id": "90",
+      "tool": "read",
+      "arguments": {
+        "document_id": "60e89ce08860f782a6bf543d485207d34da24cb216ea11600e2f39c435989ad4",
+        "section_id": "44777003d7dcf6622e9f5ca082c779f5311f2a0341e338d504f0bc2df21534"
+      },
+      "error": {
+        "stage": "tool_execution",
+        "type": "ValueError",
+        "message": "section_id must be a lowercase SHA-256 hex digest."
+      },
+      "target_document_exists": true,
+      "source": "4578ad49dbfe0374c8808e474a3cb571139a8d5237885448f0061ec6075a9920.md",
+      "document_revision": "bd9b38e26cebdcca206e13c6b4f0c055f3f8672b23e1606a1438f5eb194e1568",
+      "body_characters": 244,
+      "section_exists_in_target": false,
+      "prior_returned_document_ids_for_section": [],
+      "mixed_document_and_section_from_different_hits": false
+    }
+  ],
+  "scope": "Descriptive checks of retained failed tool arguments against the registered source bodies and previously delivered hit metadata. This is not an answer-quality judgment.",
+  "release_eligible": false
+}

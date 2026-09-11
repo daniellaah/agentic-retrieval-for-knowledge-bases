@@ -1,0 +1,10 @@
+{
+  "archive": "p0-current-20260910-r2.tar.gz",
+  "sha256": "b0b161d117a53a45cdf896afdafae734995165ff2ada47ca414d0d0c0072c1fb",
+  "bytes": 2185562,
+  "root": "p0-current-20260910-r2",
+  "files": 104,
+  "source_bundle": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p0-current-20260910-r2",
+  "status": "completed",
+  "includes": "Frozen source, lockfile, cases/corpus, raw observations, index, metadata, scores and hashes; excludes transient WAL/SHM/cache and execution log."
+}

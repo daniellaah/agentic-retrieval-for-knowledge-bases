@@ -1,0 +1,3725 @@
+{
+  "bundle": "p3-controlled-20260910",
+  "protocol_sha256": "0ad8a95a7a6ec6f40694cfaa0af9f977300c536508ef50b1c1b8571ebaac48eb",
+  "gate": {
+    "experiment_valid": true,
+    "planned_rows": 48,
+    "recorded_rows": 48,
+    "missing_rows": 0,
+    "duplicate_rows": 0,
+    "stop_reasons": {
+      "final": 28,
+      "max_turns": 20
+    },
+    "human_reviewed_rows": 0,
+    "undefined_delivery_utilities": 28,
+    "mean_delivery_utility": null,
+    "release_eligible": false,
+    "release_blockers": [
+      "provisional_dataset",
+      "independent_output_review_incomplete",
+      "development_diagnostic_not_release_test"
+    ],
+    "note": "Runtime/budget failures retain zero utility; unreviewed final answers remain unknown, not passing."
+  },
+  "component_arms": {
+    "depth10": {
+      "queries": 46,
+      "families": 29,
+      "stage_coverage": {
+        "candidate_union": {
+          "case_mean": 0.872093023255814,
+          "defined_cases": 43
+        },
+        "fusion_pool": {
+          "case_mean": 0.872093023255814,
+          "defined_cases": 43
+        },
+        "returned": {
+          "case_mean": 0.872093023255814,
+          "defined_cases": 43
+        }
+      },
+      "source_ndcg_from_top10_chunks": {
+        "case_mean": 0.846662533307211,
+        "defined_cases": 43
+      },
+      "assessed_at10": {
+        "case_mean": 0.13695652173913045,
+        "defined_cases": 46
+      },
+      "mean_candidate_union_count": 10.608695652173912,
+      "mean_fusion_pool_count": 10.608695652173912
+    },
+    "depth20": {
+      "queries": 46,
+      "families": 29,
+      "stage_coverage": {
+        "candidate_union": {
+          "case_mean": 0.9534883720930233,
+          "defined_cases": 43
+        },
+        "fusion_pool": {
+          "case_mean": 0.9534883720930233,
+          "defined_cases": 43
+        },
+        "returned": {
+          "case_mean": 0.8488372093023255,
+          "defined_cases": 43
+        }
+      },
+      "source_ndcg_from_top10_chunks": {
+        "case_mean": 0.846662533307211,
+        "defined_cases": 43
+      },
+      "assessed_at10": {
+        "case_mean": 0.13695652173913045,
+        "defined_cases": 46
+      },
+      "mean_candidate_union_count": 20.717391304347824,
+      "mean_fusion_pool_count": 20
+    },
+    "depth40": {
+      "queries": 46,
+      "families": 29,
+      "stage_coverage": {
+        "candidate_union": {
+          "case_mean": 0.9883720930232558,
+          "defined_cases": 43
+        },
+        "fusion_pool": {
+          "case_mean": 0.9534883720930233,
+          "defined_cases": 43
+        },
+        "returned": {
+          "case_mean": 0.8488372093023255,
+          "defined_cases": 43
+        }
+      },
+      "source_ndcg_from_top10_chunks": {
+        "case_mean": 0.8456006568943173,
+        "defined_cases": 43
+      },
+      "assessed_at10": {
+        "case_mean": 0.13695652173913045,
+        "defined_cases": 46
+      },
+      "mean_candidate_union_count": 41.02173913043478,
+      "mean_fusion_pool_count": 20
+    },
+    "depth20_rerank": {
+      "queries": 46,
+      "families": 29,
+      "stage_coverage": {
+        "candidate_union": {
+          "case_mean": 0.9534883720930233,
+          "defined_cases": 43
+        },
+        "fusion_pool": {
+          "case_mean": 0.9534883720930233,
+          "defined_cases": 43
+        },
+        "returned": {
+          "case_mean": 0.813953488372093,
+          "defined_cases": 43
+        }
+      },
+      "source_ndcg_from_top10_chunks": {
+        "case_mean": 0.8804005613744739,
+        "defined_cases": 43
+      },
+      "assessed_at10": {
+        "case_mean": 0.13043478260869565,
+        "defined_cases": 46
+      },
+      "mean_candidate_union_count": 20.717391304347824,
+      "mean_fusion_pool_count": 20
+    }
+  },
+  "component_comparisons": [
+    {
+      "left": "depth20",
+      "right": "depth40",
+      "returned_evidence": {
+        "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+        "case_count": 43,
+        "family_count": 26,
+        "trial_counts": {
+          "left": 43,
+          "right": 43
+        },
+        "left_mean": 0.9198717948717949,
+        "right_mean": 0.9198717948717949,
+        "delta_right_minus_left": 0.0,
+        "delta_ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 26,
+        "losses": 0,
+        "seed": 20260910,
+        "resamples": 10000,
+        "family_scores": {
+          "aggregation": [
+            1.0,
+            1.0
+          ],
+          "benchmark_scope": [
+            1.0,
+            1.0
+          ],
+          "cache": [
+            1.0,
+            1.0
+          ],
+          "calibration": [
+            1.0,
+            1.0
+          ],
+          "candidate_limit": [
+            1.0,
+            1.0
+          ],
+          "context": [
+            1.0,
+            1.0
+          ],
+          "control": [
+            0.75,
+            0.75
+          ],
+          "decoding": [
+            1.0,
+            1.0
+          ],
+          "fusion": [
+            1.0,
+            1.0
+          ],
+          "graph": [
+            1.0,
+            1.0
+          ],
+          "handoff": [
+            1.0,
+            1.0
+          ],
+          "interfaces": [
+            1.0,
+            1.0
+          ],
+          "intermediate_reasoning": [
+            1.0,
+            1.0
+          ],
+          "isolation": [
+            1.0,
+            1.0
+          ],
+          "oversight": [
+            1.0,
+            1.0
+          ],
+          "preferences": [
+            1.0,
+            1.0
+          ],
+          "protocol": [
+            1.0,
+            1.0
+          ],
+          "quantization": [
+            1.0,
+            1.0
+          ],
+          "skill_loading": [
+            1.0,
+            1.0
+          ],
+          "structure": [
+            0.75,
+            0.75
+          ],
+          "synthetic_retention_family": [
+            0.5,
+            0.5
+          ],
+          "tool_loading": [
+            1.0,
+            1.0
+          ],
+          "training": [
+            1.0,
+            1.0
+          ],
+          "uncertainty": [
+            1.0,
+            1.0
+          ],
+          "vectors": [
+            0.6666666666666666,
+            0.6666666666666666
+          ],
+          "verification": [
+            0.25,
+            0.25
+          ]
+        },
+        "interpretation": "exploratory",
+        "left": "depth20",
+        "right": "depth40",
+        "excluded_cases": [
+          "pilot_053",
+          "pilot_054",
+          "pilot_056"
+        ]
+      },
+      "union_evidence": {
+        "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+        "case_count": 43,
+        "family_count": 26,
+        "trial_counts": {
+          "left": 43,
+          "right": 43
+        },
+        "left_mean": 0.9615384615384616,
+        "right_mean": 0.9903846153846154,
+        "delta_right_minus_left": 0.028846153846153848,
+        "delta_ci95": [
+          0.0,
+          0.07692307692307693
+        ],
+        "wins": 2,
+        "ties": 24,
+        "losses": 0,
+        "seed": 20260910,
+        "resamples": 10000,
+        "family_scores": {
+          "aggregation": [
+            1.0,
+            1.0
+          ],
+          "benchmark_scope": [
+            1.0,
+            1.0
+          ],
+          "cache": [
+            1.0,
+            1.0
+          ],
+          "calibration": [
+            1.0,
+            1.0
+          ],
+          "candidate_limit": [
+            1.0,
+            1.0
+          ],
+          "context": [
+            1.0,
+            1.0
+          ],
+          "control": [
+            0.75,
+            1.0
+          ],
+          "decoding": [
+            1.0,
+            1.0
+          ],
+          "fusion": [
+            1.0,
+            1.0
+          ],
+          "graph": [
+            1.0,
+            1.0
+          ],
+          "handoff": [
+            1.0,
+            1.0
+          ],
+          "interfaces": [
+            1.0,
+            1.0
+          ],
+          "intermediate_reasoning": [
+            1.0,
+            1.0
+          ],
+          "isolation": [
+            1.0,
+            1.0
+          ],
+          "oversight": [
+            1.0,
+            1.0
+          ],
+          "preferences": [
+            1.0,
+            1.0
+          ],
+          "protocol": [
+            1.0,
+            1.0
+          ],
+          "quantization": [
+            1.0,
+            1.0
+          ],
+          "skill_loading": [
+            1.0,
+            1.0
+          ],
+          "structure": [
+            1.0,
+            1.0
+          ],
+          "synthetic_retention_family": [
+            1.0,
+            1.0
+          ],
+          "tool_loading": [
+            1.0,
+            1.0
+          ],
+          "training": [
+            1.0,
+            1.0
+          ],
+          "uncertainty": [
+            1.0,
+            1.0
+          ],
+          "vectors": [
+            1.0,
+            1.0
+          ],
+          "verification": [
+            0.25,
+            0.75
+          ]
+        },
+        "interpretation": "exploratory",
+        "left": "depth20",
+        "right": "depth40",
+        "excluded_cases": [
+          "pilot_053",
+          "pilot_054",
+          "pilot_056"
+        ]
+      },
+      "pool_evidence": {
+        "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+        "case_count": 43,
+        "family_count": 26,
+        "trial_counts": {
+          "left": 43,
+          "right": 43
+        },
+        "left_mean": 0.9615384615384616,
+        "right_mean": 0.9615384615384616,
+        "delta_right_minus_left": 0.0,
+        "delta_ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 26,
+        "losses": 0,
+        "seed": 20260910,
+        "resamples": 10000,
+        "family_scores": {
+          "aggregation": [
+            1.0,
+            1.0
+          ],
+          "benchmark_scope": [
+            1.0,
+            1.0
+          ],
+          "cache": [
+            1.0,
+            1.0
+          ],
+          "calibration": [
+            1.0,
+            1.0
+          ],
+          "candidate_limit": [
+            1.0,
+            1.0
+          ],
+          "context": [
+            1.0,
+            1.0
+          ],
+          "control": [
+            0.75,
+            0.75
+          ],
+          "decoding": [
+            1.0,
+            1.0
+          ],
+          "fusion": [
+            1.0,
+            1.0
+          ],
+          "graph": [
+            1.0,
+            1.0
+          ],
+          "handoff": [
+            1.0,
+            1.0
+          ],
+          "interfaces": [
+            1.0,
+            1.0
+          ],
+          "intermediate_reasoning": [
+            1.0,
+            1.0
+          ],
+          "isolation": [
+            1.0,
+            1.0
+          ],
+          "oversight": [
+            1.0,
+            1.0
+          ],
+          "preferences": [
+            1.0,
+            1.0
+          ],
+          "protocol": [
+            1.0,
+            1.0
+          ],
+          "quantization": [
+            1.0,
+            1.0
+          ],
+          "skill_loading": [
+            1.0,
+            1.0
+          ],
+          "structure": [
+            1.0,
+            1.0
+          ],
+          "synthetic_retention_family": [
+            1.0,
+            1.0
+          ],
+          "tool_loading": [
+            1.0,
+            1.0
+          ],
+          "training": [
+            1.0,
+            1.0
+          ],
+          "uncertainty": [
+            1.0,
+            1.0
+          ],
+          "vectors": [
+            1.0,
+            1.0
+          ],
+          "verification": [
+            0.25,
+            0.25
+          ]
+        },
+        "interpretation": "exploratory",
+        "left": "depth20",
+        "right": "depth40",
+        "excluded_cases": [
+          "pilot_053",
+          "pilot_054",
+          "pilot_056"
+        ]
+      },
+      "decision": "reject_for_this_dev_round",
+      "production_adoption": false
+    },
+    {
+      "left": "depth10",
+      "right": "depth20",
+      "returned_evidence": {
+        "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+        "case_count": 43,
+        "family_count": 26,
+        "trial_counts": {
+          "left": 43,
+          "right": 43
+        },
+        "left_mean": 0.9326923076923077,
+        "right_mean": 0.9198717948717949,
+        "delta_right_minus_left": -0.012820512820512822,
+        "delta_ci95": [
+          -0.038461538461538464,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 25,
+        "losses": 1,
+        "seed": 20260910,
+        "resamples": 10000,
+        "family_scores": {
+          "aggregation": [
+            1.0,
+            1.0
+          ],
+          "benchmark_scope": [
+            1.0,
+            1.0
+          ],
+          "cache": [
+            1.0,
+            1.0
+          ],
+          "calibration": [
+            1.0,
+            1.0
+          ],
+          "candidate_limit": [
+            1.0,
+            1.0
+          ],
+          "context": [
+            1.0,
+            1.0
+          ],
+          "control": [
+            0.75,
+            0.75
+          ],
+          "decoding": [
+            1.0,
+            1.0
+          ],
+          "fusion": [
+            1.0,
+            1.0
+          ],
+          "graph": [
+            1.0,
+            1.0
+          ],
+          "handoff": [
+            1.0,
+            1.0
+          ],
+          "interfaces": [
+            1.0,
+            1.0
+          ],
+          "intermediate_reasoning": [
+            1.0,
+            1.0
+          ],
+          "isolation": [
+            1.0,
+            1.0
+          ],
+          "oversight": [
+            1.0,
+            1.0
+          ],
+          "preferences": [
+            1.0,
+            1.0
+          ],
+          "protocol": [
+            1.0,
+            1.0
+          ],
+          "quantization": [
+            1.0,
+            1.0
+          ],
+          "skill_loading": [
+            1.0,
+            1.0
+          ],
+          "structure": [
+            0.75,
+            0.75
+          ],
+          "synthetic_retention_family": [
+            0.5,
+            0.5
+          ],
+          "tool_loading": [
+            1.0,
+            1.0
+          ],
+          "training": [
+            1.0,
+            1.0
+          ],
+          "uncertainty": [
+            1.0,
+            1.0
+          ],
+          "vectors": [
+            1.0,
+            0.6666666666666666
+          ],
+          "verification": [
+            0.25,
+            0.25
+          ]
+        },
+        "interpretation": "exploratory",
+        "left": "depth10",
+        "right": "depth20",
+        "excluded_cases": [
+          "pilot_053",
+          "pilot_054",
+          "pilot_056"
+        ]
+      },
+      "union_evidence": {
+        "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+        "case_count": 43,
+        "family_count": 26,
+        "trial_counts": {
+          "left": 43,
+          "right": 43
+        },
+        "left_mean": 0.9326923076923077,
+        "right_mean": 0.9615384615384616,
+        "delta_right_minus_left": 0.028846153846153848,
+        "delta_ci95": [
+          0.0,
+          0.07692307692307693
+        ],
+        "wins": 2,
+        "ties": 24,
+        "losses": 0,
+        "seed": 20260910,
+        "resamples": 10000,
+        "family_scores": {
+          "aggregation": [
+            1.0,
+            1.0
+          ],
+          "benchmark_scope": [
+            1.0,
+            1.0
+          ],
+          "cache": [
+            1.0,
+            1.0
+          ],
+          "calibration": [
+            1.0,
+            1.0
+          ],
+          "candidate_limit": [
+            1.0,
+            1.0
+          ],
+          "context": [
+            1.0,
+            1.0
+          ],
+          "control": [
+            0.75,
+            0.75
+          ],
+          "decoding": [
+            1.0,
+            1.0
+          ],
+          "fusion": [
+            1.0,
+            1.0
+          ],
+          "graph": [
+            1.0,
+            1.0
+          ],
+          "handoff": [
+            1.0,
+            1.0
+          ],
+          "interfaces": [
+            1.0,
+            1.0
+          ],
+          "intermediate_reasoning": [
+            1.0,
+            1.0
+          ],
+          "isolation": [
+            1.0,
+            1.0
+          ],
+          "oversight": [
+            1.0,
+            1.0
+          ],
+          "preferences": [
+            1.0,
+            1.0
+          ],
+          "protocol": [
+            1.0,
+            1.0
+          ],
+          "quantization": [
+            1.0,
+            1.0
+          ],
+          "skill_loading": [
+            1.0,
+            1.0
+          ],
+          "structure": [
+            0.75,
+            1.0
+          ],
+          "synthetic_retention_family": [
+            0.5,
+            1.0
+          ],
+          "tool_loading": [
+            1.0,
+            1.0
+          ],
+          "training": [
+            1.0,
+            1.0
+          ],
+          "uncertainty": [
+            1.0,
+            1.0
+          ],
+          "vectors": [
+            1.0,
+            1.0
+          ],
+          "verification": [
+            0.25,
+            0.25
+          ]
+        },
+        "interpretation": "exploratory",
+        "left": "depth10",
+        "right": "depth20",
+        "excluded_cases": [
+          "pilot_053",
+          "pilot_054",
+          "pilot_056"
+        ]
+      },
+      "pool_evidence": {
+        "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+        "case_count": 43,
+        "family_count": 26,
+        "trial_counts": {
+          "left": 43,
+          "right": 43
+        },
+        "left_mean": 0.9326923076923077,
+        "right_mean": 0.9615384615384616,
+        "delta_right_minus_left": 0.028846153846153848,
+        "delta_ci95": [
+          0.0,
+          0.07692307692307693
+        ],
+        "wins": 2,
+        "ties": 24,
+        "losses": 0,
+        "seed": 20260910,
+        "resamples": 10000,
+        "family_scores": {
+          "aggregation": [
+            1.0,
+            1.0
+          ],
+          "benchmark_scope": [
+            1.0,
+            1.0
+          ],
+          "cache": [
+            1.0,
+            1.0
+          ],
+          "calibration": [
+            1.0,
+            1.0
+          ],
+          "candidate_limit": [
+            1.0,
+            1.0
+          ],
+          "context": [
+            1.0,
+            1.0
+          ],
+          "control": [
+            0.75,
+            0.75
+          ],
+          "decoding": [
+            1.0,
+            1.0
+          ],
+          "fusion": [
+            1.0,
+            1.0
+          ],
+          "graph": [
+            1.0,
+            1.0
+          ],
+          "handoff": [
+            1.0,
+            1.0
+          ],
+          "interfaces": [
+            1.0,
+            1.0
+          ],
+          "intermediate_reasoning": [
+            1.0,
+            1.0
+          ],
+          "isolation": [
+            1.0,
+            1.0
+          ],
+          "oversight": [
+            1.0,
+            1.0
+          ],
+          "preferences": [
+            1.0,
+            1.0
+          ],
+          "protocol": [
+            1.0,
+            1.0
+          ],
+          "quantization": [
+            1.0,
+            1.0
+          ],
+          "skill_loading": [
+            1.0,
+            1.0
+          ],
+          "structure": [
+            0.75,
+            1.0
+          ],
+          "synthetic_retention_family": [
+            0.5,
+            1.0
+          ],
+          "tool_loading": [
+            1.0,
+            1.0
+          ],
+          "training": [
+            1.0,
+            1.0
+          ],
+          "uncertainty": [
+            1.0,
+            1.0
+          ],
+          "vectors": [
+            1.0,
+            1.0
+          ],
+          "verification": [
+            0.25,
+            0.25
+          ]
+        },
+        "interpretation": "exploratory",
+        "left": "depth10",
+        "right": "depth20",
+        "excluded_cases": [
+          "pilot_053",
+          "pilot_054",
+          "pilot_056"
+        ]
+      },
+      "decision": "reject_for_this_dev_round",
+      "production_adoption": false
+    },
+    {
+      "left": "depth20",
+      "right": "depth20_rerank",
+      "returned_evidence": {
+        "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+        "case_count": 43,
+        "family_count": 26,
+        "trial_counts": {
+          "left": 43,
+          "right": 43
+        },
+        "left_mean": 0.9198717948717949,
+        "right_mean": 0.9230769230769231,
+        "delta_right_minus_left": 0.0032051282051282068,
+        "delta_ci95": [
+          -0.04807692307692308,
+          0.05128205128205129
+        ],
+        "wins": 2,
+        "ties": 23,
+        "losses": 1,
+        "seed": 20260910,
+        "resamples": 10000,
+        "family_scores": {
+          "aggregation": [
+            1.0,
+            1.0
+          ],
+          "benchmark_scope": [
+            1.0,
+            1.0
+          ],
+          "cache": [
+            1.0,
+            1.0
+          ],
+          "calibration": [
+            1.0,
+            1.0
+          ],
+          "candidate_limit": [
+            1.0,
+            1.0
+          ],
+          "context": [
+            1.0,
+            1.0
+          ],
+          "control": [
+            0.75,
+            0.75
+          ],
+          "decoding": [
+            1.0,
+            1.0
+          ],
+          "fusion": [
+            1.0,
+            1.0
+          ],
+          "graph": [
+            1.0,
+            1.0
+          ],
+          "handoff": [
+            1.0,
+            1.0
+          ],
+          "interfaces": [
+            1.0,
+            1.0
+          ],
+          "intermediate_reasoning": [
+            1.0,
+            1.0
+          ],
+          "isolation": [
+            1.0,
+            1.0
+          ],
+          "oversight": [
+            1.0,
+            1.0
+          ],
+          "preferences": [
+            1.0,
+            1.0
+          ],
+          "protocol": [
+            1.0,
+            1.0
+          ],
+          "quantization": [
+            1.0,
+            1.0
+          ],
+          "skill_loading": [
+            1.0,
+            1.0
+          ],
+          "structure": [
+            0.75,
+            1.0
+          ],
+          "synthetic_retention_family": [
+            0.5,
+            0.0
+          ],
+          "tool_loading": [
+            1.0,
+            1.0
+          ],
+          "training": [
+            1.0,
+            1.0
+          ],
+          "uncertainty": [
+            1.0,
+            1.0
+          ],
+          "vectors": [
+            0.6666666666666666,
+            1.0
+          ],
+          "verification": [
+            0.25,
+            0.25
+          ]
+        },
+        "interpretation": "exploratory",
+        "left": "depth20",
+        "right": "depth20_rerank",
+        "excluded_cases": [
+          "pilot_053",
+          "pilot_054",
+          "pilot_056"
+        ]
+      },
+      "union_evidence": {
+        "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+        "case_count": 43,
+        "family_count": 26,
+        "trial_counts": {
+          "left": 43,
+          "right": 43
+        },
+        "left_mean": 0.9615384615384616,
+        "right_mean": 0.9615384615384616,
+        "delta_right_minus_left": 0.0,
+        "delta_ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 26,
+        "losses": 0,
+        "seed": 20260910,
+        "resamples": 10000,
+        "family_scores": {
+          "aggregation": [
+            1.0,
+            1.0
+          ],
+          "benchmark_scope": [
+            1.0,
+            1.0
+          ],
+          "cache": [
+            1.0,
+            1.0
+          ],
+          "calibration": [
+            1.0,
+            1.0
+          ],
+          "candidate_limit": [
+            1.0,
+            1.0
+          ],
+          "context": [
+            1.0,
+            1.0
+          ],
+          "control": [
+            0.75,
+            0.75
+          ],
+          "decoding": [
+            1.0,
+            1.0
+          ],
+          "fusion": [
+            1.0,
+            1.0
+          ],
+          "graph": [
+            1.0,
+            1.0
+          ],
+          "handoff": [
+            1.0,
+            1.0
+          ],
+          "interfaces": [
+            1.0,
+            1.0
+          ],
+          "intermediate_reasoning": [
+            1.0,
+            1.0
+          ],
+          "isolation": [
+            1.0,
+            1.0
+          ],
+          "oversight": [
+            1.0,
+            1.0
+          ],
+          "preferences": [
+            1.0,
+            1.0
+          ],
+          "protocol": [
+            1.0,
+            1.0
+          ],
+          "quantization": [
+            1.0,
+            1.0
+          ],
+          "skill_loading": [
+            1.0,
+            1.0
+          ],
+          "structure": [
+            1.0,
+            1.0
+          ],
+          "synthetic_retention_family": [
+            1.0,
+            1.0
+          ],
+          "tool_loading": [
+            1.0,
+            1.0
+          ],
+          "training": [
+            1.0,
+            1.0
+          ],
+          "uncertainty": [
+            1.0,
+            1.0
+          ],
+          "vectors": [
+            1.0,
+            1.0
+          ],
+          "verification": [
+            0.25,
+            0.25
+          ]
+        },
+        "interpretation": "exploratory",
+        "left": "depth20",
+        "right": "depth20_rerank",
+        "excluded_cases": [
+          "pilot_053",
+          "pilot_054",
+          "pilot_056"
+        ]
+      },
+      "pool_evidence": {
+        "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+        "case_count": 43,
+        "family_count": 26,
+        "trial_counts": {
+          "left": 43,
+          "right": 43
+        },
+        "left_mean": 0.9615384615384616,
+        "right_mean": 0.9615384615384616,
+        "delta_right_minus_left": 0.0,
+        "delta_ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 26,
+        "losses": 0,
+        "seed": 20260910,
+        "resamples": 10000,
+        "family_scores": {
+          "aggregation": [
+            1.0,
+            1.0
+          ],
+          "benchmark_scope": [
+            1.0,
+            1.0
+          ],
+          "cache": [
+            1.0,
+            1.0
+          ],
+          "calibration": [
+            1.0,
+            1.0
+          ],
+          "candidate_limit": [
+            1.0,
+            1.0
+          ],
+          "context": [
+            1.0,
+            1.0
+          ],
+          "control": [
+            0.75,
+            0.75
+          ],
+          "decoding": [
+            1.0,
+            1.0
+          ],
+          "fusion": [
+            1.0,
+            1.0
+          ],
+          "graph": [
+            1.0,
+            1.0
+          ],
+          "handoff": [
+            1.0,
+            1.0
+          ],
+          "interfaces": [
+            1.0,
+            1.0
+          ],
+          "intermediate_reasoning": [
+            1.0,
+            1.0
+          ],
+          "isolation": [
+            1.0,
+            1.0
+          ],
+          "oversight": [
+            1.0,
+            1.0
+          ],
+          "preferences": [
+            1.0,
+            1.0
+          ],
+          "protocol": [
+            1.0,
+            1.0
+          ],
+          "quantization": [
+            1.0,
+            1.0
+          ],
+          "skill_loading": [
+            1.0,
+            1.0
+          ],
+          "structure": [
+            1.0,
+            1.0
+          ],
+          "synthetic_retention_family": [
+            1.0,
+            1.0
+          ],
+          "tool_loading": [
+            1.0,
+            1.0
+          ],
+          "training": [
+            1.0,
+            1.0
+          ],
+          "uncertainty": [
+            1.0,
+            1.0
+          ],
+          "vectors": [
+            1.0,
+            1.0
+          ],
+          "verification": [
+            0.25,
+            0.25
+          ]
+        },
+        "interpretation": "exploratory",
+        "left": "depth20",
+        "right": "depth20_rerank",
+        "excluded_cases": [
+          "pilot_053",
+          "pilot_054",
+          "pilot_056"
+        ]
+      },
+      "decision": "evidence_insufficient",
+      "production_adoption": false
+    }
+  ],
+  "stopping_arms": {
+    "reminder_on": {
+      "rows": 24,
+      "queries": 12,
+      "families": 10,
+      "stops": {
+        "final": 14,
+        "max_turns": 10
+      },
+      "errors": 0,
+      "reminder_exposed_runs": 2,
+      "grounded_task_success": null,
+      "reviewed_outputs": 0,
+      "metrics": {
+        "normal_final_fraction": {
+          "trial_mean": 0.5833333333333334,
+          "defined_trials": 24
+        },
+        "evidence_delivery_proxy": {
+          "trial_mean": 0.75,
+          "defined_trials": 16
+        },
+        "executed_tools": {
+          "trial_mean": 5,
+          "defined_trials": 24
+        },
+        "provider_output_tokens": {
+          "trial_mean": 853.0833333333334,
+          "defined_trials": 24
+        },
+        "calls_after_label_threshold": {
+          "trial_mean": 1.75,
+          "defined_trials": 16
+        },
+        "elapsed_ms": {
+          "trial_mean": 14170.553770789411,
+          "defined_trials": 24
+        }
+      }
+    },
+    "reminder_off": {
+      "rows": 24,
+      "queries": 12,
+      "families": 10,
+      "stops": {
+        "final": 14,
+        "max_turns": 10
+      },
+      "errors": 0,
+      "reminder_exposed_runs": 0,
+      "grounded_task_success": null,
+      "reviewed_outputs": 0,
+      "metrics": {
+        "normal_final_fraction": {
+          "trial_mean": 0.5833333333333334,
+          "defined_trials": 24
+        },
+        "evidence_delivery_proxy": {
+          "trial_mean": 0.75,
+          "defined_trials": 16
+        },
+        "executed_tools": {
+          "trial_mean": 5,
+          "defined_trials": 24
+        },
+        "provider_output_tokens": {
+          "trial_mean": 848.25,
+          "defined_trials": 24
+        },
+        "calls_after_label_threshold": {
+          "trial_mean": 1.75,
+          "defined_trials": 16
+        },
+        "elapsed_ms": {
+          "trial_mean": 13997.9178680951,
+          "defined_trials": 24
+        }
+      }
+    }
+  },
+  "stopping_comparisons": {
+    "normal_final_fraction": {
+      "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+      "case_count": 12,
+      "family_count": 10,
+      "trial_counts": {
+        "left": 24,
+        "right": 24
+      },
+      "left_mean": 0.55,
+      "right_mean": 0.55,
+      "delta_right_minus_left": 0.0,
+      "delta_ci95": [
+        0.0,
+        0.0
+      ],
+      "wins": 0,
+      "ties": 10,
+      "losses": 0,
+      "seed": 20260910,
+      "resamples": 10000,
+      "family_scores": {
+        "ambiguous_version": [
+          0.0,
+          0.0
+        ],
+        "control": [
+          0.5,
+          0.5
+        ],
+        "handoff": [
+          1.0,
+          1.0
+        ],
+        "missing_measurement": [
+          0.0,
+          0.0
+        ],
+        "missing_private_fact": [
+          0.0,
+          0.0
+        ],
+        "protocol": [
+          1.0,
+          1.0
+        ],
+        "provided_text": [
+          1.0,
+          1.0
+        ],
+        "structure": [
+          1.0,
+          1.0
+        ],
+        "synthetic_retention_family": [
+          1.0,
+          1.0
+        ],
+        "vectors": [
+          0.0,
+          0.0
+        ]
+      },
+      "interpretation": "exploratory",
+      "left": "reminder_off",
+      "right": "reminder_on",
+      "excluded_cases": []
+    },
+    "evidence_delivery_proxy": {
+      "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+      "case_count": 8,
+      "family_count": 6,
+      "trial_counts": {
+        "left": 16,
+        "right": 16
+      },
+      "left_mean": 0.75,
+      "right_mean": 0.75,
+      "delta_right_minus_left": 0.0,
+      "delta_ci95": [
+        0.0,
+        0.0
+      ],
+      "wins": 0,
+      "ties": 6,
+      "losses": 0,
+      "seed": 20260910,
+      "resamples": 10000,
+      "family_scores": {
+        "control": [
+          0.5,
+          0.5
+        ],
+        "handoff": [
+          1.0,
+          1.0
+        ],
+        "protocol": [
+          1.0,
+          1.0
+        ],
+        "structure": [
+          1.0,
+          1.0
+        ],
+        "synthetic_retention_family": [
+          1.0,
+          1.0
+        ],
+        "vectors": [
+          0.0,
+          0.0
+        ]
+      },
+      "interpretation": "exploratory",
+      "left": "reminder_off",
+      "right": "reminder_on",
+      "excluded_cases": [
+        "pilot_053",
+        "pilot_054",
+        "pilot_056",
+        "pilot_057"
+      ]
+    },
+    "executed_tools": {
+      "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+      "case_count": 12,
+      "family_count": 10,
+      "trial_counts": {
+        "left": 24,
+        "right": 24
+      },
+      "left_mean": 5.05,
+      "right_mean": 5.05,
+      "delta_right_minus_left": 0.0,
+      "delta_ci95": [
+        0.0,
+        0.0
+      ],
+      "wins": 0,
+      "ties": 10,
+      "losses": 0,
+      "seed": 20260910,
+      "resamples": 10000,
+      "family_scores": {
+        "ambiguous_version": [
+          8,
+          8
+        ],
+        "control": [
+          5,
+          5
+        ],
+        "handoff": [
+          4,
+          4
+        ],
+        "missing_measurement": [
+          8,
+          8
+        ],
+        "missing_private_fact": [
+          8,
+          8
+        ],
+        "protocol": [
+          1,
+          1
+        ],
+        "provided_text": [
+          0,
+          0
+        ],
+        "structure": [
+          4,
+          4
+        ],
+        "synthetic_retention_family": [
+          4.5,
+          4.5
+        ],
+        "vectors": [
+          8,
+          8
+        ]
+      },
+      "interpretation": "exploratory",
+      "left": "reminder_off",
+      "right": "reminder_on",
+      "excluded_cases": []
+    },
+    "provider_output_tokens": {
+      "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+      "case_count": 12,
+      "family_count": 10,
+      "trial_counts": {
+        "left": 24,
+        "right": 24
+      },
+      "left_mean": 838.9,
+      "right_mean": 844.7,
+      "delta_right_minus_left": 5.8,
+      "delta_ci95": [
+        0.0,
+        17.4
+      ],
+      "wins": 1,
+      "ties": 9,
+      "losses": 0,
+      "seed": 20260910,
+      "resamples": 10000,
+      "family_scores": {
+        "ambiguous_version": [
+          777,
+          835
+        ],
+        "control": [
+          881.5,
+          881.5
+        ],
+        "handoff": [
+          1826,
+          1826
+        ],
+        "missing_measurement": [
+          652,
+          652
+        ],
+        "missing_private_fact": [
+          547,
+          547
+        ],
+        "protocol": [
+          589,
+          589
+        ],
+        "provided_text": [
+          60,
+          60
+        ],
+        "structure": [
+          1172,
+          1172
+        ],
+        "synthetic_retention_family": [
+          908.5,
+          908.5
+        ],
+        "vectors": [
+          976,
+          976
+        ]
+      },
+      "interpretation": "exploratory",
+      "left": "reminder_off",
+      "right": "reminder_on",
+      "excluded_cases": []
+    },
+    "calls_after_label_threshold": {
+      "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+      "case_count": 8,
+      "family_count": 6,
+      "trial_counts": {
+        "left": 16,
+        "right": 16
+      },
+      "left_mean": 1.5833333333333333,
+      "right_mean": 1.5833333333333333,
+      "delta_right_minus_left": 0.0,
+      "delta_ci95": [
+        0.0,
+        0.0
+      ],
+      "wins": 0,
+      "ties": 6,
+      "losses": 0,
+      "seed": 20260910,
+      "resamples": 10000,
+      "family_scores": {
+        "control": [
+          4,
+          4
+        ],
+        "handoff": [
+          1,
+          1
+        ],
+        "protocol": [
+          0,
+          0
+        ],
+        "structure": [
+          1,
+          1
+        ],
+        "synthetic_retention_family": [
+          0.5,
+          0.5
+        ],
+        "vectors": [
+          3,
+          3
+        ]
+      },
+      "interpretation": "exploratory",
+      "left": "reminder_off",
+      "right": "reminder_on",
+      "excluded_cases": [
+        "pilot_053",
+        "pilot_054",
+        "pilot_056",
+        "pilot_057"
+      ]
+    },
+    "elapsed_ms": {
+      "aggregation": "equal family weight; equal case weight within family; mean trials within case",
+      "case_count": 12,
+      "family_count": 10,
+      "trial_counts": {
+        "left": 24,
+        "right": 24
+      },
+      "left_mean": 14084.850655289483,
+      "right_mean": 14234.82041247189,
+      "delta_right_minus_left": 149.9697571824072,
+      "delta_ci95": [
+        -54.96522740635555,
+        369.57705854933
+      ],
+      "wins": 6,
+      "ties": 0,
+      "losses": 4,
+      "seed": 20260910,
+      "resamples": 10000,
+      "family_scores": {
+        "ambiguous_version": [
+          18899.551000038628,
+          19675.653811951634
+        ],
+        "control": [
+          12943.899052246707,
+          13506.709687499097
+        ],
+        "handoff": [
+          22670.38341704756,
+          22648.93189596478
+        ],
+        "missing_measurement": [
+          17429.432979552075,
+          17536.846854025498
+        ],
+        "missing_private_fact": [
+          14970.017374958843,
+          14908.89479155885
+        ],
+        "protocol": [
+          6697.563499968965,
+          6705.8814584161155
+        ],
+        "provided_text": [
+          1040.7068125205114,
+          699.3260835297406
+        ],
+        "structure": [
+          14703.368646558374,
+          15306.101895985194
+        ],
+        "synthetic_retention_family": [
+          14182.608811999671,
+          14191.73143725493
+        ],
+        "vectors": [
+          17310.9749580035,
+          17168.126208533067
+        ]
+      },
+      "interpretation": "exploratory",
+      "left": "reminder_off",
+      "right": "reminder_on",
+      "excluded_cases": []
+    }
+  },
+  "stopping_decision": {
+    "decision": "evidence_insufficient",
+    "production_adoption": false,
+    "reason": "Independent reviewed quality is missing; diagnostic final/coverage cannot establish noninferiority."
+  },
+  "component_timing": {
+    "rerank_pairs": 920,
+    "rerank_total_ms": 101840.81016713753,
+    "policy": "Shared frozen prefix derivation has no independent per-arm retrieval latency; scorer time is measured separately, uncontrolled cache/load."
+  },
+  "facet_losses": [
+    {
+      "case_id": "pilot_007",
+      "family": "verification",
+      "arm": "depth40",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [
+          "facet-1"
+        ],
+        "fusion_pool->returned": []
+      }
+    },
+    {
+      "case_id": "pilot_013",
+      "family": "control",
+      "arm": "depth40",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [
+          "facet-1"
+        ],
+        "fusion_pool->returned": []
+      }
+    },
+    {
+      "case_id": "pilot_024",
+      "family": "structure",
+      "arm": "depth20",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "facet-2"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_024",
+      "family": "structure",
+      "arm": "depth40",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "facet-2"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_037",
+      "family": "synthetic_retention_family",
+      "arm": "depth20",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "joint-evidence"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_037",
+      "family": "synthetic_retention_family",
+      "arm": "depth40",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "joint-evidence"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_037",
+      "family": "synthetic_retention_family",
+      "arm": "depth20_rerank",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "joint-evidence"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_038",
+      "family": "synthetic_retention_family",
+      "arm": "depth20",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "joint-evidence"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_038",
+      "family": "synthetic_retention_family",
+      "arm": "depth40",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "joint-evidence"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_038",
+      "family": "synthetic_retention_family",
+      "arm": "depth20_rerank",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "joint-evidence"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_039",
+      "family": "synthetic_retention_family",
+      "arm": "depth20",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "joint-evidence"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_039",
+      "family": "synthetic_retention_family",
+      "arm": "depth40",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "joint-evidence"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_039",
+      "family": "synthetic_retention_family",
+      "arm": "depth20_rerank",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "joint-evidence"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_040",
+      "family": "synthetic_retention_family",
+      "arm": "depth20_rerank",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "joint-evidence"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_041",
+      "family": "synthetic_retention_family",
+      "arm": "depth20_rerank",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "joint-evidence"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_042",
+      "family": "synthetic_retention_family",
+      "arm": "depth20_rerank",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "joint-evidence"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_055",
+      "family": "vectors",
+      "arm": "depth20",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "facet-1"
+        ]
+      }
+    },
+    {
+      "case_id": "pilot_055",
+      "family": "vectors",
+      "arm": "depth40",
+      "lost_facets": {
+        "candidate_union->fusion_pool": [],
+        "fusion_pool->returned": [
+          "facet-1"
+        ]
+      }
+    }
+  ],
+  "stop_per_trial": [
+    {
+      "case_id": "pilot_001",
+      "family": "control",
+      "arm": "reminder_on",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 2,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_001",
+      "family": "control",
+      "arm": "reminder_off",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 2,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_013",
+      "family": "control",
+      "arm": "reminder_off",
+      "trial": 0,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": 2,
+      "executed_calls_after_label_threshold": 7,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_013",
+      "family": "control",
+      "arm": "reminder_on",
+      "trial": 0,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": 2,
+      "executed_calls_after_label_threshold": 7,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_017",
+      "family": "handoff",
+      "arm": "reminder_on",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 3,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.5
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_017",
+      "family": "handoff",
+      "arm": "reminder_off",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 3,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.5
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_024",
+      "family": "structure",
+      "arm": "reminder_off",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 3,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.5
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_024",
+      "family": "structure",
+      "arm": "reminder_on",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 3,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.5
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_037",
+      "family": "synthetic_retention_family",
+      "arm": "reminder_on",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 5,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_037",
+      "family": "synthetic_retention_family",
+      "arm": "reminder_off",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 5,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_040",
+      "family": "synthetic_retention_family",
+      "arm": "reminder_off",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 5,
+      "executed_calls_after_label_threshold": 0,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_040",
+      "family": "synthetic_retention_family",
+      "arm": "reminder_on",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 5,
+      "executed_calls_after_label_threshold": 0,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_049",
+      "family": "protocol",
+      "arm": "reminder_on",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 2,
+      "executed_calls_after_label_threshold": 0,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_049",
+      "family": "protocol",
+      "arm": "reminder_off",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 2,
+      "executed_calls_after_label_threshold": 0,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_053",
+      "family": "missing_measurement",
+      "arm": "reminder_off",
+      "trial": 0,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_053",
+      "family": "missing_measurement",
+      "arm": "reminder_on",
+      "trial": 0,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_054",
+      "family": "missing_private_fact",
+      "arm": "reminder_on",
+      "trial": 0,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_054",
+      "family": "missing_private_fact",
+      "arm": "reminder_off",
+      "trial": 0,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_055",
+      "family": "vectors",
+      "arm": "reminder_off",
+      "trial": 0,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": 6,
+      "executed_calls_after_label_threshold": 3,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_055",
+      "family": "vectors",
+      "arm": "reminder_on",
+      "trial": 0,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": 6,
+      "executed_calls_after_label_threshold": 3,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_056",
+      "family": "ambiguous_version",
+      "arm": "reminder_on",
+      "trial": 0,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 2,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_056",
+      "family": "ambiguous_version",
+      "arm": "reminder_off",
+      "trial": 0,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_057",
+      "family": "provided_text",
+      "arm": "reminder_off",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_057",
+      "family": "provided_text",
+      "arm": "reminder_on",
+      "trial": 0,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_057",
+      "family": "provided_text",
+      "arm": "reminder_on",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_057",
+      "family": "provided_text",
+      "arm": "reminder_off",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_056",
+      "family": "ambiguous_version",
+      "arm": "reminder_off",
+      "trial": 1,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_056",
+      "family": "ambiguous_version",
+      "arm": "reminder_on",
+      "trial": 1,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 2,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_055",
+      "family": "vectors",
+      "arm": "reminder_on",
+      "trial": 1,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": 6,
+      "executed_calls_after_label_threshold": 3,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_055",
+      "family": "vectors",
+      "arm": "reminder_off",
+      "trial": 1,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": 6,
+      "executed_calls_after_label_threshold": 3,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_054",
+      "family": "missing_private_fact",
+      "arm": "reminder_off",
+      "trial": 1,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_054",
+      "family": "missing_private_fact",
+      "arm": "reminder_on",
+      "trial": 1,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_053",
+      "family": "missing_measurement",
+      "arm": "reminder_on",
+      "trial": 1,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_053",
+      "family": "missing_measurement",
+      "arm": "reminder_off",
+      "trial": 1,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": null,
+      "executed_calls_after_label_threshold": null,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": null
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_049",
+      "family": "protocol",
+      "arm": "reminder_off",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 2,
+      "executed_calls_after_label_threshold": 0,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_049",
+      "family": "protocol",
+      "arm": "reminder_on",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 2,
+      "executed_calls_after_label_threshold": 0,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_040",
+      "family": "synthetic_retention_family",
+      "arm": "reminder_on",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 5,
+      "executed_calls_after_label_threshold": 0,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_040",
+      "family": "synthetic_retention_family",
+      "arm": "reminder_off",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 5,
+      "executed_calls_after_label_threshold": 0,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_037",
+      "family": "synthetic_retention_family",
+      "arm": "reminder_off",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 5,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_037",
+      "family": "synthetic_retention_family",
+      "arm": "reminder_on",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 5,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_024",
+      "family": "structure",
+      "arm": "reminder_on",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 3,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.5
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_024",
+      "family": "structure",
+      "arm": "reminder_off",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 3,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.5
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_017",
+      "family": "handoff",
+      "arm": "reminder_off",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 3,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.5
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_017",
+      "family": "handoff",
+      "arm": "reminder_on",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 3,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 0.5
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_013",
+      "family": "control",
+      "arm": "reminder_on",
+      "trial": 1,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": 2,
+      "executed_calls_after_label_threshold": 7,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_013",
+      "family": "control",
+      "arm": "reminder_off",
+      "trial": 1,
+      "stop_reason": "max_turns",
+      "error": null,
+      "first_full_evidence_model_turn": 2,
+      "executed_calls_after_label_threshold": 7,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 4,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 5,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 6,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 7,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 8,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_001",
+      "family": "control",
+      "arm": "reminder_off",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 2,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_001",
+      "family": "control",
+      "arm": "reminder_on",
+      "trial": 1,
+      "stop_reason": "final",
+      "error": null,
+      "first_full_evidence_model_turn": 2,
+      "executed_calls_after_label_threshold": 1,
+      "reminders_submitted": 0,
+      "evidence_by_model_turn": [
+        {
+          "model_turn": 1,
+          "evidence_coverage": 0.0
+        },
+        {
+          "model_turn": 2,
+          "evidence_coverage": 1.0
+        },
+        {
+          "model_turn": 3,
+          "evidence_coverage": 1.0
+        }
+      ]
+    }
+  ],
+  "raw_sha256": {
+    "candidate-inputs.jsonl": "f948a09fe48acb1870f5d51af0141655a6756aa1756c0cfe9b14e9c0dd21b852",
+    "component-results.jsonl": "fc502f75fb997c4a02fa775a1bc24e88a2bfdaa461ef9aa9d0df2310b76a2bd6",
+    "agent-results.jsonl": "bd51040854e6fd0d49d673a14487816ea4be7cb928265469a03d943e1d435e7e"
+  },
+  "limits": [
+    "Known provisional dev data; neither normal final nor evidence coverage measures answer correctness.",
+    "Case means and family means use different weighting; repeated trials are not independent samples.",
+    "Secondary percentile intervals are exploratory and unadjusted for multiple comparisons.",
+    "Component exact retrieval prefixes do not measure ANN depth effects or real per-arm cost.",
+    "Stopping changes only reminder insertion; default production behavior remains enabled.",
+    "Evidence_delivery_proxy is coverage times valid final delivery, not grounded task success."
+  ]
+}

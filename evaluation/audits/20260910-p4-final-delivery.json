@@ -1,0 +1,40 @@
+{
+  "status": "public_development_batch_completed",
+  "date": "2026-09-11",
+  "completed_rows": {
+    "native_bm25": 1016,
+    "indexed_retrieval": 4064,
+    "bright_agent": 50,
+    "musique_variants": 200,
+    "musique_pairs": 100
+  },
+  "retained_incomplete_model_attempts": 2,
+  "primary_archives_verified": 6,
+  "retained_failed_auxiliary_archive": 1,
+  "format_sensitivity": "Separate posthoc single-code-block extraction; original strict predictions and metrics unchanged; both checked with official scorer.",
+  "format_extractor_boundary_checks": 5,
+  "production_modules_unchanged_across_p4_attempts": 32,
+  "worktree_diff_whitespace_check": "passed",
+  "report_local_links": "all resolved",
+  "deterministic_tests": {
+    "workspace": {
+      "passed": 1059,
+      "integration_deselected": 63
+    },
+    "minimal_evaluation": {
+      "passed": 1058,
+      "skipped": 1,
+      "integration_deselected": 63
+    },
+    "record": "evaluation/audits/20260910-p4-current-tests-v2.json"
+  },
+  "human_output_reviews": {
+    "reviewed": 0,
+    "exported": 250
+  },
+  "real_release_holdout_attempts": 0,
+  "release_eligible": false,
+  "product_default_adoption": false,
+  "remote_ci": "not run",
+  "remote_long_term_storage": "not configured"
+}

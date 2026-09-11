@@ -318,7 +318,9 @@ def test_markdown_section_edit_reuses_unchanged_chunk_identity_and_embedding(set
     assert build_index(storage, [edited], **options).reused_index
 
 
-@pytest.mark.parametrize('mode,old_algorithm', [('recursive', 'recursive-v1'), ('none', 'none-v1')])
+@pytest.mark.parametrize('mode,old_algorithm', [
+    ('recursive', 'recursive-v1'), ('recursive', 'markdown-v1'), ('none', 'none-v1'),
+])
 def test_old_chunking_fingerprint_requires_a_new_snapshot_but_reuses_embeddings(setup, mode, old_algorithm):
     from dataclasses import asdict
     import json

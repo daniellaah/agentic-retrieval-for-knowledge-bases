@@ -1,0 +1,11 @@
+{
+  "scope": "One-second native stack sample during the current full-corpus index preflight; not a complete build profile or a causal speedup measurement.",
+  "run": "p4-t2-indexed",
+  "worker_pid": 68382,
+  "observed_cpu_percent_before_sample": 99.0,
+  "native_main_thread_samples": 745,
+  "samples_under_tokenizer_encode_trampoline": 700,
+  "sample_sha256": "a95a729069f9c46e55507400f5b65a0d5bd8dc909ae1b021303e8e99bd673fc0",
+  "finding": "Dominant sampled work is tokenizer encoding. Chunking source recounts combined slices because token counts are not additive; exact-span caching/batching is a future profiling hypothesis, not an implemented optimization.",
+  "production_chunking_changed": false
+}

@@ -1,0 +1,69 @@
+{
+  "spec_version": "arkb-metrics-20260910-p3",
+  "legacy": {
+    "input_schema": "agent-evaluation-v1 / retrieval-baselines-v1",
+    "unchanged": true,
+    "retrieved_sources": "union of source identities in successful match/search/read observations",
+    "agent_success": "original source/read/tool/budget/final-stop constraints; no answer semantics",
+    "source_rank": "first occurrence of each source within the single top_k chunk response; no refill",
+    "ndcg_gain": "2^grade - 1",
+    "mrr": "first positive over entire supplied ranking; not independently truncated by k",
+    "baseline_errors": "null ranking metrics, excluded from conditional means and counted separately",
+    "agent_errors": "failure in task success; unavailable observed behavior stays null"
+  },
+  "v2": {
+    "ranking_unit": "explicitly supplied unique-ID ranking; pilot supplies sources collapsed within top_k chunks",
+    "positive_relevance_threshold": 2,
+    "grades": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "ndcg_exp": "gain=2^grade-1; discount=log2(rank+1); normalize by all-qrels ideal top k",
+    "recall": "positive qrels retrieved in top k / all positive qrels",
+    "mrr": "reciprocal first positive rank within k; later hits cannot contribute",
+    "precision": "positive results within k / k, including unfilled positions in denominator",
+    "assessed": "returned IDs with a qrel within k / k; provisional assessment is not independent judgment",
+    "unassessed": "retained as unknown in annotations; conservative zero gain when calculating nDCG",
+    "no_positive_qrels": "recall/mrr/precision undefined; nDCG undefined when all gains are zero",
+    "facet": "OR over alternatives; AND over required evidence spans within each alternative",
+    "evidence_coordinates": "Note.content after first H1 removal and outer whitespace strip; half-open Python Unicode character offsets",
+    "span_coverage": "Union of observed verbatim ranges at the labeled revision; missing both offsets may map to the entire body only on exact full-body equality. Unlocated partial text is rejected.",
+    "facet_satisfied": "one alternative has every span fully covered",
+    "evidence_coverage": "satisfied facet weights / all facet weights; null if no required facets",
+    "critical_coverage": "all critical facets satisfied; null if no critical facets",
+    "answer_correct": "Evidence scoring alone always leaves semantic correctness null; separate packet-bound output review emits output_semantics_pass.",
+    "grounded_task_success": "Separate output scorer combines full required evidence, normal execution, task constraints and complete explicit human-review criteria. Absent reviewed semantics remains null; provisional data never implies release eligibility.",
+    "provisional": "explicit opt-in only; not release eligible"
+  },
+  "comparison": {
+    "pairing": "both arms must have the same complete case set",
+    "aggregation": "mean trials within case; mean cases within family; equal family weights",
+    "ci": "paired family percentile bootstrap, 95%, default 10000 resamples, explicit seed",
+    "missing_values": "rejected; caller must first declare error/utility policy",
+    "claims": "interval does not prove judgment validity, representative sampling, equivalence or production reliability"
+  },
+  "observation": {
+    "tool_status": "requested/success/error/skipped, with executed-attempt, delivered-to-conversation and submitted-to-model flags",
+    "evidence_allowance": "Cumulative content tokens delivered to the conversation, including repeats; a whole over-limit observation is withheld, raw retained",
+    "excerpt_dedup": "Observer unique_exact_excerpt_tokens deduplicates identical source/revision/range/text only",
+    "interval_dedup": "Offline union_reference_tokens merges validated body intervals at the same revision and tokenizes disjoint intervals separately",
+    "deadline": "Cooperative checks within Agent loop; in-flight work cannot be cancelled, late results withheld, elapsed overrun reported",
+    "provider_usage": "Agent chat native counts, with missing totals null and known partial totals separately named; embedding usage not separately captured",
+    "context_reference": "Serialized request JSON tokenized by pinned reference tokenizer; not exact provider-rendered context size",
+    "failure_utility": "Observed execution/constraint failure scores zero delivery utility; unreviewed successful final remains unknown",
+    "release_gate": "Development/provisional or unreviewed runs fail --require-release with exit 2 even when execution/replay completed"
+  },
+  "controlled_experiments": {
+    "component_stages": "candidate_union (RRF order of unique per-leg prefix hits), fusion_pool (fixed 20), returned (fixed top 10); each scored against the same provisional evidence facets",
+    "depth_intervention": "Frozen exact BM25/semantic top-40 prefixes at 10/20/40; fixed RRF=60, pool=20, output=10; no per-arm ANN/cost inference",
+    "rerank_intervention": "Exactly the depth20 fusion pool, fixed query and scorer, original order versus reranked top 10",
+    "stopping_intervention": "Only search-stall reminder insertion toggles; fresh conversations, balanced first-arm order across two trials, same budgets and 4B model",
+    "evidence_delivery_proxy": "If required facets exist: coverage for final execution without constraint failures, otherwise zero; null when no facets. Not grounded task success.",
+    "threshold_calls": "Executed tools at or after the first model request with complete annotated evidence; null if no crossing. They are not automatically wasted calls.",
+    "normal_final_fraction": "Fraction stopping final; independent of task correctness or human review",
+    "secondary_comparisons": "Exploratory unadjusted percentile intervals; multiple comparisons do not support a confirmatory superiority claim",
+    "prospective_power": "Paired binary independent-family scenario simulation with exact conditional two-sided sign/McNemar test, intended-direction rejection; assumed discordance, not inferred quality."
+  }
+}

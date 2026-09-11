@@ -35,10 +35,10 @@ def test_semantic_embeds_original_query_once_then_passes_explicit_search_paramet
     hit = evidence(metadata={'index_version': 'snapshot', 'document_revision': 'revision'})
     index.search.side_effect = lambda vector, **options: calls.append(('search', vector, options)) or [hit]
     filters = {'source': 'notes/a.md'}
-    response = SemanticRetriever(embedder, index).search('  原始 query?  ', top_k=7, filters=filters)
-    assert calls == [('embed', '  原始 query?  '),
+    response = SemanticRetriever(embedder, index).search('  original query?  ', top_k=7, filters=filters)
+    assert calls == [('embed', '  original query?  '),
                      ('search', [1.0, 0.0], {'top_k': 7, 'filters': filters})]
-    assert response == SearchResponse(query='  原始 query?  ', method='semantic', results=(hit,), index_id='snapshot')
+    assert response == SearchResponse(query='  original query?  ', method='semantic', results=(hit,), index_id='snapshot')
     assert response.results[0].source_id == 'stable-document'
     assert response.results[0].metadata['document_revision'] == 'revision'
     assert filters == {'source': 'notes/a.md'}

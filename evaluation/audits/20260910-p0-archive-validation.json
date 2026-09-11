@@ -1,0 +1,9 @@
+{
+  "bundle": "p0-current-20260910-r2.tar.gz",
+  "extracted_replay": {
+    "valid": true,
+    "agent_rows": 120,
+    "baseline_rows": 160
+  },
+  "tampered_input_rejected": true
+}

@@ -15,6 +15,7 @@ from arkb.knowledge.sqlite import SQLiteStorage
 from arkb.retrieval.models import SearchResponse, validate_request
 from arkb.retrieval.semantic import QdrantSnapshotIndex, SemanticRetriever
 if TYPE_CHECKING:
+    from arkb.agent.observation import AgentBudget, AgentObserver
     from arkb.agent.state import AgentResult
     from arkb.agent.tools import AgentTools
     from arkb.retrieval.engine import RetrievalEngine
@@ -99,7 +100,8 @@ class Runtime:
     def ask(self, query: str, *, db: Path = DEFAULT_DB, vault_id: str = 'default',
             notes_dir: Path | None = None, model: str = DEFAULT_GENERATION_MODEL,
             max_turns: int = 8, think: bool = DEFAULT_AGENT_THINK,
-            client: 'Client | None' = None) -> 'AgentResult':
+            client: 'Client | None' = None, observer: 'AgentObserver | None' = None,
+            search_stall_reminder: bool = True) -> 'AgentResult':
         """Let the existing agent choose tools and search modes over one snapshot.
 
         Match/read remain live. Ranked capabilities load only if chosen; direct
@@ -115,7 +117,8 @@ class Runtime:
             tools = self.agent_tools(engine=engine, directory=directory, vault_id=vault_id,
                                      mode=DEFAULT_RETRIEVAL_MODE)
             return self.run_agent(query, tools=tools, model=model, max_turns=max_turns,
-                                  think=think, client=client)
+                                  think=think, client=client,observer=observer,
+                                  search_stall_reminder=search_stall_reminder)
 
     def index(self, *, db: Path = DEFAULT_DB, vault_id: str = 'default',
               notes_dir: Path = DEFAULT_NOTES_DIR, qdrant_config: QdrantConfig | None = None,
@@ -241,7 +244,8 @@ class Runtime:
     def run_agent(self, query: str, *, tools: 'AgentTools',
                   model: str = DEFAULT_GENERATION_MODEL, max_turns: int = 8,
                   think: bool = DEFAULT_AGENT_THINK,
-                  client: 'Client | None' = None) -> 'AgentResult':
+                  client: 'Client | None' = None, observer: 'AgentObserver | None' = None,
+                  search_stall_reminder: bool = True) -> 'AgentResult':
         """Run with prepared tools and a reused model client, or a caller-owned one.
 
         Compose tools with agent_tools and keep their directory/vault aligned
@@ -252,7 +256,20 @@ class Runtime:
             raise ValueError('think must be a boolean.')
         from arkb.agent.loop import run_agent
         return run_agent(query, client=self.model_client() if client is None else client,
-                         tools=tools, model=model, max_turns=max_turns, think=think)
+                         tools=tools, model=model, max_turns=max_turns, think=think,observer=observer,
+                         search_stall_reminder=search_stall_reminder)
+
+    def agent_observer(self, *, budget: 'AgentBudget | None' = None) -> 'AgentObserver':
+        """Use the pinned embedding tokenizer as a common evidence-text ruler.
+
+        Its fingerprint is recorded; it does not estimate the model chat template.
+        Creating an observer can load a local tokenizer, but opens no model client.
+        """
+        from arkb.agent.observation import AgentObserver
+        from arkb.knowledge.embeddings import count_tokens,tokenizer_fingerprint
+        tokenizer=self.tokenizer()
+        return AgentObserver(budget=budget,counter=lambda text:count_tokens(text,tokenizer=tokenizer),
+                             counter_identity='reference-text:'+tokenizer_fingerprint(tokenizer))
 
 
 class _LazySnapshotRetriever:

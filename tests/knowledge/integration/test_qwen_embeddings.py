@@ -19,15 +19,15 @@ pytestmark = [pytest.mark.integration, pytestmark]
 
 
 @pytest.mark.parametrize(("kind", "body"), [
-    ("document", "正文 cafe\u0301 🧠\r\n```py\nx = 1\n```"),
+    ("document", "Body cafe\u0301 🧠\r\n```py\nx = 1\n```"),
     ("document", "Literal marker.<|endoftext|>"),
-    ("query", "如何保留 e\u0301 和 Markdown？"),
-    ("raw-query", "  原始问题？\r\n"),
+    ("query", "How to preserve e\u0301 and Markdown?"),
+    ("raw-query", "  Original question?\r\n"),
 ])
 def test_prepared_input_count_matches_the_embedding_request(kind: str, body: str) -> None:
     tokenizer = load_tokenizer(local_files_only=True)
     if kind == "document":
-        note = Note(title="卡片盒笔记", content=body, source="example.md")
+        note = Note(title="Permanent notes", content=body, source="example.md")
         text = prepare_document(whole_note_chunks([note])[0])
     elif kind == "query":
         text = prepare_query(body)

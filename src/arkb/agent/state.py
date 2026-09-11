@@ -22,7 +22,9 @@ class AgentState:
 class AgentToolTrace:
     """A requested call and its recorded observation, paired by turn and order.
 
-    result=None means no observation was recorded (failed or not executed).
+    result=None means no conversation observation was recorded: failed, not
+    executed, or withheld by an opt-in budget. ObservedAgentResult distinguishes
+    these states without changing the legacy trace representation.
     """
 
     turn: int
@@ -39,13 +41,13 @@ class AgentTrace:
     turns: int
     tool_calls: list[AgentToolTrace]
     final_response: str | None
-    stop_reason: Literal['final', 'max_turns', 'error']
+    stop_reason: Literal['final', 'max_turns', 'error', 'budget']
 
 
 @dataclass(frozen=True)
 class AgentResult:
     response: str | None
-    stop_reason: Literal['final', 'max_turns', 'error']
+    stop_reason: Literal['final', 'max_turns', 'error', 'budget']
     state: AgentState
 
     @property
@@ -71,3 +73,10 @@ class AgentResult:
                 observation += 1
         query = next((m['content'] for m in self.state.messages if m['role'] == 'user'), '')
         return AgentTrace(query, self.state.turn, calls, self.response, self.stop_reason)
+
+
+@dataclass(frozen=True)
+class ObservedAgentResult(AgentResult):
+    """Opt-in operation records; the legacy AgentResult/AgentTrace stay compact."""
+
+    observation: dict

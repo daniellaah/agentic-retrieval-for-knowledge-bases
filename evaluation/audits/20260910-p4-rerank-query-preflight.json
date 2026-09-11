@@ -1,0 +1,4098 @@
+{
+  "main_token_capacity": 464,
+  "scope": "Preflight query plus instruction token counts; actual retained document tokens are audited after reranking.",
+  "datasets": {
+    "scifact": {
+      "queries": 300,
+      "maximum_prefix_tokens": 77,
+      "query_prefix_at_least_capacity": 0,
+      "rows": [
+        {
+          "qid": "1",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "100",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "1012",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "1014",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "1019",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "1020",
+          "prefix_tokens": 52
+        },
+        {
+          "qid": "1021",
+          "prefix_tokens": 52
+        },
+        {
+          "qid": "1024",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "1029",
+          "prefix_tokens": 51
+        },
+        {
+          "qid": "1041",
+          "prefix_tokens": 50
+        },
+        {
+          "qid": "1049",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "1062",
+          "prefix_tokens": 47
+        },
+        {
+          "qid": "1086",
+          "prefix_tokens": 47
+        },
+        {
+          "qid": "1088",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "1089",
+          "prefix_tokens": 51
+        },
+        {
+          "qid": "1099",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "1100",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "1104",
+          "prefix_tokens": 57
+        },
+        {
+          "qid": "1107",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "1110",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "1121",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "113",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "1130",
+          "prefix_tokens": 51
+        },
+        {
+          "qid": "1132",
+          "prefix_tokens": 46
+        },
+        {
+          "qid": "1137",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "1140",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "1144",
+          "prefix_tokens": 46
+        },
+        {
+          "qid": "1146",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "115",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "1150",
+          "prefix_tokens": 45
+        },
+        {
+          "qid": "1163",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "1175",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "1179",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "118",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "1180",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "1185",
+          "prefix_tokens": 59
+        },
+        {
+          "qid": "1187",
+          "prefix_tokens": 56
+        },
+        {
+          "qid": "1191",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "1194",
+          "prefix_tokens": 52
+        },
+        {
+          "qid": "1196",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "1197",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "1199",
+          "prefix_tokens": 48
+        },
+        {
+          "qid": "1200",
+          "prefix_tokens": 60
+        },
+        {
+          "qid": "1202",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "1204",
+          "prefix_tokens": 53
+        },
+        {
+          "qid": "1207",
+          "prefix_tokens": 56
+        },
+        {
+          "qid": "1213",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "1216",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "1221",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "1225",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "1226",
+          "prefix_tokens": 45
+        },
+        {
+          "qid": "1232",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "124",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "1241",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "1245",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "1259",
+          "prefix_tokens": 52
+        },
+        {
+          "qid": "1262",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "1266",
+          "prefix_tokens": 54
+        },
+        {
+          "qid": "127",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "1270",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "1271",
+          "prefix_tokens": 52
+        },
+        {
+          "qid": "1272",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "1273",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "1274",
+          "prefix_tokens": 63
+        },
+        {
+          "qid": "1278",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "1279",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "128",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "1280",
+          "prefix_tokens": 60
+        },
+        {
+          "qid": "1281",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "1282",
+          "prefix_tokens": 48
+        },
+        {
+          "qid": "129",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "1290",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "1292",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "1298",
+          "prefix_tokens": 56
+        },
+        {
+          "qid": "13",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "130",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "1303",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "1316",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "1319",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "132",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "1320",
+          "prefix_tokens": 46
+        },
+        {
+          "qid": "133",
+          "prefix_tokens": 63
+        },
+        {
+          "qid": "1332",
+          "prefix_tokens": 63
+        },
+        {
+          "qid": "1335",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "1336",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "1337",
+          "prefix_tokens": 53
+        },
+        {
+          "qid": "1339",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "1344",
+          "prefix_tokens": 60
+        },
+        {
+          "qid": "1352",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "1359",
+          "prefix_tokens": 57
+        },
+        {
+          "qid": "1362",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "1363",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "1368",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "137",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "1370",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "1379",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "1382",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "1385",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "1389",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "1395",
+          "prefix_tokens": 61
+        },
+        {
+          "qid": "141",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "142",
+          "prefix_tokens": 57
+        },
+        {
+          "qid": "143",
+          "prefix_tokens": 54
+        },
+        {
+          "qid": "146",
+          "prefix_tokens": 54
+        },
+        {
+          "qid": "148",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "163",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "171",
+          "prefix_tokens": 45
+        },
+        {
+          "qid": "179",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "180",
+          "prefix_tokens": 55
+        },
+        {
+          "qid": "183",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "185",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "198",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "208",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "212",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "213",
+          "prefix_tokens": 49
+        },
+        {
+          "qid": "216",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "217",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "218",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "219",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "230",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "232",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "233",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "236",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "237",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "238",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "239",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "248",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "249",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "261",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "268",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "269",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "274",
+          "prefix_tokens": 60
+        },
+        {
+          "qid": "275",
+          "prefix_tokens": 54
+        },
+        {
+          "qid": "279",
+          "prefix_tokens": 48
+        },
+        {
+          "qid": "294",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "295",
+          "prefix_tokens": 54
+        },
+        {
+          "qid": "298",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "3",
+          "prefix_tokens": 51
+        },
+        {
+          "qid": "300",
+          "prefix_tokens": 66
+        },
+        {
+          "qid": "303",
+          "prefix_tokens": 46
+        },
+        {
+          "qid": "312",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "314",
+          "prefix_tokens": 52
+        },
+        {
+          "qid": "324",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "327",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "338",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "343",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "350",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "354",
+          "prefix_tokens": 45
+        },
+        {
+          "qid": "36",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "362",
+          "prefix_tokens": 57
+        },
+        {
+          "qid": "380",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "384",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "385",
+          "prefix_tokens": 47
+        },
+        {
+          "qid": "386",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "388",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "399",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "410",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "411",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "415",
+          "prefix_tokens": 46
+        },
+        {
+          "qid": "42",
+          "prefix_tokens": 54
+        },
+        {
+          "qid": "421",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "431",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "436",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "437",
+          "prefix_tokens": 54
+        },
+        {
+          "qid": "439",
+          "prefix_tokens": 52
+        },
+        {
+          "qid": "440",
+          "prefix_tokens": 51
+        },
+        {
+          "qid": "443",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "452",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "475",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "478",
+          "prefix_tokens": 59
+        },
+        {
+          "qid": "48",
+          "prefix_tokens": 47
+        },
+        {
+          "qid": "49",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "491",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "5",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "50",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "501",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "502",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "507",
+          "prefix_tokens": 49
+        },
+        {
+          "qid": "508",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "51",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "513",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "514",
+          "prefix_tokens": 60
+        },
+        {
+          "qid": "516",
+          "prefix_tokens": 46
+        },
+        {
+          "qid": "517",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "521",
+          "prefix_tokens": 61
+        },
+        {
+          "qid": "525",
+          "prefix_tokens": 52
+        },
+        {
+          "qid": "527",
+          "prefix_tokens": 61
+        },
+        {
+          "qid": "528",
+          "prefix_tokens": 77
+        },
+        {
+          "qid": "53",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "532",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "533",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "535",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "536",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "539",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "54",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "540",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "544",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "549",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "551",
+          "prefix_tokens": 61
+        },
+        {
+          "qid": "552",
+          "prefix_tokens": 55
+        },
+        {
+          "qid": "554",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "56",
+          "prefix_tokens": 49
+        },
+        {
+          "qid": "560",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "569",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "57",
+          "prefix_tokens": 50
+        },
+        {
+          "qid": "575",
+          "prefix_tokens": 48
+        },
+        {
+          "qid": "577",
+          "prefix_tokens": 56
+        },
+        {
+          "qid": "578",
+          "prefix_tokens": 46
+        },
+        {
+          "qid": "587",
+          "prefix_tokens": 64
+        },
+        {
+          "qid": "589",
+          "prefix_tokens": 48
+        },
+        {
+          "qid": "593",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "597",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "598",
+          "prefix_tokens": 50
+        },
+        {
+          "qid": "613",
+          "prefix_tokens": 47
+        },
+        {
+          "qid": "619",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "623",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "628",
+          "prefix_tokens": 45
+        },
+        {
+          "qid": "636",
+          "prefix_tokens": 61
+        },
+        {
+          "qid": "637",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "641",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "644",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "649",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "659",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "660",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "674",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "684",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "690",
+          "prefix_tokens": 67
+        },
+        {
+          "qid": "691",
+          "prefix_tokens": 49
+        },
+        {
+          "qid": "692",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "693",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "70",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "700",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "702",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "715",
+          "prefix_tokens": 47
+        },
+        {
+          "qid": "716",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "718",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "72",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "721",
+          "prefix_tokens": 47
+        },
+        {
+          "qid": "723",
+          "prefix_tokens": 45
+        },
+        {
+          "qid": "727",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "728",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "729",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "742",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "743",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "744",
+          "prefix_tokens": 47
+        },
+        {
+          "qid": "75",
+          "prefix_tokens": 50
+        },
+        {
+          "qid": "756",
+          "prefix_tokens": 45
+        },
+        {
+          "qid": "759",
+          "prefix_tokens": 54
+        },
+        {
+          "qid": "768",
+          "prefix_tokens": 54
+        },
+        {
+          "qid": "770",
+          "prefix_tokens": 62
+        },
+        {
+          "qid": "775",
+          "prefix_tokens": 55
+        },
+        {
+          "qid": "781",
+          "prefix_tokens": 45
+        },
+        {
+          "qid": "783",
+          "prefix_tokens": 48
+        },
+        {
+          "qid": "784",
+          "prefix_tokens": 47
+        },
+        {
+          "qid": "785",
+          "prefix_tokens": 50
+        },
+        {
+          "qid": "793",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "800",
+          "prefix_tokens": 48
+        },
+        {
+          "qid": "805",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "808",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "811",
+          "prefix_tokens": 47
+        },
+        {
+          "qid": "814",
+          "prefix_tokens": 60
+        },
+        {
+          "qid": "820",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "821",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "823",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "830",
+          "prefix_tokens": 60
+        },
+        {
+          "qid": "831",
+          "prefix_tokens": 51
+        },
+        {
+          "qid": "832",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "834",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "837",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "839",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "845",
+          "prefix_tokens": 47
+        },
+        {
+          "qid": "847",
+          "prefix_tokens": 45
+        },
+        {
+          "qid": "852",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "859",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "870",
+          "prefix_tokens": 29
+        },
+        {
+          "qid": "873",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "879",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "880",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "882",
+          "prefix_tokens": 46
+        },
+        {
+          "qid": "887",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "903",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "904",
+          "prefix_tokens": 58
+        },
+        {
+          "qid": "907",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "911",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "913",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "914",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "921",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "922",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "936",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "94",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "956",
+          "prefix_tokens": 46
+        },
+        {
+          "qid": "957",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "960",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "967",
+          "prefix_tokens": 46
+        },
+        {
+          "qid": "971",
+          "prefix_tokens": 54
+        },
+        {
+          "qid": "975",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "982",
+          "prefix_tokens": 46
+        },
+        {
+          "qid": "985",
+          "prefix_tokens": 46
+        },
+        {
+          "qid": "99",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "993",
+          "prefix_tokens": 43
+        }
+      ]
+    },
+    "bright-stackoverflow": {
+      "queries": 115,
+      "maximum_prefix_tokens": 2744,
+      "query_prefix_at_least_capacity": 30,
+      "rows": [
+        {
+          "qid": "0",
+          "prefix_tokens": 214
+        },
+        {
+          "qid": "1",
+          "prefix_tokens": 272
+        },
+        {
+          "qid": "10",
+          "prefix_tokens": 1046
+        },
+        {
+          "qid": "100",
+          "prefix_tokens": 382
+        },
+        {
+          "qid": "101",
+          "prefix_tokens": 241
+        },
+        {
+          "qid": "102",
+          "prefix_tokens": 609
+        },
+        {
+          "qid": "103",
+          "prefix_tokens": 424
+        },
+        {
+          "qid": "104",
+          "prefix_tokens": 221
+        },
+        {
+          "qid": "105",
+          "prefix_tokens": 236
+        },
+        {
+          "qid": "106",
+          "prefix_tokens": 165
+        },
+        {
+          "qid": "107",
+          "prefix_tokens": 333
+        },
+        {
+          "qid": "108",
+          "prefix_tokens": 316
+        },
+        {
+          "qid": "109",
+          "prefix_tokens": 632
+        },
+        {
+          "qid": "11",
+          "prefix_tokens": 427
+        },
+        {
+          "qid": "110",
+          "prefix_tokens": 353
+        },
+        {
+          "qid": "111",
+          "prefix_tokens": 730
+        },
+        {
+          "qid": "112",
+          "prefix_tokens": 508
+        },
+        {
+          "qid": "113",
+          "prefix_tokens": 449
+        },
+        {
+          "qid": "114",
+          "prefix_tokens": 141
+        },
+        {
+          "qid": "115",
+          "prefix_tokens": 651
+        },
+        {
+          "qid": "116",
+          "prefix_tokens": 363
+        },
+        {
+          "qid": "12",
+          "prefix_tokens": 79
+        },
+        {
+          "qid": "13",
+          "prefix_tokens": 692
+        },
+        {
+          "qid": "14",
+          "prefix_tokens": 263
+        },
+        {
+          "qid": "15",
+          "prefix_tokens": 789
+        },
+        {
+          "qid": "16",
+          "prefix_tokens": 319
+        },
+        {
+          "qid": "17",
+          "prefix_tokens": 517
+        },
+        {
+          "qid": "18",
+          "prefix_tokens": 240
+        },
+        {
+          "qid": "19",
+          "prefix_tokens": 601
+        },
+        {
+          "qid": "2",
+          "prefix_tokens": 133
+        },
+        {
+          "qid": "20",
+          "prefix_tokens": 113
+        },
+        {
+          "qid": "21",
+          "prefix_tokens": 910
+        },
+        {
+          "qid": "22",
+          "prefix_tokens": 379
+        },
+        {
+          "qid": "23",
+          "prefix_tokens": 215
+        },
+        {
+          "qid": "24",
+          "prefix_tokens": 435
+        },
+        {
+          "qid": "25",
+          "prefix_tokens": 178
+        },
+        {
+          "qid": "26",
+          "prefix_tokens": 251
+        },
+        {
+          "qid": "27",
+          "prefix_tokens": 151
+        },
+        {
+          "qid": "28",
+          "prefix_tokens": 127
+        },
+        {
+          "qid": "29",
+          "prefix_tokens": 1092
+        },
+        {
+          "qid": "3",
+          "prefix_tokens": 161
+        },
+        {
+          "qid": "30",
+          "prefix_tokens": 245
+        },
+        {
+          "qid": "31",
+          "prefix_tokens": 57
+        },
+        {
+          "qid": "32",
+          "prefix_tokens": 93
+        },
+        {
+          "qid": "33",
+          "prefix_tokens": 464
+        },
+        {
+          "qid": "34",
+          "prefix_tokens": 315
+        },
+        {
+          "qid": "35",
+          "prefix_tokens": 621
+        },
+        {
+          "qid": "36",
+          "prefix_tokens": 287
+        },
+        {
+          "qid": "37",
+          "prefix_tokens": 689
+        },
+        {
+          "qid": "38",
+          "prefix_tokens": 315
+        },
+        {
+          "qid": "39",
+          "prefix_tokens": 434
+        },
+        {
+          "qid": "4",
+          "prefix_tokens": 339
+        },
+        {
+          "qid": "40",
+          "prefix_tokens": 611
+        },
+        {
+          "qid": "41",
+          "prefix_tokens": 159
+        },
+        {
+          "qid": "42",
+          "prefix_tokens": 273
+        },
+        {
+          "qid": "43",
+          "prefix_tokens": 581
+        },
+        {
+          "qid": "44",
+          "prefix_tokens": 124
+        },
+        {
+          "qid": "45",
+          "prefix_tokens": 151
+        },
+        {
+          "qid": "46",
+          "prefix_tokens": 139
+        },
+        {
+          "qid": "47",
+          "prefix_tokens": 180
+        },
+        {
+          "qid": "48",
+          "prefix_tokens": 182
+        },
+        {
+          "qid": "49",
+          "prefix_tokens": 113
+        },
+        {
+          "qid": "50",
+          "prefix_tokens": 886
+        },
+        {
+          "qid": "51",
+          "prefix_tokens": 191
+        },
+        {
+          "qid": "52",
+          "prefix_tokens": 330
+        },
+        {
+          "qid": "53",
+          "prefix_tokens": 131
+        },
+        {
+          "qid": "54",
+          "prefix_tokens": 154
+        },
+        {
+          "qid": "55",
+          "prefix_tokens": 182
+        },
+        {
+          "qid": "56",
+          "prefix_tokens": 487
+        },
+        {
+          "qid": "57",
+          "prefix_tokens": 373
+        },
+        {
+          "qid": "58",
+          "prefix_tokens": 227
+        },
+        {
+          "qid": "59",
+          "prefix_tokens": 309
+        },
+        {
+          "qid": "6",
+          "prefix_tokens": 566
+        },
+        {
+          "qid": "60",
+          "prefix_tokens": 266
+        },
+        {
+          "qid": "61",
+          "prefix_tokens": 369
+        },
+        {
+          "qid": "62",
+          "prefix_tokens": 500
+        },
+        {
+          "qid": "63",
+          "prefix_tokens": 444
+        },
+        {
+          "qid": "64",
+          "prefix_tokens": 500
+        },
+        {
+          "qid": "65",
+          "prefix_tokens": 238
+        },
+        {
+          "qid": "66",
+          "prefix_tokens": 200
+        },
+        {
+          "qid": "67",
+          "prefix_tokens": 2744
+        },
+        {
+          "qid": "68",
+          "prefix_tokens": 301
+        },
+        {
+          "qid": "69",
+          "prefix_tokens": 697
+        },
+        {
+          "qid": "7",
+          "prefix_tokens": 351
+        },
+        {
+          "qid": "70",
+          "prefix_tokens": 299
+        },
+        {
+          "qid": "71",
+          "prefix_tokens": 157
+        },
+        {
+          "qid": "72",
+          "prefix_tokens": 87
+        },
+        {
+          "qid": "73",
+          "prefix_tokens": 242
+        },
+        {
+          "qid": "74",
+          "prefix_tokens": 157
+        },
+        {
+          "qid": "75",
+          "prefix_tokens": 203
+        },
+        {
+          "qid": "76",
+          "prefix_tokens": 203
+        },
+        {
+          "qid": "77",
+          "prefix_tokens": 160
+        },
+        {
+          "qid": "78",
+          "prefix_tokens": 301
+        },
+        {
+          "qid": "79",
+          "prefix_tokens": 265
+        },
+        {
+          "qid": "8",
+          "prefix_tokens": 241
+        },
+        {
+          "qid": "80",
+          "prefix_tokens": 128
+        },
+        {
+          "qid": "81",
+          "prefix_tokens": 149
+        },
+        {
+          "qid": "82",
+          "prefix_tokens": 80
+        },
+        {
+          "qid": "83",
+          "prefix_tokens": 97
+        },
+        {
+          "qid": "84",
+          "prefix_tokens": 157
+        },
+        {
+          "qid": "85",
+          "prefix_tokens": 241
+        },
+        {
+          "qid": "86",
+          "prefix_tokens": 198
+        },
+        {
+          "qid": "87",
+          "prefix_tokens": 152
+        },
+        {
+          "qid": "88",
+          "prefix_tokens": 341
+        },
+        {
+          "qid": "89",
+          "prefix_tokens": 306
+        },
+        {
+          "qid": "9",
+          "prefix_tokens": 626
+        },
+        {
+          "qid": "90",
+          "prefix_tokens": 485
+        },
+        {
+          "qid": "91",
+          "prefix_tokens": 128
+        },
+        {
+          "qid": "92",
+          "prefix_tokens": 589
+        },
+        {
+          "qid": "93",
+          "prefix_tokens": 414
+        },
+        {
+          "qid": "94",
+          "prefix_tokens": 481
+        },
+        {
+          "qid": "95",
+          "prefix_tokens": 278
+        },
+        {
+          "qid": "96",
+          "prefix_tokens": 1444
+        },
+        {
+          "qid": "98",
+          "prefix_tokens": 553
+        },
+        {
+          "qid": "99",
+          "prefix_tokens": 267
+        }
+      ]
+    },
+    "bright-robotics": {
+      "queries": 101,
+      "maximum_prefix_tokens": 7252,
+      "query_prefix_at_least_capacity": 26,
+      "rows": [
+        {
+          "qid": "0",
+          "prefix_tokens": 172
+        },
+        {
+          "qid": "1",
+          "prefix_tokens": 138
+        },
+        {
+          "qid": "10",
+          "prefix_tokens": 103
+        },
+        {
+          "qid": "100",
+          "prefix_tokens": 310
+        },
+        {
+          "qid": "11",
+          "prefix_tokens": 245
+        },
+        {
+          "qid": "12",
+          "prefix_tokens": 238
+        },
+        {
+          "qid": "13",
+          "prefix_tokens": 110
+        },
+        {
+          "qid": "14",
+          "prefix_tokens": 169
+        },
+        {
+          "qid": "15",
+          "prefix_tokens": 76
+        },
+        {
+          "qid": "16",
+          "prefix_tokens": 131
+        },
+        {
+          "qid": "17",
+          "prefix_tokens": 504
+        },
+        {
+          "qid": "18",
+          "prefix_tokens": 195
+        },
+        {
+          "qid": "19",
+          "prefix_tokens": 245
+        },
+        {
+          "qid": "2",
+          "prefix_tokens": 4199
+        },
+        {
+          "qid": "20",
+          "prefix_tokens": 584
+        },
+        {
+          "qid": "21",
+          "prefix_tokens": 129
+        },
+        {
+          "qid": "22",
+          "prefix_tokens": 219
+        },
+        {
+          "qid": "23",
+          "prefix_tokens": 661
+        },
+        {
+          "qid": "24",
+          "prefix_tokens": 100
+        },
+        {
+          "qid": "25",
+          "prefix_tokens": 107
+        },
+        {
+          "qid": "26",
+          "prefix_tokens": 222
+        },
+        {
+          "qid": "27",
+          "prefix_tokens": 230
+        },
+        {
+          "qid": "28",
+          "prefix_tokens": 280
+        },
+        {
+          "qid": "29",
+          "prefix_tokens": 413
+        },
+        {
+          "qid": "3",
+          "prefix_tokens": 132
+        },
+        {
+          "qid": "30",
+          "prefix_tokens": 70
+        },
+        {
+          "qid": "31",
+          "prefix_tokens": 115
+        },
+        {
+          "qid": "32",
+          "prefix_tokens": 141
+        },
+        {
+          "qid": "33",
+          "prefix_tokens": 177
+        },
+        {
+          "qid": "34",
+          "prefix_tokens": 113
+        },
+        {
+          "qid": "35",
+          "prefix_tokens": 183
+        },
+        {
+          "qid": "36",
+          "prefix_tokens": 269
+        },
+        {
+          "qid": "37",
+          "prefix_tokens": 192
+        },
+        {
+          "qid": "38",
+          "prefix_tokens": 338
+        },
+        {
+          "qid": "39",
+          "prefix_tokens": 121
+        },
+        {
+          "qid": "4",
+          "prefix_tokens": 860
+        },
+        {
+          "qid": "40",
+          "prefix_tokens": 1196
+        },
+        {
+          "qid": "41",
+          "prefix_tokens": 379
+        },
+        {
+          "qid": "42",
+          "prefix_tokens": 309
+        },
+        {
+          "qid": "43",
+          "prefix_tokens": 260
+        },
+        {
+          "qid": "44",
+          "prefix_tokens": 184
+        },
+        {
+          "qid": "45",
+          "prefix_tokens": 923
+        },
+        {
+          "qid": "46",
+          "prefix_tokens": 102
+        },
+        {
+          "qid": "47",
+          "prefix_tokens": 769
+        },
+        {
+          "qid": "48",
+          "prefix_tokens": 3710
+        },
+        {
+          "qid": "49",
+          "prefix_tokens": 63
+        },
+        {
+          "qid": "5",
+          "prefix_tokens": 89
+        },
+        {
+          "qid": "50",
+          "prefix_tokens": 110
+        },
+        {
+          "qid": "51",
+          "prefix_tokens": 74
+        },
+        {
+          "qid": "52",
+          "prefix_tokens": 199
+        },
+        {
+          "qid": "53",
+          "prefix_tokens": 348
+        },
+        {
+          "qid": "54",
+          "prefix_tokens": 349
+        },
+        {
+          "qid": "55",
+          "prefix_tokens": 1869
+        },
+        {
+          "qid": "56",
+          "prefix_tokens": 933
+        },
+        {
+          "qid": "57",
+          "prefix_tokens": 238
+        },
+        {
+          "qid": "58",
+          "prefix_tokens": 6032
+        },
+        {
+          "qid": "59",
+          "prefix_tokens": 438
+        },
+        {
+          "qid": "6",
+          "prefix_tokens": 117
+        },
+        {
+          "qid": "60",
+          "prefix_tokens": 305
+        },
+        {
+          "qid": "61",
+          "prefix_tokens": 721
+        },
+        {
+          "qid": "62",
+          "prefix_tokens": 2384
+        },
+        {
+          "qid": "63",
+          "prefix_tokens": 126
+        },
+        {
+          "qid": "64",
+          "prefix_tokens": 185
+        },
+        {
+          "qid": "65",
+          "prefix_tokens": 600
+        },
+        {
+          "qid": "66",
+          "prefix_tokens": 329
+        },
+        {
+          "qid": "67",
+          "prefix_tokens": 262
+        },
+        {
+          "qid": "68",
+          "prefix_tokens": 143
+        },
+        {
+          "qid": "69",
+          "prefix_tokens": 1741
+        },
+        {
+          "qid": "7",
+          "prefix_tokens": 1368
+        },
+        {
+          "qid": "70",
+          "prefix_tokens": 1807
+        },
+        {
+          "qid": "71",
+          "prefix_tokens": 1389
+        },
+        {
+          "qid": "72",
+          "prefix_tokens": 121
+        },
+        {
+          "qid": "73",
+          "prefix_tokens": 155
+        },
+        {
+          "qid": "74",
+          "prefix_tokens": 534
+        },
+        {
+          "qid": "75",
+          "prefix_tokens": 121
+        },
+        {
+          "qid": "76",
+          "prefix_tokens": 1843
+        },
+        {
+          "qid": "77",
+          "prefix_tokens": 98
+        },
+        {
+          "qid": "78",
+          "prefix_tokens": 329
+        },
+        {
+          "qid": "79",
+          "prefix_tokens": 345
+        },
+        {
+          "qid": "8",
+          "prefix_tokens": 96
+        },
+        {
+          "qid": "80",
+          "prefix_tokens": 162
+        },
+        {
+          "qid": "81",
+          "prefix_tokens": 307
+        },
+        {
+          "qid": "82",
+          "prefix_tokens": 682
+        },
+        {
+          "qid": "83",
+          "prefix_tokens": 340
+        },
+        {
+          "qid": "84",
+          "prefix_tokens": 3254
+        },
+        {
+          "qid": "85",
+          "prefix_tokens": 1050
+        },
+        {
+          "qid": "86",
+          "prefix_tokens": 382
+        },
+        {
+          "qid": "87",
+          "prefix_tokens": 88
+        },
+        {
+          "qid": "88",
+          "prefix_tokens": 207
+        },
+        {
+          "qid": "89",
+          "prefix_tokens": 7252
+        },
+        {
+          "qid": "9",
+          "prefix_tokens": 149
+        },
+        {
+          "qid": "90",
+          "prefix_tokens": 147
+        },
+        {
+          "qid": "91",
+          "prefix_tokens": 351
+        },
+        {
+          "qid": "92",
+          "prefix_tokens": 63
+        },
+        {
+          "qid": "93",
+          "prefix_tokens": 863
+        },
+        {
+          "qid": "94",
+          "prefix_tokens": 121
+        },
+        {
+          "qid": "95",
+          "prefix_tokens": 129
+        },
+        {
+          "qid": "96",
+          "prefix_tokens": 216
+        },
+        {
+          "qid": "97",
+          "prefix_tokens": 173
+        },
+        {
+          "qid": "98",
+          "prefix_tokens": 241
+        },
+        {
+          "qid": "99",
+          "prefix_tokens": 222
+        }
+      ]
+    },
+    "t2": {
+      "queries": 500,
+      "maximum_prefix_tokens": 47,
+      "query_prefix_at_least_capacity": 0,
+      "rows": [
+        {
+          "qid": "485",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "20027",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "15616",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "16805",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "15711",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "16194",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "18111",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "12150",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "17959",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "19051",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "13063",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "12973",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "6751",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "13068",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "1659",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "19744",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "11988",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "14144",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "4322",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "7200",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "20738",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "22826",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "17088",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "19800",
+          "prefix_tokens": 29
+        },
+        {
+          "qid": "22498",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "23581",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "6100",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "5620",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "19453",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "23605",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "9423",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "9534",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "13814",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "1982",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "9530",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "9778",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "23482",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "22792",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "5662",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "9589",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "23977",
+          "prefix_tokens": 28
+        },
+        {
+          "qid": "627",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "2453",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "12032",
+          "prefix_tokens": 47
+        },
+        {
+          "qid": "2630",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "3855",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "20364",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "4511",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "23869",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "1701",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "5691",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "6255",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "12124",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "18017",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "21230",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "12516",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "1061",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "14665",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "23895",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "9930",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "11348",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "20059",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "24907",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "20175",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "17245",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "10511",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "2871",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "23508",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "16581",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "8669",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "11729",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "7137",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "24054",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "16709",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "20120",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "9081",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "19870",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "15551",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "21733",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "24438",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "18514",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "18956",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "5857",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "1440",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "13987",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "13857",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "19101",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "6265",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "9788",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "3729",
+          "prefix_tokens": 44
+        },
+        {
+          "qid": "4086",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "12547",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "3535",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "3824",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "16968",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "934",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "20185",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "1161",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "20397",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "6766",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "13700",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "8741",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "15706",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "14192",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "21585",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "535",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "15014",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "1328",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "23213",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "11989",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "12689",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "6899",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "19813",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "4615",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "6931",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "5906",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "18650",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "17728",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "11772",
+          "prefix_tokens": 29
+        },
+        {
+          "qid": "23745",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "5215",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "5443",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "10475",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "24509",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "10526",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "1448",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "11625",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "19572",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "13793",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "5198",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "14379",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "2794",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "5689",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "19158",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "12255",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "9540",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "13491",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "9004",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "755",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "11853",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "9277",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "17547",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "108",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "1252",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "15145",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "9921",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "4616",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "17156",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "3834",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "16816",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "15409",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "22672",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "3383",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "13920",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "7713",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "9365",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "244",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "9997",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "19918",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "7071",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "14712",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "11757",
+          "prefix_tokens": 29
+        },
+        {
+          "qid": "7301",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "24852",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "5885",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "24444",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "9106",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "15536",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "11879",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "18213",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "10350",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "14793",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "1003",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "3347",
+          "prefix_tokens": 29
+        },
+        {
+          "qid": "20939",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "24280",
+          "prefix_tokens": 29
+        },
+        {
+          "qid": "18304",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "15847",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "20368",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "22766",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "17029",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "17719",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "23381",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "19373",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "7492",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "20549",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "11923",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "5763",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "4626",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "13456",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "3632",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "9544",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "21821",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "6162",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "9992",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "17411",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "20049",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "602",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "16841",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "15550",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "18439",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "3189",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "8940",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "20855",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "19876",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "11251",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "19970",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "18677",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "22252",
+          "prefix_tokens": 40
+        },
+        {
+          "qid": "10933",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "18794",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "14292",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "10908",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "14554",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "16008",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "15922",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "7486",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "18981",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "23742",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "17195",
+          "prefix_tokens": 27
+        },
+        {
+          "qid": "20390",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "22564",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "20070",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "18631",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "4142",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "10746",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "23335",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "10793",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "15606",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "16249",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "3736",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "17490",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "22664",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "9041",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "8628",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "1742",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "17264",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "21400",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "10614",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "11880",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "24132",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "94",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "9315",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "9452",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "23071",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "3124",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "10169",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "11810",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "2655",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "5184",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "6007",
+          "prefix_tokens": 43
+        },
+        {
+          "qid": "5412",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "17391",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "2624",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "23084",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "14272",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "11120",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "4484",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "19574",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "20130",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "2436",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "2038",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "13997",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "5790",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "16034",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "14154",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "14119",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "13469",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "1602",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "4062",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "13214",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "23725",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "19913",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "3387",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "23350",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "10040",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "10890",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "2130",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "24053",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "21727",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "22548",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "4134",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "19475",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "495",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "12592",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "3568",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "1197",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "21203",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "14650",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "21753",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "5127",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "2861",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "16408",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "22902",
+          "prefix_tokens": 29
+        },
+        {
+          "qid": "17194",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "20733",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "6275",
+          "prefix_tokens": 42
+        },
+        {
+          "qid": "10725",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "9200",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "15194",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "2634",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "10712",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "16673",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "15144",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "5445",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "19820",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "4517",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "13766",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "24948",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "8947",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "23226",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "19338",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "6209",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "22735",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "10537",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "23462",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "20266",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "15883",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "18600",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "10915",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "21729",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "22274",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "22951",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "419",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "1881",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "23860",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "7921",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "7880",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "18792",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "3851",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "23062",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "11813",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "22027",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "3123",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "15468",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "19337",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "13303",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "10321",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "95",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "128",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "6042",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "12320",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "20873",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "679",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "22041",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "24639",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "16572",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "6471",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "23533",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "2712",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "17963",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "8352",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "22092",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "9571",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "9653",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "1011",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "13402",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "21823",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "2097",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "17025",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "4100",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "23982",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "13593",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "11427",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "213",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "9753",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "14946",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "14606",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "2268",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "16549",
+          "prefix_tokens": 45
+        },
+        {
+          "qid": "19501",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "11824",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "14621",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "11013",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "10891",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "14728",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "5509",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "20381",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "22575",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "2376",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "20586",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "17910",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "2540",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "4670",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "19273",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "5404",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "9877",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "18342",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "15787",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "21536",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "15912",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "24991",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "6399",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "2137",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "19547",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "8987",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "13212",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "6349",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "15337",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "2628",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "7917",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "19859",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "20677",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "18226",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "6434",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "18378",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "2351",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "7950",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "903",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "15907",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "11696",
+          "prefix_tokens": 39
+        },
+        {
+          "qid": "0",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "14033",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "8720",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "6613",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "19852",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "4480",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "12345",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "17190",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "8705",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "10505",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "8629",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "12977",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "4900",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "21903",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "12933",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "1677",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "23430",
+          "prefix_tokens": 29
+        },
+        {
+          "qid": "14789",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "21645",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "16237",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "22686",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "145",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "17276",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "569",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "15672",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "7560",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "3114",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "11250",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "13403",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "8755",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "13411",
+          "prefix_tokens": 29
+        },
+        {
+          "qid": "10101",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "18314",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "23721",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "17269",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "4252",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "5565",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "36",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "12093",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "6166",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "11486",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "19528",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "23757",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "24608",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "3300",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "24177",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "867",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "10893",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "18563",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "18891",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "19313",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "10330",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "7974",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "13778",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "24550",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "13860",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "20427",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "14663",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "16179",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "11226",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "14008",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "16969",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "11188",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "2526",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "21298",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "18856",
+          "prefix_tokens": 33
+        },
+        {
+          "qid": "21687",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "16962",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "19136",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "21553",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "11798",
+          "prefix_tokens": 37
+        },
+        {
+          "qid": "24214",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "15341",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "6513",
+          "prefix_tokens": 41
+        },
+        {
+          "qid": "3121",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "24596",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "8958",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "10557",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "23170",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "7603",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "10454",
+          "prefix_tokens": 32
+        },
+        {
+          "qid": "12263",
+          "prefix_tokens": 38
+        },
+        {
+          "qid": "9125",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "17275",
+          "prefix_tokens": 30
+        },
+        {
+          "qid": "20067",
+          "prefix_tokens": 36
+        },
+        {
+          "qid": "15739",
+          "prefix_tokens": 35
+        },
+        {
+          "qid": "12450",
+          "prefix_tokens": 31
+        },
+        {
+          "qid": "222",
+          "prefix_tokens": 34
+        },
+        {
+          "qid": "15279",
+          "prefix_tokens": 31
+        }
+      ]
+    }
+  }
+}

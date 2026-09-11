@@ -1,0 +1,360 @@
+{
+  "schema_version": "arkb-eval-v2",
+  "corpus_id": "arkb-pilot-20260910",
+  "description": "Provisional development set. 40 existing authored notes and 18 synthetic fixtures; not traffic or independent human gold.",
+  "files": {
+    "queries.jsonl": "8a00b71cd1b5266b2b8be88d4500226aff393384503c8f07f2040165c6eadace",
+    "evidence.jsonl": "d8ce7eec466bae96492f3d2a94667d159ee71a32812a0e33e90436ceeee6571a",
+    "qrels.jsonl": "9aac36ded8f4d98c79d07c19b6d431682ec38eafaf0ac45f17979a49a721ef87"
+  },
+  "corpus": [
+    {
+      "source": "01_workflows_and_agents.md",
+      "document_revision": "ec307af16f0048ff663b6694d3a758ef946b9e73bb4985657660a51d09a3b684",
+      "body_sha256": "f69322c3fdb21f36984fb243af0d21397a438783b7b5ad98dcd76a6a03718c89",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "02_tool_interface_design.md",
+      "document_revision": "8e692bf4049a06133bfe77e26fb70b852c84d35ae547c781c9e14e1828d9b00f",
+      "body_sha256": "76a03d55856a0c2ac0f12830cde746473a5f1174ba29a45881e5f246d7da6727",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "03_dynamic_tool_discovery.md",
+      "document_revision": "497278de0e2c85a8b687e99610f3ed87aabdf350d271acf12e7e860037c8e982",
+      "body_sha256": "6c2959c910d5900f3b58c4e6ead6ac9146e84e088d9da02b4ae1b66ff504c439",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "04_code_execution_for_tools.md",
+      "document_revision": "65a19d8e96aa6e129c7b42e7ab48547ed671765622dc174d27b3d57bd66c9952",
+      "body_sha256": "f0668ee8c71e4f4556aa9f385d9cdd87677a234129393f83556d2a25b447a51e",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "05_agent_skills.md",
+      "document_revision": "a009cf2c89e490e141286945350ac4f4ace3b648abc1941cd9b4daf9c2a22d9c",
+      "body_sha256": "60e5fea96f604742e75bca48ce252090b95a033bc70da46f605869b12db27af4",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "06_context_compaction.md",
+      "document_revision": "a78dce08c9cafad1931a2f2073e5e2721fcb7f4e040c294911277e70d1dc9bb5",
+      "body_sha256": "8a44cbbf1dd10c0951ec5b9dabdd824df4f91c30a5616529da896368d4d23be9",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "07_long_running_harnesses.md",
+      "document_revision": "28eca61bc30d43e2d3f40fa6380323f1ba2d7016a06022a2597b95742e5c2f90",
+      "body_sha256": "90fbcc1fba803d18b356a106cabdb4f15701c430754b3914368e5d6a3b0149f2",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "08_think_tool.md",
+      "document_revision": "461e6285868758153beb6319652998cf21ae76560e64441bb9ca0f4fb7253043",
+      "body_sha256": "71b563e394eb0bdb998a2f188da4a9138bc811d832da353db18d109f66feb65d",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "09_agent_sandboxing.md",
+      "document_revision": "326f83627ae54020a11b47e3313f4891fc217e9e6de0777131cde0234cc3680a",
+      "body_sha256": "20d817fa8400b431ba1a2eb81a11d9f59e997eda6b69e5bb34bc8a5be777a9f3",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "10_mcp_connections.md",
+      "document_revision": "7b762f06a4d3257ccc721d824f9cf57e441aa939d1b8b58d1adea9084707ef32",
+      "body_sha256": "1457ef5c0017db26a42ee71cfa26fbbf8d76f00474fe881c4b4ac9d7c9c6d46d",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "11_prompt_caching.md",
+      "document_revision": "8be00dbd73ef49b262635ca7f66872e455112e9d0fff0683f2fc5829a675caf3",
+      "body_sha256": "674260a46eeac85172c9f6c10c6065c049c2272faba1dd7718780a22b5346b15",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "12_contextual_retrieval.md",
+      "document_revision": "1b63583006dac8d3a0a6619115e3feb3fecad68d6aefcbf5f938e30c02e1fcc0",
+      "body_sha256": "c6e56c40d879324df108f6d58d52304c957ee3f0246a10dfb31a741693ca3497",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "13_hybrid_rank_fusion.md",
+      "document_revision": "2215a9f60ff55d5e73c78cbc3d3d800bfd488c15f7d39f39abb3e358d5cb7f96",
+      "body_sha256": "d447b0aeecca1eec3c33ea8eeb24824c20e2837baf8cc1aaf49b3f5ee0a0c0fd",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "14_cross_encoder_reranking.md",
+      "document_revision": "0f212612ba701ff143bf7cbd6938b1d40fa5c54042def849f58805ba982c7223",
+      "body_sha256": "b56395545cea8e3f346fba2ba84bd8c654279c415bceea49e0c9837e8cd36a30",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "15_chunk_boundaries.md",
+      "document_revision": "704bbc29a4c69e8699409119d01922c73b951dad7398c4ec4f1ee134d89762d4",
+      "body_sha256": "cb4188930763c75e6a80175ce2de7d09022247afd5257c5475f07e715995d852",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "16_matryoshka_embeddings.md",
+      "document_revision": "f9ae212bcd47b3a8a1725dc38f0cb55f455e2bf36b46b986c80f5aecc21a45f1",
+      "body_sha256": "9ace64c24bba8406608de49092ad589cff74ffa79818a8ec19f9cf2872dc4572",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "17_embedding_quantization.md",
+      "document_revision": "298546a13f158b4d8a1519f4b3160183715e63a96b45d41b69d91db88dc768bc",
+      "body_sha256": "2f7ba4d5c9c8954dda64fd73291048c99d9ffdbc32f2215dc0d3875dc4ffa1db",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "18_embedding_benchmarks.md",
+      "document_revision": "b2c52b9d1d5579339a5c0a498a99ece9acad3848d2907000fc827a83c08cfebf",
+      "body_sha256": "cba0dddd16c9ee99cd0166af404ab174c0f44bd87d38650743514b400e6cb328",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "19_parameter_efficient_tuning.md",
+      "document_revision": "9a310e549c05c5cbb71c213406ffe53e29b9c5efefe503fdc5a35d5f02201b31",
+      "body_sha256": "7ca5b3cd71d0c945398dd38fe5d5a480eac2631a4b36527c8e048f1f5a4e87e2",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "20_direct_preference_optimization.md",
+      "document_revision": "8c7d8dbf09d8160b03851f002ebc9ea33b80ff5ea419589db18a0a0199dc9922",
+      "body_sha256": "c4a42cc9bdb0d2835022765de7f920d6ba6b22bc758aaf0626dce4951f493d5e",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "21_speculative_decoding.md",
+      "document_revision": "746fac1cf076649cf704734e047c69a92235fefd88f4393634d8376a61c497ea",
+      "body_sha256": "97fecd94cb44fffc6e8d65227f59c8d60a05ad3dc329bf8c4575a4f0bd47f9bd",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "22_process_supervision.md",
+      "document_revision": "9e0744f84a7271ebd4c62ca39bf5fc13a69281051a944b7830bbd680a53d9cae",
+      "body_sha256": "d08619dd0145046970d5df4939731e11ccd9e7b8ed1b03384b8a693cf943bdab",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "23_weak_to_strong_generalization.md",
+      "document_revision": "eb9dbc4e4aec9a153b6eba1ae605b0f1b23835d5dac42a88ae6f39e72ff5150e",
+      "body_sha256": "fe3a3ffcda0bc9b279cc9010f2f3e67534da7b2fdeef428615ab498577644815",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "24_deliberative_alignment.md",
+      "document_revision": "40edcd59fc56b93fbb325f573d41e74daaf99fc92b91d145b75235808aa312df",
+      "body_sha256": "8128dc0b0720ddb6d49f62527ee35910342699054ff4ce1de653fc014106f8cd",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "25_hallucination_incentives.md",
+      "document_revision": "f3a9be52dc8ae1063e15fe79f7a3f4d835d666b3c86bf801fb50c6eb5a73614f",
+      "body_sha256": "cf14da785980039d25bf134bedd25160def06cad615ba89ab4e9b53fd7c0d922",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "26_simpleqa_factuality.md",
+      "document_revision": "6254c3ae0bb3807dde1b73738c7d620511728a5c582f76da0a6bedd71506fb2e",
+      "body_sha256": "db63c68635c8660677048e202cb1523349d1d41e79ea1af9e323893557e5ff12",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "27_agent_trial_reliability.md",
+      "document_revision": "627cea0c779a9c83e34f734908c6a1c60f29922b8a8281e3e81222f1484251ee",
+      "body_sha256": "444c8e6c335468f1c9c576c39dcce869ef9ed247c06fc0c45e6bffc93ffa2345",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "28_graph_retrieval.md",
+      "document_revision": "207e156599b80c51645221e06ac9f777e3315095daa7b20aa4446defb851b2ae",
+      "body_sha256": "2ffa01d35b5d3ab3fe622363ad9049dc9a138d927dc5170d45a69681b0934020",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "29_learned_sparse_retrieval.md",
+      "document_revision": "aaaec317d2318f89ea3e5caaaf86fb68e084f8310b856f2cb0e743e8819dced8",
+      "body_sha256": "82631c1819d75768ab7809949cf0cd85ca67368bfc41946186ed54bc88e178eb",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "30_retrieval_and_fine_tuning.md",
+      "document_revision": "64119ff3e73032742e96db939229bf1807d58388e74f2133ba73ceabd7fe2df1",
+      "body_sha256": "0d0ed2f4badd8d0ea5fe895734132f6687087cedb9d7246947085750a3663017",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "31_multi_agent_coordination.md",
+      "document_revision": "bfb855ed8e017969e30e49f60190998c6cdf81b8811a88ba516d46ae3693be1b",
+      "body_sha256": "7de98cbd97445741d658f1784c1becdfb27af977a8d440ba9c3f9f06a38b0314",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "32_document_ingestion_and_structure.md",
+      "document_revision": "ef96a48eca775dcd1033fe14438a254378622557a20f24126c26528f438b17ba",
+      "body_sha256": "6f33e2059b47152121caf2738e3c716efaf82377ed7035b94fd3a9d37fbbebbd",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "33_graph_search_strategies.md",
+      "document_revision": "399cacadf1cbb865f22ec3cd629c56ec77f6ed58bdaf77e22260fc89ba7f6b7e",
+      "body_sha256": "4ca87043dcfbcc9ba870b1df41b27e497003940e0c254b5786020dfe26394d3b",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "34_agent_memory_lifecycle.md",
+      "document_revision": "363b726dd45d7992192dd83b475f6436e0cc700e04c3033265417b8a795f1278",
+      "body_sha256": "dedf69cee68248e5871367ab18008fcdecca94d4802b470241dc387165d6e85b",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "35_llm_serving_and_kv_cache.md",
+      "document_revision": "07826f70b85b5edb9cebba19f406164fef5a8dd69ab8982c9bddde149539a7f4",
+      "body_sha256": "c6551223c71697efad719cc6d6748dc02a5e40d490a93d2f3907d446f4f5804b",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "36_prompt_injection_and_monitors.md",
+      "document_revision": "70d5d7ca6dca787685e5f6af81882eaa2a2fb56f484997749b6a552667951bb9",
+      "body_sha256": "03406af53fbb3bdc4ef79bf6d129d35a8287ee2a908288ddcc4888b505d0e756",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "37_multimodal_evidence_retrieval.md",
+      "document_revision": "175ebd4df6a8b581a477c7852cdb793ddecfb54a82ad801d4483035a00154fad",
+      "body_sha256": "a92dcc1b1593be302a38ef111ebc739226b87a511d56ef66b09a893124f6d466",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "38_agent_evaluation_and_observability.md",
+      "document_revision": "188694424e58f60978b8a00df90792abe572ddadadefe41a8204de8bb9e6c542",
+      "body_sha256": "3bc28de1fa739d65a69d45cfadc45ce756c89775d7fc0ecf7cd007e7c1cffa46",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "39_synthetic_data_quality.md",
+      "document_revision": "ee13e5c8834360659290bd631b70bb5e9aac5ff92cbfe3e34e38fdcd8af70771",
+      "body_sha256": "d2052a8d81a52da8fe45391e3daf0b3d02380ba149cae896b609b19df9675327",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "40_query_planning_and_compression.md",
+      "document_revision": "0ba2db4fff616c06b2712e137ecc1312b908eb551aa67ed168a345ed5b23e500",
+      "body_sha256": "3811745577963a37b0d7f687a950fadf17753fbabe5c9be476e52b125ffcea00",
+      "origin": "existing_authored_example"
+    },
+    {
+      "source": "pilot_archive_1.md",
+      "document_revision": "cbacb7ee72cedd14976a2f156d6a40ad6941acbaff682e9e3b233a5e536cedc6",
+      "body_sha256": "f572d7149dd894beb53f7c75eef20d7b9a67943e66458d3993d1deeb002b22b7",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_archive_2.md",
+      "document_revision": "9ec8aba84e0acf1f002f6e86e4cdc3c8a3e76e4d82caa34b7e99e65ed2a2b71c",
+      "body_sha256": "96adf70f9a3417cdd263860b31f6bc92c7591e01ad1afd390302f9df64853db1",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_archive_3.md",
+      "document_revision": "0861d385f83a2820a2f1a264d834f66a45a15aab9f113ccca7148fa6a3c789c4",
+      "body_sha256": "ead13b6bf0a7897f6eefe9dd11dd1a744699d3a6652793e2c4f641fd2fd87642",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_archive_4.md",
+      "document_revision": "22a51db250b4ad2365556f6e8ef53316736867f9a538171f5000a3dae053b488",
+      "body_sha256": "2e6405346357f9d5f8f5fddfa96b4c54c2035a66d0593473417a9e6807230e27",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_archive_5.md",
+      "document_revision": "443d817d1047475c0fdcefb8c2380edacf4fc13a1049666a8cb7c462e6a7c557",
+      "body_sha256": "f4bb19fc5e1891eb064dc39d9e00f299d2e6efdddecc16ec3265dd6a5cbc18a8",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_archive_6.md",
+      "document_revision": "d2bed7f73a20f8ea4f4416fe1f1ffad45ef7390a1b65bed705475673b255fd90",
+      "body_sha256": "c743d66566ae6dc751c241d971f43147c8cb78137c3fe5c7acf0df6b2aa1be31",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_policy_1.md",
+      "document_revision": "612604e8b004006068e3c456a8eb71f6b861b79dbf71d2afa5d3a3a8c3eec0c2",
+      "body_sha256": "21afe3b46711c6c6d3ec7aca847467fb544935dc034e0071d23754e7a8b4f84b",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_policy_2.md",
+      "document_revision": "38cf2c3692b7c6e5b06eb5ced1b5aacd85958adaeadfc46389381df4e1686b9f",
+      "body_sha256": "4afce92415804d34c1dbf32d30d1d1c56a5370e11a4d78e32166e38c2f1d8762",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_policy_3.md",
+      "document_revision": "f9400531c9f9d7ccb72ac2b50dd4489b87bf5bd2c0c605c1291e087dc1723f22",
+      "body_sha256": "42e246e173ac5b6538190abf4fce32ddf21a7caf6246e31942529f209bc2ddc3",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_policy_4.md",
+      "document_revision": "cd430d343e93a3a79d0a111f7e2045de2791a337fb0b861a25e9bc14a2ca2e39",
+      "body_sha256": "40850fd4b3b84eb0edd1402ff7104cf6b04c67e80fe5b3b3d607ad2b7a1cb9ba",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_policy_5.md",
+      "document_revision": "1b61c4c5bf4405e2a53d9177280e94aeb6e2c3f40f180b8355bf917269e4d2ad",
+      "body_sha256": "ed833b45857dd19fdec701c981daae6b55c1c81e0f7431bc82ce48b4d8fed890",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_policy_6.md",
+      "document_revision": "837333138859fdf1b9ed9599756dd8e55c7dac33e53bd9682f0339103f360d9a",
+      "body_sha256": "da66818d01a8b68a6c7f7e6809f554df757a36520f9fb5e40442b03cf88319f0",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_service_1.md",
+      "document_revision": "7d947d435e744fad6299ec103cfddb666a60611f3851509eb1afc968615f66f1",
+      "body_sha256": "8bba84c446c3323036eb018f0c266dd45552df5bb98abca3a7fd0616b83e4f69",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_service_2.md",
+      "document_revision": "1d4eebe6f33eb2f741fb0bd94f2fbd44e3cd2b38d22be52403bd0478e875336d",
+      "body_sha256": "b509d69a33a061b98d8f0b7a0616e337aa807684c4545fb45d98968f68329b58",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_service_3.md",
+      "document_revision": "c893dcda9dbe45de1ccfe014e621202f040b3600856f9f054324c8fc2eb33f03",
+      "body_sha256": "6fb3d1e26e46ea018919c9545b7557ac3633075631dd36056142569fde45fdf4",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_service_4.md",
+      "document_revision": "86d2230973be977365019e42ed27647f0f27149b4ba181079840995346e2281e",
+      "body_sha256": "2fe55936e71b0f7ef14d1b82b368f690abc88e6ea63807ed5bcfa2a28ab359d4",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_service_5.md",
+      "document_revision": "c86f2b6894ece360c1869f0fa37d8a2c65d71fc7c519a9cd905dd994fdbf50b9",
+      "body_sha256": "e6ccc171d6480bd2bc643f7bd2debccdc6f3e2d5feb669163e47cc63d0a7deba",
+      "origin": "synthetic_fixture"
+    },
+    {
+      "source": "pilot_service_6.md",
+      "document_revision": "9015892151d97ed81d985383bffc895a718b0ed1b3c7050642f5ef672f84552b",
+      "body_sha256": "e851f5d61751fd51878ed567782aef63e3fc6465bca382d1a483b1cbaff9556c",
+      "origin": "synthetic_fixture"
+    }
+  ]
+}

@@ -22,7 +22,7 @@ def spec() -> EmbeddingSpec:
 
 @pytest.fixture
 def note() -> Note:
-    return Note(title="重复片段", content="ab ab ab", source="notes/repeated.md")
+    return Note(title="Repeated fragment", content="ab ab ab", source="notes/repeated.md")
 
 
 @pytest.fixture
@@ -38,8 +38,8 @@ def manifest(spec: EmbeddingSpec) -> IndexManifest:
 
 
 def test_config_fingerprint_is_independent_of_nested_key_order() -> None:
-    assert fingerprint_config({"b": [1, True, None], "a": {"x": "中文", "y": 2}}) == (
-        fingerprint_config({"a": {"y": 2, "x": "中文"}, "b": [1, True, None]})
+    assert fingerprint_config({"b": [1, True, None], "a": {"x": "éø", "y": 2}}) == (
+        fingerprint_config({"a": {"y": 2, "x": "éø"}, "b": [1, True, None]})
     )
 
 
@@ -73,13 +73,13 @@ def test_ids_are_stable_across_processes_and_python_hash_seeds(note: Note) -> No
     # version/migration decision, even if IDs remain deterministic in one run.
     assert [record.document_id, record.document_revision, record.chunk_id] == [
         "945792753dedd35ee3ff551d590933985af5b559a2a78a57539aa4068b185be5",
-        "e2b1352593a39e0321789de39b0be70eab6d62447a2acd2616272f800a090808",
-        "6d4a6ca156a150a6dad2192f9856c647538c7c0aba98a2ef8a263d53187b2fd6",
+        "311bf5b794e03644f061f745dcc4c87fa241e2bb43d9fbf5a79cd77d38c605ae",
+        "167f066e6f4c8010441de71f7ebf9938b59123019a7726318d516f12aa776d2e",
     ]
     script = """
 from arkb.knowledge.models import Chunk, ChunkRecord
 from arkb.knowledge.documents import Note
-note = Note(title="重复片段", content="ab ab ab", source="notes/repeated.md")
+note = Note(title="Repeated fragment", content="ab ab ab", source="notes/repeated.md")
 chunk = Chunk(note.content, note.title, note.source, 0, 0, len(note.content))
 record = ChunkRecord.from_note(chunk, note=note, vault_id="personal")
 print(record.document_id, record.document_revision, record.chunk_id)
@@ -150,7 +150,7 @@ def test_title_change_invalidates_document_revision_and_embedding(note: Note, sp
     )
 
 
-@pytest.mark.parametrize("body", ["", "中文🧠e\u0301\r\n"])
+@pytest.mark.parametrize("body", ["", "éø🧠e\u0301\r\n"])
 def test_records_preserve_empty_and_unicode_note_coordinates(body: str) -> None:
     note = Note(title="Title", content=body, source="unicode.md")
     chunk = whole_note_chunks([note])[0]

@@ -1,0 +1,85 @@
+{
+  "summarizer_sha256": "2d5f024f6ad81c13f600745e954a65db223a503476fdb4c00523b6a580ed574c",
+  "runs": [
+    {
+      "run": "p4-bright-stackoverflow-agent-v2",
+      "rows_sha256": "d5183c84a13e570691f4b2369e593af2a89a4f83fb6dbd0ae79a407ea138c115",
+      "attempts": 25,
+      "observed_attempts": 25,
+      "preparation_ms": 20336.07866615057,
+      "agent_elapsed_ms": {
+        "observed": 25,
+        "total": 636166.349835461,
+        "mean": 25446.65399341844,
+        "p50": 17880.92958391644,
+        "p95": 36998.43514105303,
+        "max": 180098.72987493873
+      },
+      "context_indexing_elapsed_ms": {
+        "observed": 0,
+        "total": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "model_requests": 79,
+      "requested_tools": {
+        "match": 1,
+        "search": 39,
+        "read": 22
+      },
+      "executed_tools": {
+        "match": 1,
+        "search": 39,
+        "read": 22
+      },
+      "requested_search_modes": {
+        "hybrid": 30,
+        "semantic (default)": 9
+      },
+      "tool_elapsed_ms": {
+        "search": {
+          "observed": 39,
+          "total": 16390.883079497144,
+          "mean": 420.2790533204396,
+          "p50": 352.9885408934206,
+          "p95": 836.5052127977834,
+          "max": 1408.9380830992013
+        },
+        "match": {
+          "observed": 1,
+          "total": 173898.7189589534,
+          "mean": 173898.7189589534,
+          "p50": 173898.7189589534,
+          "p95": 173898.7189589534,
+          "max": 173898.7189589534
+        },
+        "read": {
+          "observed": 22,
+          "total": 54103.542872937396,
+          "mean": 2459.2519487698814,
+          "p50": 2390.935375005938,
+          "p95": 3798.6870289081708,
+          "max": 4090.637749992311
+        }
+      },
+      "provider_native_usage": {
+        "prompt_eval_count": {
+          "known_total": 392091,
+          "observed_requests": 79,
+          "requests": 79,
+          "total": 392091
+        },
+        "eval_count": {
+          "known_total": 26899,
+          "observed_requests": 79,
+          "requests": 79,
+          "total": 26899
+        }
+      },
+      "scope": "Observed attempts include errors and budget stops. Agent elapsed excludes per-context indexing and shared preparation. Native provider counters are not a billing estimate; missing usage remains undefined. Descriptive local resource costs, not isolated production latency.",
+      "release_eligible": false
+    }
+  ]
+}

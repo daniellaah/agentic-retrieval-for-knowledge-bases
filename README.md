@@ -2,6 +2,11 @@
 
 **Agentic Retrieval for Knowledge Bases** — an agentic knowledge retrieval system that separates dynamic agent control from deterministic retrieval over Markdown knowledge bases.
 
+ARKB currently targets English notes and queries. UTF-8 text, source identities
+and character ranges remain preserved. Active evaluation uses SciFact,
+Bright-Pro technical domains and MuSiQue; earlier datasets and results are
+retained for reference. See the [scope cleanup](docs/english-scope-cleanup.md).
+
 ## Why ARKB
 
 A fixed RAG pipeline follows a predefined sequence:
@@ -125,6 +130,10 @@ uv run --locked arkb status
 The first index build downloads the pinned embedding tokenizer if it is not already cached.
 
 Indexing uses section-aware, token-budgeted chunking, reuses compatible embeddings, and publishes a versioned snapshot after validation.
+
+Recursive chunking now records algorithm `markdown-v2`. The next `arkb index`
+publishes a new snapshot for an older chunking configuration while reusing
+compatible embedding inputs; existing snapshots remain readable.
 
 The default database is:
 

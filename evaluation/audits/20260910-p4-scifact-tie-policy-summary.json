@@ -1,0 +1,50 @@
+{
+  "schema": "arkb-p4-posthoc-tie-policy-v1",
+  "dataset": "scifact",
+  "queries": 300,
+  "candidate_inputs_sha256": "7873ea3cea9e0a60a609b7b005cbfba61eba62d400add2070fd7011c4a259cf9",
+  "measured_rows_sha256": "c260e4e13eac36db5e1687790ae960607e329bf4d61a44f7648e2a7b37db3a64",
+  "audit_sha256": "185719af788168060e509ae489a47b21565489ec798681d88e4c74075abc7952",
+  "rule": "Exact equal scores retain original frozen hybrid-pool order; all other scores and candidates are unchanged.",
+  "all_inputs_identical_queries": 0,
+  "all_scores_equal_queries": 0,
+  "queries_with_score_ties": 0,
+  "changed_rankings": 0,
+  "means": {
+    "hybrid_metrics": {
+      "ndcg@10": 0.7216396110820045,
+      "recall@10": 0.8545555555555556,
+      "mrr@10": 0.683744708994709,
+      "ndcg@100": 0.7455802682483393,
+      "recall@100": 0.9633333333333334,
+      "mrr@100": 0.6873983047030552
+    },
+    "measured_metrics": {
+      "ndcg@10": 0.766586327081165,
+      "recall@10": 0.8858888888888888,
+      "mrr@10": 0.7346851851851852,
+      "ndcg@100": 0.7823024151043221,
+      "recall@100": 0.9633333333333334,
+      "mrr@100": 0.7366878521009618
+    },
+    "stable_tie_metrics": {
+      "ndcg@10": 0.766586327081165,
+      "recall@10": 0.8858888888888888,
+      "mrr@10": 0.7346851851851852,
+      "ndcg@100": 0.7823024151043221,
+      "recall@100": 0.9633333333333334,
+      "mrr@100": 0.7366878521009618
+    }
+  },
+  "stable_tie_minus_measured": {
+    "ndcg@10": 0.0,
+    "recall@10": 0.0,
+    "mrr@10": 0.0,
+    "ndcg@100": 0.0,
+    "recall@100": 0.0,
+    "mrr@100": 0.0
+  },
+  "reference_max_error": 1.1102230246251565e-16,
+  "scope": "Exploratory deterministic policy replay chosen after inspecting these public-development results. No new model calls, unseen validation, human answer score, or product change. Input token equality includes all main tokens; the reserved prefix/suffix are identical constants.",
+  "release_eligible": false
+}

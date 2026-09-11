@@ -1,0 +1,51 @@
+{
+  "download_lock_sha256": "9775503c0a120f944dbc441f14464c2dd24546a5c96a13173084e6ed56c80ade",
+  "locked_files": 32,
+  "datasets": {
+    "scifact": {
+      "corpus_units_verified": 5183,
+      "raw_queries": 1109,
+      "selected_queries_verified": 300,
+      "selected_qrels_verified": 339,
+      "duplicate_corpus_ids": 0,
+      "duplicate_raw_query_ids": 0,
+      "manifest_sha256": "f3d64da57c0dfdccbd2b14bae61b8d9f794e071ace9531fc74b469580a43a3c3"
+    },
+    "bright-stackoverflow": {
+      "corpus_units_verified": 109188,
+      "raw_queries": 115,
+      "selected_queries_verified": 115,
+      "selected_qrels_verified": 529,
+      "duplicate_corpus_ids": 0,
+      "duplicate_raw_query_ids": 0,
+      "manifest_sha256": "c1489ae76055218991517963d5cb1bccd61d018d72e16b8d11f84eda7bae86df"
+    },
+    "bright-robotics": {
+      "corpus_units_verified": 63920,
+      "raw_queries": 101,
+      "selected_queries_verified": 101,
+      "selected_qrels_verified": 623,
+      "duplicate_corpus_ids": 0,
+      "duplicate_raw_query_ids": 0,
+      "manifest_sha256": "c9cb46e9ce805ebc9b72f9c802cd94fc11ef1044322e265f2833055eaa483643"
+    },
+    "t2": {
+      "corpus_units_verified": 118605,
+      "raw_queries": 22812,
+      "selected_queries_verified": 500,
+      "selected_qrels_verified": 2686,
+      "duplicate_corpus_ids": 0,
+      "duplicate_raw_query_ids": 0,
+      "manifest_sha256": "22309a6940c0a1ccb00a13510893b8e07d5a70fedf3cb3051c6e0b5747e5bdaf"
+    }
+  },
+  "musique": {
+    "original_variants": 4834,
+    "selected_groups": 100,
+    "selected_variants_verified": 200,
+    "all_original_contexts_preserved": true,
+    "selected_sha256": "4d5ad0614a161e45a862ae0306d60133acedeeb44ac820651f46cae77dd72408"
+  },
+  "passed": true,
+  "scope": "Byte/content/identity preservation, not independent verification of annotation correctness or model training contamination."
+}

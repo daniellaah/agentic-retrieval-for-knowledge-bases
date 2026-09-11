@@ -1,0 +1,312 @@
+{
+  "status": "prospective_sensitivity_only",
+  "independently_reviewed_quality_pairs": 0,
+  "results": [
+    {
+      "families": 60,
+      "improvement": 0.03,
+      "discordance": 0.1,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.04,
+      "monte_carlo_se": 0.0019595917942265423,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 120,
+      "improvement": 0.03,
+      "discordance": 0.1,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.1122,
+      "monte_carlo_se": 0.0031561235717252898,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 300,
+      "improvement": 0.03,
+      "discordance": 0.1,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.3081,
+      "monte_carlo_se": 0.004617081220858043,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 600,
+      "improvement": 0.03,
+      "discordance": 0.1,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.6049,
+      "monte_carlo_se": 0.004888721612037241,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 60,
+      "improvement": 0.05,
+      "discordance": 0.1,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.102,
+      "monte_carlo_se": 0.003026483107502832,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 120,
+      "improvement": 0.05,
+      "discordance": 0.1,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.3122,
+      "monte_carlo_se": 0.004633909364672555,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 300,
+      "improvement": 0.05,
+      "discordance": 0.1,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.7494,
+      "monte_carlo_se": 0.004333585582401714,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 600,
+      "improvement": 0.05,
+      "discordance": 0.1,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.9744,
+      "monte_carlo_se": 0.0015793872229443913,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 60,
+      "improvement": 0.1,
+      "discordance": 0.1,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.5603,
+      "monte_carlo_se": 0.0049635059181993525,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 120,
+      "improvement": 0.1,
+      "discordance": 0.1,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.9833,
+      "monte_carlo_se": 0.0012814487894566855,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 300,
+      "improvement": 0.1,
+      "discordance": 0.1,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 1.0,
+      "monte_carlo_se": 0.0,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 600,
+      "improvement": 0.1,
+      "discordance": 0.1,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 1.0,
+      "monte_carlo_se": 0.0,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 60,
+      "improvement": 0.03,
+      "discordance": 0.3,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.0416,
+      "monte_carlo_se": 0.0019967333322204045,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 120,
+      "improvement": 0.03,
+      "discordance": 0.3,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.0669,
+      "monte_carlo_se": 0.002498487342373381,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 300,
+      "improvement": 0.03,
+      "discordance": 0.3,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.1315,
+      "monte_carlo_se": 0.0033794637148518106,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 600,
+      "improvement": 0.03,
+      "discordance": 0.3,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.2503,
+      "monte_carlo_se": 0.00433185768464293,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 60,
+      "improvement": 0.05,
+      "discordance": 0.3,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.0719,
+      "monte_carlo_se": 0.002583222599777263,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 120,
+      "improvement": 0.05,
+      "discordance": 0.3,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.1303,
+      "monte_carlo_se": 0.003366331980063761,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 300,
+      "improvement": 0.05,
+      "discordance": 0.3,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.3096,
+      "monte_carlo_se": 0.0046232871422830744,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 600,
+      "improvement": 0.05,
+      "discordance": 0.3,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.5897,
+      "monte_carlo_se": 0.004918881071951222,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 60,
+      "improvement": 0.1,
+      "discordance": 0.3,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.2235,
+      "monte_carlo_se": 0.004165906263947858,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 120,
+      "improvement": 0.1,
+      "discordance": 0.3,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.4572,
+      "monte_carlo_se": 0.004981647920116394,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 300,
+      "improvement": 0.1,
+      "discordance": 0.3,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.869,
+      "monte_carlo_se": 0.0033740035566074914,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    },
+    {
+      "families": 600,
+      "improvement": 0.1,
+      "discordance": 0.3,
+      "simulations": 10000,
+      "seed": 20260910,
+      "alpha": 0.05,
+      "estimated_power": 0.9925,
+      "monte_carlo_se": 0.0008627716963368671,
+      "assumption": "One binary outcome per independent family; fixed scenario, not measured output quality."
+    }
+  ],
+  "grid_decisions": [
+    {
+      "discordance": 0.1,
+      "improvement": 0.03,
+      "first_grid_size_at_power_80": null
+    },
+    {
+      "discordance": 0.1,
+      "improvement": 0.05,
+      "first_grid_size_at_power_80": 600
+    },
+    {
+      "discordance": 0.1,
+      "improvement": 0.1,
+      "first_grid_size_at_power_80": 120
+    },
+    {
+      "discordance": 0.3,
+      "improvement": 0.03,
+      "first_grid_size_at_power_80": null
+    },
+    {
+      "discordance": 0.3,
+      "improvement": 0.05,
+      "first_grid_size_at_power_80": null
+    },
+    {
+      "discordance": 0.3,
+      "improvement": 0.1,
+      "first_grid_size_at_power_80": 300
+    }
+  ],
+  "target_power": 0.8,
+  "quality_sample_size_selected": null,
+  "limitations": [
+    "Discordance scenarios are assumed, not measured from provisional evidence scores.",
+    "Binary one-outcome-per-family assumption; correlated variants/trials do not increase n.",
+    "Exact two-sided binomial test at alpha .05; intended-direction detection only.",
+    "This superiority power exercise does not establish noninferiority or validate the dataset."
+  ],
+  "script_sha256": "b64624d2b1f7ca109cb9a90dcd02e16345b7add784c63e2aa39ae2f32bd9fa27",
+  "power_source_sha256": "53709f073c18eee052d0c205b5a20605cb020f71d5d39311fe6d8127686fbbe4"
+}

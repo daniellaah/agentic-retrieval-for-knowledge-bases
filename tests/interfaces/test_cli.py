@@ -33,10 +33,10 @@ def runtime(monkeypatch):
     for call in calls:
         messages.extend([{'role': 'assistant', 'tool_calls': [call], 'thinking': 'internal model reasoning'},
                          {'role': 'tool', 'tool_name': call['function']['name'], 'content': '{}'}])
-    messages.append({'role': 'assistant', 'content': '相关素材已找到。'})
-    runtime.ask.return_value = AgentResult('相关素材已找到。', 'final', AgentState(messages, 4))
+    messages.append({'role': 'assistant', 'content': 'Relevant material found.'})
+    runtime.ask.return_value = AgentResult('Relevant material found.', 'final', AgentState(messages, 4))
     hit = SearchResult(source_id='document-id', source='rag.md', content='RAG', method='exact',
-                       start_char=4, end_char=7, metadata={'title': '检索'})
+                       start_char=4, end_char=7, metadata={'title': 'Retrieval'})
     runtime.match.return_value = SearchResponse(query='RAG', method='exact', results=(hit,))
     runtime.search.return_value = SearchResponse(query='Agent Memory', method='semantic', index_id='snapshot')
     manifest = IndexManifest(index_version='snapshot', vault_id='default',
@@ -68,9 +68,9 @@ def test_match_calls_only_runtime_match_and_formats_occurrences(runtime, capsys)
 @pytest.mark.parametrize('mode', ['bm25', 'semantic', 'hybrid'])
 def test_search_passes_mode_top_k_and_source(runtime, mode):
     fake, _ = runtime
-    assert main(['search', '如何管理智能体的长期记忆', '--mode', mode, '--top-k', '5',
+    assert main(['search', 'How to manage long-term agent memory', '--mode', mode, '--top-k', '5',
                  '--source', 'memory.md', '--db', 'kb.sqlite', '--vault-id', 'kb']) == 0
-    fake.search.assert_called_once_with('如何管理智能体的长期记忆', db=Path('kb.sqlite'), vault_id='kb',
+    fake.search.assert_called_once_with('How to manage long-term agent memory', db=Path('kb.sqlite'), vault_id='kb',
         mode=mode, top_k=5, source='memory.md', settings=RetrievalConfig(), rerank=False, exact=False)
     fake.ask.assert_not_called()
     fake.run_agent.assert_not_called()
@@ -93,8 +93,8 @@ def test_search_rejects_removed_reranker_overrides(runtime, option):
 
 
 @pytest.mark.parametrize('command,arguments', [
-    ('match', ['RAG']), ('search', ['Agent Memory']), ('ask', ['帮我找素材']), ('index', []), ('status', []),
-    ('ask', ['帮我找素材', '--think']), ('ask', ['帮我找素材', '--no-think']),
+    ('match', ['RAG']), ('search', ['Agent Memory']), ('ask', ['Find relevant material']), ('index', []), ('status', []),
+    ('ask', ['Find relevant material', '--think']), ('ask', ['Find relevant material', '--no-think']),
 ])
 def test_json_changes_only_format_for_every_command(runtime, capsys, command, arguments):
     fake, factory = runtime
@@ -118,10 +118,10 @@ def test_json_changes_only_format_for_every_command(runtime, capsys, command, ar
 
 def test_ask_calls_agent_entry_point_with_model_and_turn_limit(runtime, capsys):
     fake, _ = runtime
-    assert main(['ask', '有哪些笔记提到了 RAG?', '--max-turns', '6', '--generation-model', 'fake-agent']) == 0
-    fake.ask.assert_called_once_with('有哪些笔记提到了 RAG?', db=DEFAULT_DB, vault_id='default',
+    assert main(['ask', 'Which notes mention RAG?', '--max-turns', '6', '--generation-model', 'fake-agent']) == 0
+    fake.ask.assert_called_once_with('Which notes mention RAG?', db=DEFAULT_DB, vault_id='default',
                                      notes_dir=None, model='fake-agent', max_turns=6, think=True)
-    assert capsys.readouterr().out == '相关素材已找到。\n'
+    assert capsys.readouterr().out == 'Relevant material found.\n'
     fake.match.assert_not_called()
     fake.search.assert_not_called()
 
@@ -132,7 +132,7 @@ def test_ask_thinking_flags_only_set_the_model_option(runtime, capsys, flags, th
     assert main(['ask', 'Question', *flags]) == 0
     assert fake.ask.call_args.kwargs['think'] is think
     output = capsys.readouterr()
-    assert output.out == '相关素材已找到。\n' and output.err == ''
+    assert output.out == 'Relevant material found.\n' and output.err == ''
 
 
 @pytest.mark.parametrize('json_output', [False, True])

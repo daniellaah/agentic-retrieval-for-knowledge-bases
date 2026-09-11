@@ -1,0 +1,9 @@
+{
+  "archive": "p4-regression-evidence-20260910.tar.gz",
+  "sha256": "681f863e049d84fe119f6bf7c16ec83552026ab1e7b554e005c58bc554248b09",
+  "bytes": 10374227,
+  "files": 428,
+  "status": "sealed-diagnostic-evidence",
+  "scope": "Retained regression results, fixtures, source and incomplete Bright v1/MuSiQue v2 attempts. Sealing does not convert an incomplete attempt into a completed experiment.",
+  "release_eligible": false
+}

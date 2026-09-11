@@ -1,0 +1,17 @@
+{
+  "archive_sha256": "05324bf3b37b31272bbdb7bcd37199f1dbfaf1ad7dec3863208cac75324d40b1",
+  "replayed": [
+    {
+      "run": "p4-musique-agent-v3",
+      "rows_replayed": 200,
+      "model_requests_verified": 1424,
+      "tool_events_verified": 1398,
+      "source_spans_verified": 5252,
+      "missing_error_results": 0,
+      "release_eligible": false
+    }
+  ],
+  "passed": true,
+  "scope": "No model or Qdrant calls; metric and ranking assembly integrity, not annotation truth.",
+  "release_eligible": false
+}

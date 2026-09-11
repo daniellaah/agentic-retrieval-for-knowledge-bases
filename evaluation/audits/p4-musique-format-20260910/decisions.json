@@ -1,0 +1,1402 @@
+[
+  {
+    "case_index": 0,
+    "id": "2hop__373544_66723",
+    "action": "kept_strict_valid",
+    "strict_error": null,
+    "remaining_error": null
+  },
+  {
+    "case_index": 1,
+    "id": "2hop__373544_66723",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 2,
+    "id": "2hop__242753_658778",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 3,
+    "id": "2hop__242753_658778",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 4,
+    "id": "2hop__85463_50252",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 5,
+    "id": "2hop__85463_50252",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 6,
+    "id": "2hop__574496_123283",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 7,
+    "id": "2hop__574496_123283",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 8,
+    "id": "2hop__96414_47902",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 9,
+    "id": "2hop__96414_47902",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 10,
+    "id": "2hop__59048_827343",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 11,
+    "id": "2hop__59048_827343",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 12,
+    "id": "2hop__42747_83837",
+    "action": "kept_strict_valid",
+    "strict_error": null,
+    "remaining_error": null
+  },
+  {
+    "case_index": 13,
+    "id": "2hop__42747_83837",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 14,
+    "id": "2hop__17827_54024",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 15,
+    "id": "2hop__17827_54024",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 16,
+    "id": "2hop__216959_204037",
+    "action": "kept_strict_valid",
+    "strict_error": null,
+    "remaining_error": null
+  },
+  {
+    "case_index": 17,
+    "id": "2hop__216959_204037",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 18,
+    "id": "2hop__145082_35034",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 19,
+    "id": "2hop__145082_35034",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 20,
+    "id": "2hop__779424_75487",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 21,
+    "id": "2hop__779424_75487",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 22,
+    "id": "2hop__159903_154896",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 23,
+    "id": "2hop__159903_154896",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 24,
+    "id": "2hop__69_59409",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 25,
+    "id": "2hop__69_59409",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 26,
+    "id": "2hop__96411_159054",
+    "action": "no_unambiguous_json_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
+  },
+  {
+    "case_index": 27,
+    "id": "2hop__96411_159054",
+    "action": "no_unambiguous_json_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
+  },
+  {
+    "case_index": 28,
+    "id": "2hop__29873_679424",
+    "action": "kept_strict_valid",
+    "strict_error": null,
+    "remaining_error": null
+  },
+  {
+    "case_index": 29,
+    "id": "2hop__29873_679424",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 30,
+    "id": "2hop__91211_90973",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 31,
+    "id": "2hop__91211_90973",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 32,
+    "id": "2hop__365236_19320",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 33,
+    "id": "2hop__365236_19320",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 34,
+    "id": "2hop__92716_319330",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 35,
+    "id": "2hop__92716_319330",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 36,
+    "id": "2hop__80834_148696",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 37,
+    "id": "2hop__80834_148696",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 38,
+    "id": "2hop__160092_80144",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 39,
+    "id": "2hop__160092_80144",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 40,
+    "id": "2hop__189094_612080",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 41,
+    "id": "2hop__189094_612080",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 42,
+    "id": "2hop__25788_25839",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 43,
+    "id": "2hop__25788_25839",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 44,
+    "id": "2hop__511296_577502",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 45,
+    "id": "2hop__511296_577502",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 46,
+    "id": "2hop__341176_711757",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 47,
+    "id": "2hop__341176_711757",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 48,
+    "id": "2hop__35173_17335",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 49,
+    "id": "2hop__35173_17335",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 50,
+    "id": "2hop__58939_213732",
+    "action": "kept_strict_valid",
+    "strict_error": null,
+    "remaining_error": null
+  },
+  {
+    "case_index": 51,
+    "id": "2hop__58939_213732",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 52,
+    "id": "2hop__223823_29905",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 53,
+    "id": "2hop__223823_29905",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 54,
+    "id": "2hop__468778_88165",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 55,
+    "id": "2hop__468778_88165",
+    "action": "no_unambiguous_json_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
+  },
+  {
+    "case_index": 56,
+    "id": "2hop__676045_7292",
+    "action": "kept_strict_valid",
+    "strict_error": null,
+    "remaining_error": null
+  },
+  {
+    "case_index": 57,
+    "id": "2hop__676045_7292",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 58,
+    "id": "2hop__227791_75487",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 59,
+    "id": "2hop__227791_75487",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 60,
+    "id": "2hop__123545_47134",
+    "action": "kept_strict_valid",
+    "strict_error": null,
+    "remaining_error": null
+  },
+  {
+    "case_index": 61,
+    "id": "2hop__123545_47134",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 62,
+    "id": "2hop__362107_652514",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 63,
+    "id": "2hop__362107_652514",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 64,
+    "id": "2hop__698577_851686",
+    "action": "kept_strict_valid",
+    "strict_error": null,
+    "remaining_error": null
+  },
+  {
+    "case_index": 65,
+    "id": "2hop__698577_851686",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 66,
+    "id": "2hop__315072_120259",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 67,
+    "id": "2hop__315072_120259",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 68,
+    "id": "3hop1__797496_831637_91775",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 69,
+    "id": "3hop1__797496_831637_91775",
+    "action": "no_unambiguous_json_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
+  },
+  {
+    "case_index": 70,
+    "id": "3hop1__109185_720914_27537",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 71,
+    "id": "3hop1__109185_720914_27537",
+    "action": "no_unambiguous_json_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
+  },
+  {
+    "case_index": 72,
+    "id": "3hop2__76623_90098_10557",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 73,
+    "id": "3hop2__76623_90098_10557",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 74,
+    "id": "3hop1__194006_42197_18397",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 75,
+    "id": "3hop1__194006_42197_18397",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 76,
+    "id": "3hop2__28727_92991_76291",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 77,
+    "id": "3hop2__28727_92991_76291",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 78,
+    "id": "3hop1__186307_503371_21711",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 79,
+    "id": "3hop1__186307_503371_21711",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 80,
+    "id": "3hop2__132957_433432_40768",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 81,
+    "id": "3hop2__132957_433432_40768",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 82,
+    "id": "3hop1__401538_132457_51423",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 83,
+    "id": "3hop1__401538_132457_51423",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 84,
+    "id": "3hop1__17192_78396_54865",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 85,
+    "id": "3hop1__17192_78396_54865",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 86,
+    "id": "3hop2__304722_692815_63959",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 87,
+    "id": "3hop2__304722_692815_63959",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 88,
+    "id": "3hop1__390673_228453_10972",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 89,
+    "id": "3hop1__390673_228453_10972",
+    "action": "no_unambiguous_json_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)"
+  },
+  {
+    "case_index": 90,
+    "id": "3hop1__469478_15840_36002",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 91,
+    "id": "3hop1__469478_15840_36002",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 92,
+    "id": "3hop1__103881_443779_52195",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 93,
+    "id": "3hop1__103881_443779_52195",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 94,
+    "id": "3hop1__743797_443779_52195",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 95,
+    "id": "3hop1__743797_443779_52195",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 96,
+    "id": "3hop1__847420_720378_15538",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 97,
+    "id": "3hop1__847420_720378_15538",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 98,
+    "id": "3hop2__20335_8533_9331",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 99,
+    "id": "3hop2__20335_8533_9331",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 100,
+    "id": "3hop1__36497_73181_68042",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 101,
+    "id": "3hop1__36497_73181_68042",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 102,
+    "id": "3hop2__72083_92991_76291",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 103,
+    "id": "3hop2__72083_92991_76291",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 104,
+    "id": "3hop1__694534_160088_85460",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 105,
+    "id": "3hop1__694534_160088_85460",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 106,
+    "id": "3hop1__109422_720914_41132",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 107,
+    "id": "3hop1__109422_720914_41132",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 108,
+    "id": "3hop2__304722_689786_63959",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 109,
+    "id": "3hop2__304722_689786_63959",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 110,
+    "id": "3hop1__84887_538202_84283",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 111,
+    "id": "3hop1__84887_538202_84283",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 112,
+    "id": "3hop1__529164_567566_84283",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 113,
+    "id": "3hop1__529164_567566_84283",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 114,
+    "id": "3hop2__304722_397371_63959",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 115,
+    "id": "3hop2__304722_397371_63959",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 116,
+    "id": "3hop2__792915_223623_162182",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 117,
+    "id": "3hop2__792915_223623_162182",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 118,
+    "id": "3hop1__158848_66089_86107",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 119,
+    "id": "3hop1__158848_66089_86107",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 120,
+    "id": "3hop2__89854_90327_76291",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 121,
+    "id": "3hop2__89854_90327_76291",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 122,
+    "id": "3hop1__626214_503371_21711",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 123,
+    "id": "3hop1__626214_503371_21711",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 124,
+    "id": "3hop2__93066_88342_47738",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 125,
+    "id": "3hop2__93066_88342_47738",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 126,
+    "id": "3hop1__635099_131926_87157",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 127,
+    "id": "3hop1__635099_131926_87157",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 128,
+    "id": "3hop1__409517_547811_80702",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 129,
+    "id": "3hop1__409517_547811_80702",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 130,
+    "id": "3hop2__802066_223623_162182",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 131,
+    "id": "3hop2__802066_223623_162182",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 132,
+    "id": "3hop1__351696_42197_18397",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 133,
+    "id": "3hop1__351696_42197_18397",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 134,
+    "id": "4hop1__88342_49853_128008_87812",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 135,
+    "id": "4hop1__88342_49853_128008_87812",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 136,
+    "id": "4hop1__483807_508773_85832_745702",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 137,
+    "id": "4hop1__483807_508773_85832_745702",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 138,
+    "id": "4hop1__860115_798482_131926_89261",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 139,
+    "id": "4hop1__860115_798482_131926_89261",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 140,
+    "id": "4hop1__482815_624859_355213_203322",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 141,
+    "id": "4hop1__482815_624859_355213_203322",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 142,
+    "id": "4hop1__161605_32392_823060_610794",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 143,
+    "id": "4hop1__161605_32392_823060_610794",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 144,
+    "id": "4hop1__320457_508773_85832_745702",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 145,
+    "id": "4hop1__320457_508773_85832_745702",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 146,
+    "id": "4hop3__175072_88460_30152_20999",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 147,
+    "id": "4hop3__175072_88460_30152_20999",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 148,
+    "id": "4hop2__161324_14670_8987_8529",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 149,
+    "id": "4hop2__161324_14670_8987_8529",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 150,
+    "id": "4hop2__161602_474028_88460_18966",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 151,
+    "id": "4hop2__161602_474028_88460_18966",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 152,
+    "id": "4hop3__193820_466199_695123_72134",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 153,
+    "id": "4hop3__193820_466199_695123_72134",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 154,
+    "id": "4hop1__638706_765799_282674_759393",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 155,
+    "id": "4hop1__638706_765799_282674_759393",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 156,
+    "id": "4hop1__88342_75218_128008_92225",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 157,
+    "id": "4hop1__88342_75218_128008_92225",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 158,
+    "id": "4hop1__37608_32392_823060_610794",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 159,
+    "id": "4hop1__37608_32392_823060_610794",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 160,
+    "id": "4hop3__387712_132409_146285_35031",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 161,
+    "id": "4hop3__387712_132409_146285_35031",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 162,
+    "id": "4hop2__9988_158279_70784_61381",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 163,
+    "id": "4hop2__9988_158279_70784_61381",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 164,
+    "id": "4hop1__105773_457883_650651_7262",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 165,
+    "id": "4hop1__105773_457883_650651_7262",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 166,
+    "id": "4hop1__151650_5274_458768_33677",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 167,
+    "id": "4hop1__151650_5274_458768_33677",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 168,
+    "id": "4hop1__696484_49925_13759_736921",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 169,
+    "id": "4hop1__696484_49925_13759_736921",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 170,
+    "id": "4hop3__257340_88460_30152_20999",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 171,
+    "id": "4hop3__257340_88460_30152_20999",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 172,
+    "id": "4hop1__819901_32392_823060_610794",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 173,
+    "id": "4hop1__819901_32392_823060_610794",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 174,
+    "id": "4hop1__436202_765799_282674_759393",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 175,
+    "id": "4hop1__436202_765799_282674_759393",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 176,
+    "id": "4hop1__58323_375563_161848_84681",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 177,
+    "id": "4hop1__58323_375563_161848_84681",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 178,
+    "id": "4hop1__228808_49925_13759_736921",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 179,
+    "id": "4hop1__228808_49925_13759_736921",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 180,
+    "id": "4hop2__161602_426860_88460_21034",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 181,
+    "id": "4hop2__161602_426860_88460_21034",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 182,
+    "id": "4hop1__277409_49925_13759_736921",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 183,
+    "id": "4hop1__277409_49925_13759_736921",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 184,
+    "id": "4hop1__343844_17130_70784_61381",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 185,
+    "id": "4hop1__343844_17130_70784_61381",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 186,
+    "id": "4hop3__719125_132409_371500_35031",
+    "action": "extracted_unique_valid_block",
+    "strict_error": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+    "remaining_error": null
+  },
+  {
+    "case_index": 187,
+    "id": "4hop3__719125_132409_371500_35031",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 188,
+    "id": "4hop1__161810_583746_457883_650651",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 189,
+    "id": "4hop1__161810_583746_457883_650651",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 190,
+    "id": "4hop1__752321_153080_33897_81096",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 191,
+    "id": "4hop1__752321_153080_33897_81096",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 192,
+    "id": "4hop3__130404_29339_508306_70744",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 193,
+    "id": "4hop3__130404_29339_508306_70744",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 194,
+    "id": "4hop1__47210_53706_795904_580996",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 195,
+    "id": "4hop1__47210_53706_795904_580996",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 196,
+    "id": "4hop1__83058_53706_795904_580996",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 197,
+    "id": "4hop1__83058_53706_795904_580996",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 198,
+    "id": "4hop1__638988_17130_70784_61381",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  },
+  {
+    "case_index": 199,
+    "id": "4hop1__638988_17130_70784_61381",
+    "action": "kept_nonfinal",
+    "strict_error": "execution_did_not_finish",
+    "remaining_error": "execution_did_not_finish"
+  }
+]

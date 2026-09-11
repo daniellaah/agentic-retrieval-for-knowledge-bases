@@ -1,0 +1,17 @@
+{
+  "attempt": "p4-musique-agent-v2",
+  "status": "failed",
+  "completed_variants": 1,
+  "complete_pairs": 0,
+  "error": {
+    "type": "ValueError",
+    "message": "Source scope differs from this vault; use a separate vault ID."
+  },
+  "failed_stage": "Preparing the second context, before the second Agent attempt.",
+  "rows_sha256": "b3b9b47d48bf9da3f8154037b819d69cd2715b14b688809baa50aed0e1bafd93",
+  "checksums_sha256": "7620f4edeafb0c96620fce11c99030f31db5b517e89a2e757f142077a955ffbe",
+  "remedy": "Fresh SQLite database for every variant; full 200-variant matrix rerun under v3. Preserve v2 row without selecting its score.",
+  "additional_exposure": "The first registered variant has one prior completed attempt; no other v2 variant reached the Agent.",
+  "production_changed": false,
+  "release_eligible": false
+}

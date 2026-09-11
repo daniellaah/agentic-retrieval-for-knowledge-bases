@@ -1,0 +1,12 @@
+{
+  "archive": "p2-budget-20260910.tar.gz",
+  "extracted_replay": {
+    "valid": true,
+    "agent_rows": 36,
+    "synthesis_rows": 8,
+    "token_counts_replayed": true,
+    "release_eligible": false
+  },
+  "release_gate_exit_code": 2,
+  "tampered_input_rejected": true
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": "arkb-eval-v2",
+  "case_count": 60,
+  "intent_families": 31,
+  "by_task_type": {
+    "semantic_discovery": 12,
+    "exploratory_retrieval": 12,
+    "knowledge_qa": 12,
+    "multi_hop_qa": 6,
+    "exact_lookup": 6,
+    "direct_read": 4,
+    "evidence_gap": 4,
+    "no_retrieval": 4
+  },
+  "by_split": {
+    "dev": 60
+  },
+  "evidence_count": 48,
+  "qrel_count": 78,
+  "corpus_documents": 58,
+  "provisional": true,
+  "release_eligible": false
+}

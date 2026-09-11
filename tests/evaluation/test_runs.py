@@ -42,7 +42,7 @@ def config(tmp_path):
         (notes / source).write_text('# Note\nEvidence')
     dataset = tmp_path / 'cases.jsonl'
     cases = [
-        AgentEvalCase(id='lookup', query='查找 | evidence\nnow', task_type='exact_lookup', expected_sources=('a.md', 'b.md')),
+        AgentEvalCase(id='lookup', query='Find | evidence\nnow', task_type='exact_lookup', expected_sources=('a.md', 'b.md')),
         AgentEvalCase(id='read', query='Read a.md', task_type='direct_read', expected_sources=('a.md',)),
         AgentEvalCase(id='none', query='Hello', task_type='no_retrieval'),
     ]
@@ -104,7 +104,7 @@ def test_errors_keep_partial_trace_continue_other_trials_and_round_trip_metrics(
     partial = AgentResult(None, 'error', AgentState(messages=[
         {'role': 'user', 'content': 'Read a.md'},
         {'role': 'assistant', 'tool_calls': [tool_call('read', source='a.md')]},
-        {'role': 'tool', 'content': json.dumps({'result': {'source': 'a.md', 'content': '中文 café'}})},
+        {'role': 'tool', 'content': json.dumps({'result': {'source': 'a.md', 'content': 'éø café'}})},
     ], turn=1))
     error = LookupError('tool failed | details\nnext')
     error.agent_result = partial
@@ -128,7 +128,7 @@ def test_errors_keep_partial_trace_continue_other_trials_and_round_trip_metrics(
     assert run.results[3].trace is None and run.results[3].metrics.tool_call_count is None
     rows = [json.loads(line) for line in (run.output_dir / 'results.jsonl').read_text().splitlines()]
     assert len(rows) == 6 and rows[2]['error']['type'] == 'LookupError'
-    assert rows[2]['trace']['tool_calls'][0]['result']['result']['content'] == '中文 café'
+    assert rows[2]['trace']['tool_calls'][0]['result']['result']['content'] == 'éø café'
     recalculated = []
     for row in rows:
         saved_trace = row['trace']
@@ -146,7 +146,7 @@ def test_errors_keep_partial_trace_continue_other_trials_and_round_trip_metrics(
     for required in ('lookup / trial 1', 'read / trial 0', 'read / trial 1', 'none / trial 1',
                      'query', 'task_type', 'expected_sources', 'retrieved_sources', 'tool_sequence', 'stop_reason'):
         assert required in report
-    assert '查找 \\| evidence<br>now' in report
+    assert 'Find \\| evidence<br>now' in report
     assert 'tool failed \\| details<br>next' in report
 
 

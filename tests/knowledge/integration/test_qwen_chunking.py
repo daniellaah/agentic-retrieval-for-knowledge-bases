@@ -26,14 +26,13 @@ def tokenizer() -> Tokenizer:
 @pytest.mark.parametrize(
     "text",
     [
-        "卡片盒笔记需要保留来源，长文档按段落切分。\n\n" * 180,
         "Permanent notes explain one idea and link related concepts.\n\n" * 200,
-        "## Retrieval\n\n先检索相关笔记，再生成答案。 Use chunk_size=512.\n\n" * 100,
+        "## Retrieval\n\nRetrieve related notes before generating an answer. Use chunk_size=512.\n\n" * 100,
         "```python\r\ndef retrieve(query):\r\n    return notes[query]\r\n```\r\n\r\n" * 100,
-        "cafe\u0301👩🏽\u200d💻中文" * 180,
+        "cafe\u0301👩🏽\u200d💻éø" * 180,
         " a" * 1050,
     ],
-    ids=["chinese", "english", "mixed-markdown", "code-and-crlf", "unicode", "boundary"],
+    ids=["english", "markdown", "code-and-crlf", "unicode", "boundary"],
 )
 def test_qwen_chunks_obey_token_budgets_and_preserve_the_original(
     tokenizer: Tokenizer, text: str

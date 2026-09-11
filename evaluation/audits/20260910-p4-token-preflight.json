@@ -1,0 +1,37 @@
+{
+  "tokenizer_fingerprint": "9649b4c601a95320aea1c07d47068b30e822f903b494e6074f50af8dcfa17149",
+  "embedding_input_limit": 8192,
+  "queries": [
+    {
+      "dataset": "scifact",
+      "queries": 300,
+      "maximum_input_tokens": 71,
+      "over_8192": []
+    },
+    {
+      "dataset": "bright-stackoverflow",
+      "queries": 115,
+      "maximum_input_tokens": 2737,
+      "over_8192": []
+    },
+    {
+      "dataset": "bright-robotics",
+      "queries": 101,
+      "maximum_input_tokens": 7245,
+      "over_8192": []
+    },
+    {
+      "dataset": "t2",
+      "queries": 500,
+      "maximum_input_tokens": 37,
+      "over_8192": []
+    }
+  ],
+  "musique": {
+    "paragraph_inputs": 4000,
+    "maximum_input_tokens": 615,
+    "over_limit": 0,
+    "selected_sha256": "4d5ad0614a161e45a862ae0306d60133acedeeb44ac820651f46cae77dd72408"
+  },
+  "scope": "Embedding token preflight only. Does not establish Agent chat context consumption or answer quality."
+}

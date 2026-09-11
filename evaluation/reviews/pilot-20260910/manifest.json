@@ -1,0 +1,9 @@
+{
+  "dataset_manifest_sha256": "aebb441dd068b5b0335d031afc5c4900b8acbe819198612355d2866ff816c3d7",
+  "seed": 42,
+  "document_judgments": 3248,
+  "evidence_reviews": 48,
+  "case_reviews": 60,
+  "status": "pending",
+  "instructions": "Grade documents 0..3; blank is unjudged. Evidence/case decisions: accept, revise, reject. Identify reviewer; keep revisions/reasons. No ranks or proposed grades in document queue."
+}

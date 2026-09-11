@@ -1,0 +1,244 @@
+{
+  "summarizer_sha256": "2d5f024f6ad81c13f600745e954a65db223a503476fdb4c00523b6a580ed574c",
+  "runs": [
+    {
+      "run": "p4-bright-stackoverflow-agent-v2",
+      "rows_sha256": "d5183c84a13e570691f4b2369e593af2a89a4f83fb6dbd0ae79a407ea138c115",
+      "attempts": 25,
+      "observed_attempts": 25,
+      "preparation_ms": 20336.07866615057,
+      "agent_elapsed_ms": {
+        "observed": 25,
+        "total": 636166.349835461,
+        "mean": 25446.65399341844,
+        "p50": 17880.92958391644,
+        "p95": 36998.43514105303,
+        "max": 180098.72987493873
+      },
+      "context_indexing_elapsed_ms": {
+        "observed": 0,
+        "total": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "model_requests": 79,
+      "requested_tools": {
+        "match": 1,
+        "search": 39,
+        "read": 22
+      },
+      "executed_tools": {
+        "match": 1,
+        "search": 39,
+        "read": 22
+      },
+      "requested_search_modes": {
+        "hybrid": 30,
+        "semantic (default)": 9
+      },
+      "tool_elapsed_ms": {
+        "search": {
+          "observed": 39,
+          "total": 16390.883079497144,
+          "mean": 420.2790533204396,
+          "p50": 352.9885408934206,
+          "p95": 836.5052127977834,
+          "max": 1408.9380830992013
+        },
+        "match": {
+          "observed": 1,
+          "total": 173898.7189589534,
+          "mean": 173898.7189589534,
+          "p50": 173898.7189589534,
+          "p95": 173898.7189589534,
+          "max": 173898.7189589534
+        },
+        "read": {
+          "observed": 22,
+          "total": 54103.542872937396,
+          "mean": 2459.2519487698814,
+          "p50": 2390.935375005938,
+          "p95": 3798.6870289081708,
+          "max": 4090.637749992311
+        }
+      },
+      "provider_native_usage": {
+        "prompt_eval_count": {
+          "known_total": 392091,
+          "observed_requests": 79,
+          "requests": 79,
+          "total": 392091
+        },
+        "eval_count": {
+          "known_total": 26899,
+          "observed_requests": 79,
+          "requests": 79,
+          "total": 26899
+        }
+      },
+      "scope": "Observed attempts include errors and budget stops. Agent elapsed excludes per-context indexing and shared preparation. Native provider counters are not a billing estimate; missing usage remains undefined. Descriptive local resource costs, not isolated production latency.",
+      "release_eligible": false
+    },
+    {
+      "run": "p4-bright-robotics-agent-v2",
+      "rows_sha256": "412232291c58aeb2e343df5b151c5e25a410beb3a37a0a8e049bc98b23d29198",
+      "attempts": 25,
+      "observed_attempts": 25,
+      "preparation_ms": 6417.6674170885235,
+      "agent_elapsed_ms": {
+        "observed": 25,
+        "total": 695074.2839565501,
+        "mean": 27802.971358262002,
+        "p50": 22596.505374880508,
+        "p95": 32964.94805803521,
+        "max": 180044.53933308832
+      },
+      "context_indexing_elapsed_ms": {
+        "observed": 0,
+        "total": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "model_requests": 133,
+      "requested_tools": {
+        "search": 90,
+        "read": 34
+      },
+      "executed_tools": {
+        "search": 90,
+        "read": 34
+      },
+      "requested_search_modes": {
+        "hybrid": 84,
+        "semantic (default)": 6
+      },
+      "tool_elapsed_ms": {
+        "search": {
+          "observed": 90,
+          "total": 20068.844757741317,
+          "mean": 222.98716397490352,
+          "p50": 207.12741650640965,
+          "p95": 330.59688145294785,
+          "max": 450.57283295318484
+        },
+        "match": {
+          "observed": 0,
+          "total": 0,
+          "mean": null,
+          "p50": null,
+          "p95": null,
+          "max": null
+        },
+        "read": {
+          "observed": 34,
+          "total": 43593.8769581262,
+          "mean": 1282.1728517095942,
+          "p50": 1189.323062542826,
+          "p95": 2532.6375437551173,
+          "max": 2673.4194171149284
+        }
+      },
+      "provider_native_usage": {
+        "prompt_eval_count": {
+          "known_total": 918697,
+          "observed_requests": 132,
+          "requests": 133,
+          "total": null
+        },
+        "eval_count": {
+          "known_total": 24515,
+          "observed_requests": 132,
+          "requests": 133,
+          "total": null
+        }
+      },
+      "scope": "Observed attempts include errors and budget stops. Agent elapsed excludes per-context indexing and shared preparation. Native provider counters are not a billing estimate; missing usage remains undefined. Descriptive local resource costs, not isolated production latency.",
+      "release_eligible": false
+    },
+    {
+      "run": "p4-musique-agent-v3",
+      "rows_sha256": "d8dd3c8581ce29f50d522d671c9a0250089355d6e9c50654f68573b1e00a3d06",
+      "attempts": 200,
+      "observed_attempts": 200,
+      "preparation_ms": 199.69854201190174,
+      "agent_elapsed_ms": {
+        "observed": 200,
+        "total": 4937774.516123813,
+        "mean": 24688.872580619063,
+        "p50": 23329.986353986897,
+        "p95": 40899.183393875115,
+        "max": 51554.433749988675
+      },
+      "context_indexing_elapsed_ms": {
+        "observed": 200,
+        "total": 203301.28187406808,
+        "mean": 1016.5064093703404,
+        "p50": 1010.4876664699987,
+        "p95": 1131.136857753154,
+        "max": 1293.8042089808732
+      },
+      "model_requests": 1424,
+      "requested_tools": {
+        "search": 1032,
+        "read": 233,
+        "match": 133
+      },
+      "executed_tools": {
+        "search": 1030,
+        "read": 233,
+        "match": 133
+      },
+      "requested_search_modes": {
+        "hybrid": 329,
+        "bm25": 199,
+        "semantic": 504
+      },
+      "tool_elapsed_ms": {
+        "search": {
+          "observed": 1030,
+          "total": 83846.87108546495,
+          "mean": 81.40472920918927,
+          "p50": 98.64995907992125,
+          "p95": 113.51921887835485,
+          "max": 149.940624833107
+        },
+        "match": {
+          "observed": 133,
+          "total": 14457.264539785683,
+          "mean": 108.70123714124574,
+          "p50": 129.72716707736254,
+          "p95": 140.6119999475777,
+          "max": 147.4190829321742
+        },
+        "read": {
+          "observed": 233,
+          "total": 431.16128677502275,
+          "mean": 1.8504776256438744,
+          "p50": 1.5738748479634523,
+          "p95": 4.1554664727300406,
+          "max": 6.139250006526709
+        }
+      },
+      "provider_native_usage": {
+        "prompt_eval_count": {
+          "known_total": 10600974,
+          "observed_requests": 1424,
+          "requests": 1424,
+          "total": 10600974
+        },
+        "eval_count": {
+          "known_total": 278384,
+          "observed_requests": 1424,
+          "requests": 1424,
+          "total": 278384
+        }
+      },
+      "scope": "Observed attempts include errors and budget stops. Agent elapsed excludes per-context indexing and shared preparation. Native provider counters are not a billing estimate; missing usage remains undefined. Descriptive local resource costs, not isolated production latency.",
+      "release_eligible": false
+    }
+  ]
+}

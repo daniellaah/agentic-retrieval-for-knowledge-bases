@@ -10,7 +10,6 @@ from dataclasses import asdict
 import hashlib
 import json
 from pathlib import Path
-import re
 from statistics import mean, median
 import subprocess
 
@@ -64,14 +63,12 @@ def main():
         'dataset': {
             'sha256': sha(DATASET), 'cases': len(cases),
             'by_task_type': dict(Counter(c.task_type for c in cases)),
-            'queries_containing_han': sum(bool(re.search(r'[\u4e00-\u9fff]', c.query)) for c in cases),
             'positive_labeled_documents': len(positives),
             'documents_without_positive_labels': [p.name for p in notes if p.name not in positives],
             'positive_label_frequency': dict(positives.most_common()),
         },
         'corpus': {'documents': len(notes), 'raw_markdown_characters': sum(lengths),
-                   'raw_character_length_min_median_max': [min(lengths), median(lengths), max(lengths)],
-                   'documents_containing_han': sum(bool(re.search(r'[\u4e00-\u9fff]', p.read_text())) for p in notes)},
+                   'raw_character_length_min_median_max': [min(lengths), median(lengths), max(lengths)]},
         'agent': {}, 'baseline': {}, 'inputs': {},
     }
     snapshots = []

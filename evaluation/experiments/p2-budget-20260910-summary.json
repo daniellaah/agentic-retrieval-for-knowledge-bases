@@ -1,0 +1,616 @@
+{
+  "bundle": "p2-budget-20260910",
+  "gate": {
+    "experiment_valid": true,
+    "planned_rows": 36,
+    "recorded_rows": 36,
+    "missing_rows": 0,
+    "duplicate_rows": 0,
+    "stop_reasons": {
+      "final": 23,
+      "budget": 11,
+      "max_turns": 2
+    },
+    "human_reviewed_rows": 0,
+    "undefined_delivery_utilities": 23,
+    "mean_delivery_utility": null,
+    "release_eligible": false,
+    "release_blockers": [
+      "provisional_dataset",
+      "independent_output_review_incomplete",
+      "development_diagnostic_not_release_test"
+    ],
+    "note": "Runtime/budget failures retain zero utility; unreviewed final answers remain unknown, not passing."
+  },
+  "arms": {
+    "query6_evidence4k": {
+      "trials": 12,
+      "families": 9,
+      "stop_reasons": {
+        "final": 9,
+        "budget": 2,
+        "max_turns": 1
+      },
+      "budget_stop_reasons": {
+        "max_query_calls": 2
+      },
+      "runtime_errors": 0,
+      "mean_elapsed_ms": 10610.201712008953,
+      "mean_requested_tools": 3.5,
+      "mean_executed_tools": 3.3333333333333335,
+      "mean_delivered_evidence_tokens": 634,
+      "mean_returned_evidence_tokens": 634,
+      "agent_native_prompt_tokens": {
+        "mean": 17826.583333333332,
+        "defined_trials": 12,
+        "total_trials": 12
+      },
+      "agent_native_output_tokens": {
+        "mean": 644.1666666666666,
+        "defined_trials": 12,
+        "total_trials": 12
+      },
+      "evidence_applicable_cases": 6,
+      "final_evidence_cases": 5,
+      "conditional_final_evidence_coverage": 1.0,
+      "evidence_delivery_utility": 0.8333333333333334,
+      "grounded_task_success": null,
+      "output_review_coverage": 0.0
+    },
+    "query1_evidence4k": {
+      "trials": 12,
+      "families": 9,
+      "stop_reasons": {
+        "budget": 7,
+        "final": 5
+      },
+      "budget_stop_reasons": {
+        "max_query_calls": 7
+      },
+      "runtime_errors": 0,
+      "mean_elapsed_ms": 4657.931492731829,
+      "mean_requested_tools": 1.8333333333333333,
+      "mean_executed_tools": 1.25,
+      "mean_delivered_evidence_tokens": 160.83333333333334,
+      "mean_returned_evidence_tokens": 160.83333333333334,
+      "agent_native_prompt_tokens": {
+        "mean": 3879.25,
+        "defined_trials": 12,
+        "total_trials": 12
+      },
+      "agent_native_output_tokens": {
+        "mean": 334.5,
+        "defined_trials": 12,
+        "total_trials": 12
+      },
+      "evidence_applicable_cases": 6,
+      "final_evidence_cases": 1,
+      "conditional_final_evidence_coverage": 1.0,
+      "evidence_delivery_utility": 0.16666666666666666,
+      "grounded_task_success": null,
+      "output_review_coverage": 0.0
+    },
+    "query6_evidence2k": {
+      "trials": 12,
+      "families": 9,
+      "stop_reasons": {
+        "final": 9,
+        "budget": 2,
+        "max_turns": 1
+      },
+      "budget_stop_reasons": {
+        "max_query_calls": 2
+      },
+      "runtime_errors": 0,
+      "mean_elapsed_ms": 10478.56404875832,
+      "mean_requested_tools": 3.5,
+      "mean_executed_tools": 3.3333333333333335,
+      "mean_delivered_evidence_tokens": 634,
+      "mean_returned_evidence_tokens": 634,
+      "agent_native_prompt_tokens": {
+        "mean": 17826.583333333332,
+        "defined_trials": 12,
+        "total_trials": 12
+      },
+      "agent_native_output_tokens": {
+        "mean": 644.1666666666666,
+        "defined_trials": 12,
+        "total_trials": 12
+      },
+      "evidence_applicable_cases": 6,
+      "final_evidence_cases": 5,
+      "conditional_final_evidence_coverage": 1.0,
+      "evidence_delivery_utility": 0.8333333333333334,
+      "grounded_task_success": null,
+      "output_review_coverage": 0.0
+    }
+  },
+  "per_case": [
+    {
+      "case_id": "pilot_001",
+      "arm": "query6_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 773,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_001",
+      "arm": "query1_evidence4k",
+      "stop_reason": "budget",
+      "budget_stop_reason": "max_query_calls",
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 316,
+      "constraints": [
+        "budget_exhausted"
+      ]
+    },
+    {
+      "case_id": "pilot_001",
+      "arm": "query6_evidence2k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 773,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_024",
+      "arm": "query1_evidence4k",
+      "stop_reason": "budget",
+      "budget_stop_reason": "max_query_calls",
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 431,
+      "constraints": [
+        "budget_exhausted"
+      ]
+    },
+    {
+      "case_id": "pilot_024",
+      "arm": "query6_evidence2k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 889,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_024",
+      "arm": "query6_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 889,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_037",
+      "arm": "query6_evidence2k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 521,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_037",
+      "arm": "query6_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 521,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_037",
+      "arm": "query1_evidence4k",
+      "stop_reason": "budget",
+      "budget_stop_reason": "max_query_calls",
+      "error": null,
+      "evidence_coverage": 0.0,
+      "delivered_evidence_tokens": 200,
+      "constraints": [
+        "budget_exhausted"
+      ]
+    },
+    {
+      "case_id": "pilot_040",
+      "arm": "query6_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 549,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_040",
+      "arm": "query1_evidence4k",
+      "stop_reason": "budget",
+      "budget_stop_reason": "max_query_calls",
+      "error": null,
+      "evidence_coverage": 0.0,
+      "delivered_evidence_tokens": 200,
+      "constraints": [
+        "budget_exhausted"
+      ]
+    },
+    {
+      "case_id": "pilot_040",
+      "arm": "query6_evidence2k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 549,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_043",
+      "arm": "query1_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 2,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_043",
+      "arm": "query6_evidence2k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 2,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_043",
+      "arm": "query6_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 2,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_046",
+      "arm": "query6_evidence2k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 251,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_046",
+      "arm": "query6_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 251,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_046",
+      "arm": "query1_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 251,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_049",
+      "arm": "query6_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 121,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_049",
+      "arm": "query1_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 121,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_049",
+      "arm": "query6_evidence2k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 121,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_053",
+      "arm": "query1_evidence4k",
+      "stop_reason": "budget",
+      "budget_stop_reason": "max_query_calls",
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 0,
+      "constraints": [
+        "budget_exhausted"
+      ]
+    },
+    {
+      "case_id": "pilot_053",
+      "arm": "query6_evidence2k",
+      "stop_reason": "budget",
+      "budget_stop_reason": "max_query_calls",
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 1800,
+      "constraints": [
+        "budget_exhausted"
+      ]
+    },
+    {
+      "case_id": "pilot_053",
+      "arm": "query6_evidence4k",
+      "stop_reason": "budget",
+      "budget_stop_reason": "max_query_calls",
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 1800,
+      "constraints": [
+        "budget_exhausted"
+      ]
+    },
+    {
+      "case_id": "pilot_055",
+      "arm": "query6_evidence2k",
+      "stop_reason": "max_turns",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 1385,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_055",
+      "arm": "query6_evidence4k",
+      "stop_reason": "max_turns",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": 1.0,
+      "delivered_evidence_tokens": 1385,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_055",
+      "arm": "query1_evidence4k",
+      "stop_reason": "budget",
+      "budget_stop_reason": "max_query_calls",
+      "error": null,
+      "evidence_coverage": 0.0,
+      "delivered_evidence_tokens": 214,
+      "constraints": [
+        "budget_exhausted"
+      ]
+    },
+    {
+      "case_id": "pilot_056",
+      "arm": "query6_evidence4k",
+      "stop_reason": "budget",
+      "budget_stop_reason": "max_query_calls",
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 1317,
+      "constraints": [
+        "budget_exhausted"
+      ]
+    },
+    {
+      "case_id": "pilot_056",
+      "arm": "query1_evidence4k",
+      "stop_reason": "budget",
+      "budget_stop_reason": "max_query_calls",
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 195,
+      "constraints": [
+        "budget_exhausted"
+      ]
+    },
+    {
+      "case_id": "pilot_056",
+      "arm": "query6_evidence2k",
+      "stop_reason": "budget",
+      "budget_stop_reason": "max_query_calls",
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 1317,
+      "constraints": [
+        "budget_exhausted"
+      ]
+    },
+    {
+      "case_id": "pilot_057",
+      "arm": "query1_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 0,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_057",
+      "arm": "query6_evidence2k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 0,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_057",
+      "arm": "query6_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 0,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_060",
+      "arm": "query6_evidence2k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 0,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_060",
+      "arm": "query6_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 0,
+      "constraints": []
+    },
+    {
+      "case_id": "pilot_060",
+      "arm": "query1_evidence4k",
+      "stop_reason": "final",
+      "budget_stop_reason": null,
+      "error": null,
+      "evidence_coverage": null,
+      "delivered_evidence_tokens": 0,
+      "constraints": []
+    }
+  ],
+  "synthesis": [
+    {
+      "case_id": "pilot_024",
+      "condition": "baseline_submitted_context",
+      "stop_reason": "final",
+      "evidence_coverage": 1.0,
+      "grounded_task_success": null
+    },
+    {
+      "case_id": "pilot_024",
+      "condition": "gold_first_alternative_context",
+      "stop_reason": "final",
+      "evidence_coverage": 1.0,
+      "grounded_task_success": null
+    },
+    {
+      "case_id": "pilot_040",
+      "condition": "baseline_submitted_context",
+      "stop_reason": "final",
+      "evidence_coverage": 1.0,
+      "grounded_task_success": null
+    },
+    {
+      "case_id": "pilot_040",
+      "condition": "gold_first_alternative_context",
+      "stop_reason": "final",
+      "evidence_coverage": 1.0,
+      "grounded_task_success": null
+    },
+    {
+      "case_id": "pilot_049",
+      "condition": "baseline_submitted_context",
+      "stop_reason": "final",
+      "evidence_coverage": 1.0,
+      "grounded_task_success": null
+    },
+    {
+      "case_id": "pilot_049",
+      "condition": "gold_first_alternative_context",
+      "stop_reason": "final",
+      "evidence_coverage": 1.0,
+      "grounded_task_success": null
+    },
+    {
+      "case_id": "pilot_055",
+      "condition": "baseline_submitted_context",
+      "stop_reason": "final",
+      "evidence_coverage": 1.0,
+      "grounded_task_success": null
+    },
+    {
+      "case_id": "pilot_055",
+      "condition": "gold_first_alternative_context",
+      "stop_reason": "final",
+      "evidence_coverage": 1.0,
+      "grounded_task_success": null
+    }
+  ],
+  "judge_states": [
+    {
+      "case_id": "pilot_040",
+      "condition": "baseline_submitted_context",
+      "modes": [
+        {
+          "mode": "correctness",
+          "status": "provisional",
+          "error": null
+        },
+        {
+          "mode": "support",
+          "status": "provisional",
+          "error": null
+        }
+      ]
+    },
+    {
+      "case_id": "pilot_040",
+      "condition": "gold_first_alternative_context",
+      "modes": [
+        {
+          "mode": "correctness",
+          "status": "provisional",
+          "error": null
+        },
+        {
+          "mode": "support",
+          "status": "provisional",
+          "error": null
+        }
+      ]
+    }
+  ],
+  "raw_sha256": {
+    "agent-results.jsonl": "4813481e3668ace2a65fcc9a0f9e3cc6e1d86a8bcf242e4162198cdcc19fe1fa",
+    "synthesis-results.jsonl": "af756254451dc2134ab9bd720c935ab792508c286acbc7e26a172f52682bd579",
+    "judge-results.json": "baf94909ba39b51d3dda37d50faf2a683cf2ba9038518f85eb2168c3f94e7521",
+    "reference-tokenizer.json": "9649b4c601a95320aea1c07d47068b30e822f903b494e6074f50af8dcfa17149"
+  },
+  "limits": [
+    "Known provisional dev cases and one trial per arm; no superiority claim",
+    "Deadline is cooperative and cannot cancel in-flight work",
+    "Native token counts cover Agent chat requests; embedding usage is not separately measured",
+    "Model judge results are uncalibrated; normal final stop is not task correctness"
+  ]
+}

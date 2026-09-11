@@ -1,0 +1,45 @@
+{
+  "track": "bright",
+  "attempts": 25,
+  "stop_reasons": {
+    "error": 1,
+    "final": 17,
+    "max_turns": 2,
+    "budget": 5
+  },
+  "budget_stop_reasons": {
+    "null": 20,
+    "max_evidence_tokens": 5
+  },
+  "human_reviewed": 0,
+  "release_eligible": false,
+  "quality_status": "pending independent output review",
+  "failure_tags": {
+    "execution_error:tool_execution": 1,
+    "harness_hard_deadline": 1,
+    "no_final_response": 8,
+    "known_positive_documents_not_returned": 23,
+    "final_without_submitted_body_evidence": 6,
+    "budget:max_evidence_tokens": 5,
+    "known_positive_delivery_loss": 1
+  },
+  "failure_tag_scope": "Overlapping descriptive flags; missing a labeled document does not prove every relevant passage is absent. Do not sum these as mutually exclusive failure rates.",
+  "coverage_scope": "All unique documents with nonempty body excerpts, in tool order. These are document-level proxies, not claim support or official Agent answer quality.",
+  "document_coverage_proxy": {
+    "returned": {
+      "unique_documents": 5.24,
+      "positive_document_recall": 0.29433333333333334,
+      "weighted_aspect_coverage": 0.3703333333333333
+    },
+    "delivered": {
+      "unique_documents": 4.96,
+      "positive_document_recall": 0.2876666666666667,
+      "weighted_aspect_coverage": 0.3536666666666667
+    },
+    "submitted": {
+      "unique_documents": 4.96,
+      "positive_document_recall": 0.2876666666666667,
+      "weighted_aspect_coverage": 0.3536666666666667
+    }
+  }
+}

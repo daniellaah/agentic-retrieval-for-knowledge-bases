@@ -35,3 +35,6 @@ htmlcov/
 
 # Local agent evaluation runs (versioned input lives in evaluation/data/)
 /evaluation/results/
+
+# Reconstruct this large archive from its versioned multipart files.
+/evaluation/experiments/artifacts/p4-t2-20260910.tar.gz

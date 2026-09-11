@@ -1,0 +1,10 @@
+{
+  "archive": "p2-budget-20260910.tar.gz",
+  "sha256": "a529374ac8c0c5014c76b2d05c4392806fef517bd4bbdd818db62b84cd1fa87b",
+  "bytes": 3799016,
+  "root": "p2-budget-20260910",
+  "files": 129,
+  "source_bundle": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p2-budget-20260910",
+  "status": "completed",
+  "includes": "Frozen source, lockfile, cases/corpus, raw observations, index, metadata, scores and hashes; excludes transient WAL/SHM/cache and execution log."
+}

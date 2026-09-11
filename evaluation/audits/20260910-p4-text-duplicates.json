@@ -1,0 +1,124 @@
+{
+  "datasets": {
+    "scifact": {
+      "corpus_units": 5183,
+      "unique_title_body_values": 5183,
+      "duplicate_groups": 0,
+      "units_in_duplicate_groups": 0,
+      "queries_with_positive_text_aliases_not_labeled_positive": 0,
+      "qrel_alias_cases": []
+    },
+    "bright-stackoverflow": {
+      "corpus_units": 109188,
+      "unique_title_body_values": 68375,
+      "duplicate_groups": 10559,
+      "units_in_duplicate_groups": 51372,
+      "queries_with_positive_text_aliases_not_labeled_positive": 9,
+      "qrel_alias_cases": [
+        {
+          "qid": "1",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "Python_pandas_functions/DataFrame_93_4.txt"
+          ]
+        },
+        {
+          "qid": "10",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "Python_pandas_functions_with_style/DataFrame_74_4.txt",
+            "Python_pandas_functions_with_style/DataFrame_74_6.txt"
+          ]
+        },
+        {
+          "qid": "116",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "R_base_tools/R_base_all_351_0.txt"
+          ]
+        },
+        {
+          "qid": "12",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "TeleBot/TeleBot_2_10.txt"
+          ]
+        },
+        {
+          "qid": "13",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "Python_pandas_functions_with_style/General_Function_27_0.txt",
+            "Python_pandas_functions_with_style/General_Function_27_1.txt"
+          ]
+        },
+        {
+          "qid": "3",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "Python_pandas_functions/General_Function_5_1.txt",
+            "Python_pandas_functions/General_Function_5_2.txt"
+          ]
+        },
+        {
+          "qid": "7",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "Python_pandas_functions_with_style/Series_286_5.txt",
+            "Python_pandas_functions_with_style/Series_286_6.txt"
+          ]
+        },
+        {
+          "qid": "86",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "CoreWebView2/CoreWebView2_0_1.txt"
+          ]
+        },
+        {
+          "qid": "92",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "R_base_tools/R_base_all_295_0.txt"
+          ]
+        }
+      ]
+    },
+    "bright-robotics": {
+      "corpus_units": 63920,
+      "unique_title_body_values": 42382,
+      "duplicate_groups": 4220,
+      "units_in_duplicate_groups": 25758,
+      "queries_with_positive_text_aliases_not_labeled_positive": 4,
+      "qrel_alias_cases": [
+        {
+          "qid": "100",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "robotics-60/extraction_2.txt"
+          ]
+        },
+        {
+          "qid": "60",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "robotics-100/extraction_0.txt",
+            "ros_launch/XML_13.txt"
+          ]
+        },
+        {
+          "qid": "76",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "robotics-95/extraction_2.txt",
+            "robotics-95/extraction_4.txt"
+          ]
+        },
+        {
+          "qid": "95",
+          "unjudged_or_nonpositive_exact_text_aliases": [
+            "robotics-76/extraction_0.txt",
+            "robotics-95/extraction_4.txt"
+          ]
+        }
+      ]
+    },
+    "t2": {
+      "corpus_units": 118605,
+      "unique_title_body_values": 118605,
+      "duplicate_groups": 0,
+      "units_in_duplicate_groups": 0,
+      "queries_with_positive_text_aliases_not_labeled_positive": 0,
+      "qrel_alias_cases": []
+    }
+  },
+  "scope": "Exact normalized title/body equality only. Native-ID benchmark scores and original labels remain unchanged; alias counts are a judgment-completeness diagnostic, not relabeling."
+}

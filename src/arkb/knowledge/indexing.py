@@ -85,8 +85,8 @@ def build_index(
                                    source=f'{r.chunk.source}, chunk {r.chunk.chunk_index}')
               for text, r in zip(texts, records)]
     token_identity = tokenizer_fingerprint(tokenizer)
-    # Keep the existing CLI mode names, but invalidate pre-Markdown snapshots.
-    algorithm = 'markdown-v1' if chunking == 'recursive' else 'whole-note-v2'
+    # Version boundary-rule changes so earlier snapshots cannot be reused as-is.
+    algorithm = 'markdown-v2' if chunking == 'recursive' else 'whole-note-v2'
     chunk_config = {'algorithm': algorithm, 'tokenizer': token_identity}
     if chunking == 'recursive':
         chunk_config.update(chunk_size=chunk_size, chunk_overlap=chunk_overlap)

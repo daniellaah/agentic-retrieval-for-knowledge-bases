@@ -1,0 +1,290 @@
+[
+  {
+    "packet_sha256": "c69ec8b6ed377fe28437aad667d9ff4a09cd77df7a367326e3131e81d0650b63",
+    "case_id": "pilot_001",
+    "arm": "reminder_on",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "c69ec8b6ed377fe28437aad667d9ff4a09cd77df7a367326e3131e81d0650b63",
+    "case_id": "pilot_001",
+    "arm": "reminder_off",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "4b41b56a23ba79dc0e9580d0cb4d6796094375173f1a9435009a433eeb09ecc4",
+    "case_id": "pilot_013",
+    "arm": "reminder_off",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "4b41b56a23ba79dc0e9580d0cb4d6796094375173f1a9435009a433eeb09ecc4",
+    "case_id": "pilot_013",
+    "arm": "reminder_on",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "0759411e95938ccc7352d96db388ae9311a76c5c560c806c77ced1b2575d0fb5",
+    "case_id": "pilot_017",
+    "arm": "reminder_on",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "0759411e95938ccc7352d96db388ae9311a76c5c560c806c77ced1b2575d0fb5",
+    "case_id": "pilot_017",
+    "arm": "reminder_off",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "c2eed4564d0eb0e136fc021456c4efd250ff8cd62849ac5934be394e154fda55",
+    "case_id": "pilot_024",
+    "arm": "reminder_off",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "c2eed4564d0eb0e136fc021456c4efd250ff8cd62849ac5934be394e154fda55",
+    "case_id": "pilot_024",
+    "arm": "reminder_on",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "d729d1548c06f155e3338cfa7bf012b88e28ebe675f9ef265363767a0d225a1d",
+    "case_id": "pilot_037",
+    "arm": "reminder_on",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "d729d1548c06f155e3338cfa7bf012b88e28ebe675f9ef265363767a0d225a1d",
+    "case_id": "pilot_037",
+    "arm": "reminder_off",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "084b207a24d560d5378c706b9cb5a63a235dc60bad123e97ea5549560c6ea175",
+    "case_id": "pilot_040",
+    "arm": "reminder_off",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "084b207a24d560d5378c706b9cb5a63a235dc60bad123e97ea5549560c6ea175",
+    "case_id": "pilot_040",
+    "arm": "reminder_on",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "cd94c7e1ba6212a6717d72ac3d32eefe9d49c3bda3b6e28a5d8fe1069c82f95a",
+    "case_id": "pilot_049",
+    "arm": "reminder_on",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "cd94c7e1ba6212a6717d72ac3d32eefe9d49c3bda3b6e28a5d8fe1069c82f95a",
+    "case_id": "pilot_049",
+    "arm": "reminder_off",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "27bc8de52e0ca37872a0ef410d1eb076a5242fd6e77beafccceb638ea393878b",
+    "case_id": "pilot_053",
+    "arm": "reminder_off",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "27bc8de52e0ca37872a0ef410d1eb076a5242fd6e77beafccceb638ea393878b",
+    "case_id": "pilot_053",
+    "arm": "reminder_on",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "ad14a6e3c51bd4aace04a109728eca8e1a877d9ade3776e05ddddce2ecec032b",
+    "case_id": "pilot_054",
+    "arm": "reminder_on",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "ad14a6e3c51bd4aace04a109728eca8e1a877d9ade3776e05ddddce2ecec032b",
+    "case_id": "pilot_054",
+    "arm": "reminder_off",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "327075ff6c0ac76546dc713de9d5831f41f0553a3527f313db1f77650aaa8980",
+    "case_id": "pilot_055",
+    "arm": "reminder_off",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "327075ff6c0ac76546dc713de9d5831f41f0553a3527f313db1f77650aaa8980",
+    "case_id": "pilot_055",
+    "arm": "reminder_on",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "3a9326737d3e87b4a7416b594ecdffd29415e3f62badd70bf59170914aba2a17",
+    "case_id": "pilot_056",
+    "arm": "reminder_on",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "3a9326737d3e87b4a7416b594ecdffd29415e3f62badd70bf59170914aba2a17",
+    "case_id": "pilot_056",
+    "arm": "reminder_off",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "0ea55f4d7e126f89ee7ab1b302fbdbd5d5e00393136a07fb771bb656b0d2876b",
+    "case_id": "pilot_057",
+    "arm": "reminder_off",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "0ea55f4d7e126f89ee7ab1b302fbdbd5d5e00393136a07fb771bb656b0d2876b",
+    "case_id": "pilot_057",
+    "arm": "reminder_on",
+    "trial": 0
+  },
+  {
+    "packet_sha256": "0ea55f4d7e126f89ee7ab1b302fbdbd5d5e00393136a07fb771bb656b0d2876b",
+    "case_id": "pilot_057",
+    "arm": "reminder_on",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "0ea55f4d7e126f89ee7ab1b302fbdbd5d5e00393136a07fb771bb656b0d2876b",
+    "case_id": "pilot_057",
+    "arm": "reminder_off",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "3a9326737d3e87b4a7416b594ecdffd29415e3f62badd70bf59170914aba2a17",
+    "case_id": "pilot_056",
+    "arm": "reminder_off",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "3a9326737d3e87b4a7416b594ecdffd29415e3f62badd70bf59170914aba2a17",
+    "case_id": "pilot_056",
+    "arm": "reminder_on",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "327075ff6c0ac76546dc713de9d5831f41f0553a3527f313db1f77650aaa8980",
+    "case_id": "pilot_055",
+    "arm": "reminder_on",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "327075ff6c0ac76546dc713de9d5831f41f0553a3527f313db1f77650aaa8980",
+    "case_id": "pilot_055",
+    "arm": "reminder_off",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "ad14a6e3c51bd4aace04a109728eca8e1a877d9ade3776e05ddddce2ecec032b",
+    "case_id": "pilot_054",
+    "arm": "reminder_off",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "ad14a6e3c51bd4aace04a109728eca8e1a877d9ade3776e05ddddce2ecec032b",
+    "case_id": "pilot_054",
+    "arm": "reminder_on",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "27bc8de52e0ca37872a0ef410d1eb076a5242fd6e77beafccceb638ea393878b",
+    "case_id": "pilot_053",
+    "arm": "reminder_on",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "27bc8de52e0ca37872a0ef410d1eb076a5242fd6e77beafccceb638ea393878b",
+    "case_id": "pilot_053",
+    "arm": "reminder_off",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "cd94c7e1ba6212a6717d72ac3d32eefe9d49c3bda3b6e28a5d8fe1069c82f95a",
+    "case_id": "pilot_049",
+    "arm": "reminder_off",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "cd94c7e1ba6212a6717d72ac3d32eefe9d49c3bda3b6e28a5d8fe1069c82f95a",
+    "case_id": "pilot_049",
+    "arm": "reminder_on",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "084b207a24d560d5378c706b9cb5a63a235dc60bad123e97ea5549560c6ea175",
+    "case_id": "pilot_040",
+    "arm": "reminder_on",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "084b207a24d560d5378c706b9cb5a63a235dc60bad123e97ea5549560c6ea175",
+    "case_id": "pilot_040",
+    "arm": "reminder_off",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "d729d1548c06f155e3338cfa7bf012b88e28ebe675f9ef265363767a0d225a1d",
+    "case_id": "pilot_037",
+    "arm": "reminder_off",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "d729d1548c06f155e3338cfa7bf012b88e28ebe675f9ef265363767a0d225a1d",
+    "case_id": "pilot_037",
+    "arm": "reminder_on",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "c2eed4564d0eb0e136fc021456c4efd250ff8cd62849ac5934be394e154fda55",
+    "case_id": "pilot_024",
+    "arm": "reminder_on",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "c2eed4564d0eb0e136fc021456c4efd250ff8cd62849ac5934be394e154fda55",
+    "case_id": "pilot_024",
+    "arm": "reminder_off",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "0759411e95938ccc7352d96db388ae9311a76c5c560c806c77ced1b2575d0fb5",
+    "case_id": "pilot_017",
+    "arm": "reminder_off",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "0759411e95938ccc7352d96db388ae9311a76c5c560c806c77ced1b2575d0fb5",
+    "case_id": "pilot_017",
+    "arm": "reminder_on",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "4b41b56a23ba79dc0e9580d0cb4d6796094375173f1a9435009a433eeb09ecc4",
+    "case_id": "pilot_013",
+    "arm": "reminder_on",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "4b41b56a23ba79dc0e9580d0cb4d6796094375173f1a9435009a433eeb09ecc4",
+    "case_id": "pilot_013",
+    "arm": "reminder_off",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "c69ec8b6ed377fe28437aad667d9ff4a09cd77df7a367326e3131e81d0650b63",
+    "case_id": "pilot_001",
+    "arm": "reminder_off",
+    "trial": 1
+  },
+  {
+    "packet_sha256": "c69ec8b6ed377fe28437aad667d9ff4a09cd77df7a367326e3131e81d0650b63",
+    "case_id": "pilot_001",
+    "arm": "reminder_on",
+    "trial": 1
+  }
+]

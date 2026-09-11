@@ -1,0 +1,30 @@
+{
+  "observed_at": "2026-09-11T02:48:42.651920+00:00",
+  "scope": "Observed after SciFact and during first Bright-Pro indexing; not a before-run record for those runs. Later runners record before/after.",
+  "environment": {
+    "python": "3.13.5 (main, Jun 12 2025, 12:22:43) [Clang 20.1.4 ]",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cpu_count": 16,
+    "packages": {
+      "numpy": "2.5.2",
+      "ollama": "0.6.2",
+      "qdrant-client": "1.19.0",
+      "tokenizers": "0.23.2",
+      "pyarrow": "21.0.0",
+      "pytrec-eval-terrier": "0.5.10",
+      "torch": "2.14.0",
+      "transformers": "5.16.1"
+    },
+    "ollama_server_version": "0.33.2",
+    "qdrant_server": {
+      "version": "1.19.0",
+      "commit": "74f3e85b9473c62560006c043e13737ce6b48412"
+    },
+    "thread_settings": {
+      "OMP_NUM_THREADS": null,
+      "MKL_NUM_THREADS": null,
+      "TOKENIZERS_PARALLELISM": null
+    }
+  }
+}

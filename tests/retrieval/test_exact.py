@@ -21,8 +21,8 @@ def test_exact_empty_scope_and_invalid_pattern(exact):
 
 
 @pytest.mark.parametrize('body, query, regex, expected', [
-    ('中文 foo foo', 'foo', False, [(3, 6), (7, 10)]),
-    ('\ufeff中文 foo', 'foo', False, [(4, 7)]),
+    ('éø foo foo', 'foo', False, [(3, 6), (7, 10)]),
+    ('\ufefféø foo', 'foo', False, [(4, 7)]),
     ('first\nphrase\nlast', 'first\nphrase', False, [(0, 12)]),
     ('first\nphrase\nlast', r'first\nphrase', True, [(0, 12)]),
     ('foo\nfoo', '^', True, [(0, 0), (4, 4)]),

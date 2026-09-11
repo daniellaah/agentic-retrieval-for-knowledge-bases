@@ -1,0 +1,13 @@
+{
+  "archive": "p4-t2-20260910.tar.gz",
+  "sha256": "26f3c255ef3212184fb288db4bb6332f2d1f5038b2a5e4df218ae73f8532ae2c",
+  "bytes": 136707615,
+  "files": 176,
+  "runs": [
+    "p4-t2-lexical",
+    "p4-t2-indexed"
+  ],
+  "omitted_files": 1,
+  "scope": "Offline score and ranking-assembly replay. Includes full normalized corpus, frozen measured source, raw candidates/observations and official metric source. Model weights and SQLite/Qdrant caches are omitted; generating new model outputs requires rebuilding them.",
+  "release_eligible": false
+}

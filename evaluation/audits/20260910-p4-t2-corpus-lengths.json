@@ -1,0 +1,15 @@
+{
+  "dataset": "t2",
+  "corpus_sha256": "5dbc7e91dbdf6e544f4142b4836fedf32f2ec5ba2bc804a96ea09bed552e67f4",
+  "units": 118605,
+  "total_body_characters": 103793420,
+  "mean_body_characters": 875.1184182791619,
+  "quantiles": {
+    "0.5": 469.0,
+    "0.9": 1866.0,
+    "0.95": 3068.0,
+    "0.99": 6347.879999999976,
+    "1": 42957.0
+  },
+  "scope": "Character lengths of the full normalized original units; not tokenizer lengths or query relevance."
+}

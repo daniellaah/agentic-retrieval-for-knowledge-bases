@@ -1,0 +1,48 @@
+{
+  "schema": "arkb-p4-posthoc-format-sensitivity-v1",
+  "status": "posthoc_diagnostic_not_primary_score",
+  "policy": "Keep all strict-valid outputs and nonfinal failures. For a strict-invalid final only, extract exactly one json/unlabelled fenced code block, then apply the original exact schema/source checks. No field repair or choice by gold.",
+  "counts": {
+    "kept_strict_valid": 8,
+    "kept_nonfinal": 151,
+    "extracted_unique_valid_block": 35,
+    "no_unambiguous_json_block": 6
+  },
+  "strict_metrics": {
+    "answer_f1": 0.07238095238095238,
+    "answer_em": 0.06,
+    "support_f1": 0.07333333333333333,
+    "group_answer_sufficiency_f1": 0.0,
+    "group_support_sufficiency_f1": 0.0,
+    "answerability_accuracy": 0.04,
+    "groups": 100,
+    "rows": 200
+  },
+  "diagnostic_metrics": {
+    "answer_f1": 0.21399511599511598,
+    "answer_em": 0.18,
+    "support_f1": 0.2562142857142857,
+    "group_answer_sufficiency_f1": 0.06823809523809524,
+    "group_support_sufficiency_f1": 0.08,
+    "answerability_accuracy": 0.195,
+    "groups": 100,
+    "rows": 200
+  },
+  "answerability_confusion": {
+    "true": {
+      "true": 26,
+      "undefined": 72,
+      "false": 2
+    },
+    "false": {
+      "undefined": 85,
+      "false": 13,
+      "true": 2
+    }
+  },
+  "rows_sha256": "d8dd3c8581ce29f50d522d671c9a0250089355d6e9c50654f68573b1e00a3d06",
+  "strict_predictions_sha256": "ddc0ebe4e1b209b5f992a79ed56002aff40bc9d91c74977cba13fe4a15e25709",
+  "script_sha256": "d4b55b35e2b7a28f14352f5e9c5aa4bd0ed4778c94e20d60fd8c77fd249c34d4",
+  "limits": "A diagnostic on already exposed outputs; not a new model run, predeclared benchmark result, causal model improvement or reviewed semantic quality.",
+  "release_eligible": false
+}

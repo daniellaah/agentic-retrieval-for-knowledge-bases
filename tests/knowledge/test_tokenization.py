@@ -16,7 +16,7 @@ def tokenizer_cache(tmp_path: Path) -> Path:
         models.WordLevel(
             {
                 "[UNK]": 0, "a": 1, "b": 2, "é": 3, "e": 4,
-                "\u0301": 5, "中": 6, "文": 7, "<|endoftext|>": 8,
+                "\u0301": 5, "<|endoftext|>": 6,
             },
             unk_token="[UNK]",
         )
@@ -26,7 +26,7 @@ def tokenizer_cache(tmp_path: Path) -> Path:
     backend.add_special_tokens(["<|endoftext|>"])
     backend.post_processor = processors.TemplateProcessing(
         single="$A <|endoftext|>",
-        special_tokens=[("<|endoftext|>", 8)],
+        special_tokens=[("<|endoftext|>", 6)],
     )
     snapshot = (
         tmp_path / "models--Qwen--Qwen3-Embedding-0.6B" / "snapshots"
@@ -44,8 +44,8 @@ def test_load_tokenizer_reads_the_pinned_snapshot_offline(tokenizer_cache: Path)
 
 
 @pytest.mark.parametrize(
-    ("text", "expected"), [("", 0), ("ab", 2), ("中文", 2), ("a" * 512, 512)],
-    ids=["empty", "text", "chinese", "512-tokens"],
+    ("text", "expected"), [("", 0), ("ab", 2), ("a" * 512, 512)],
+    ids=["empty", "text", "512-tokens"],
 )
 def test_count_tokens_measures_text_without_end_markers(
     tokenizer_cache: Path, text: str, expected: int

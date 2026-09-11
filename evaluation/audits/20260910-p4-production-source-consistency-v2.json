@@ -1,0 +1,120 @@
+{
+  "passed": true,
+  "files": {
+    "__init__.py": "7c59091739862daa280f33a33d9f707eb28234472949efc32fe76beaf5d54a9b",
+    "agent/__init__.py": "cf0d36a1697d5e33839333f8f995722e5236584b3c8768d2ae7f9948c388bee1",
+    "agent/loop.py": "5ef815dcdb335cdb68d53a34cb1bd941c069d72cad93a38592d525827667c066",
+    "agent/observation.py": "14b46e28db470d50646261c6b39316a86bc191ed9ee808b11661bca570f0017c",
+    "agent/state.py": "7c81ceb4770ad5949bf2fe759232e59f66ccbbecf09b9c3ff3d68f9204e7c638",
+    "agent/tools.py": "42b36b66f44c3b988b2af7a45dc17e4fefa2b870f28e7f26917a7daca8ab8857",
+    "config.py": "7cd39b42294dd085ff608c2908a7ce179e7839c0ef89ad2e96734b106684c81c",
+    "generation/__init__.py": "de0f0603fbb5ecce71c15cfc172fffd531411402c906f28173d40cfac050bd5c",
+    "generation/citations.py": "dfa86c93faba21627ae96d8a000dfd66421b43349a20ee336574f1bd64acdede",
+    "generation/context.py": "3d7a7b8487a2d1e20b2b6a476540f8425aac19889888e16db0334f67b86fc8f8",
+    "generation/generate.py": "a2d5c6855fa2b6d936b177a9c61ea74d8c5d3d50fd6924a31d1b4e2c8712712a",
+    "generation/models.py": "fc5212575990b812b4643e58445f65c119c5ac3723bbb88a2b005468043e88d8",
+    "interfaces/__init__.py": "947d2633806fa7d1c2446d3e1c4f5e81b777674e338f4e333f67ae479fa4ed2a",
+    "interfaces/cli.py": "7d7c0896cfa58ba46223b0cb16cce54be565c48f8d0a8ccbeb741ad8364ac800",
+    "knowledge/__init__.py": "4c59985ed6fd4eead38b369da817a47d103c86bf9d83b28481122349f4731913",
+    "knowledge/chunking.py": "30262c30540d14ce835fc274ea22f7795dfee4abc783fb0a58f6dbf71c36d23a",
+    "knowledge/documents.py": "cc984693ecf11527244fcd5c71434667592304ea5f8452242872e9988a94260e",
+    "knowledge/embeddings.py": "703b427358631dfc5285ca4e8494a20a885e84f8538080097a4abfd1bfd3863a",
+    "knowledge/indexing.py": "3e4a10b052cf99e066cb4d2bd75cbfee050b20636435668c1bb970c6f3868643",
+    "knowledge/models.py": "3fdec6de8e3902fe9509d49caf9aae51c0b933aaa84e68446b80216ac2b9e6a8",
+    "knowledge/qdrant.py": "57cc7f73891095708bfff20fa172d6dfcd1f5febd9b7fa928ffba9bc4b4ccb8e",
+    "knowledge/sqlite.py": "8be35c8bc299bb2ac260fc3053514fcaa30ed97a0ef972cb87f2815b4efa1804",
+    "retrieval/__init__.py": "08fca8a6854643174bae4f3058e6777f01a8b28f49696a2aa3758905f42d0a2a",
+    "retrieval/bm25.py": "ec5ce923af2df4c013a4499c703357124c35bc681c9ef4066084eba23e7fdca6",
+    "retrieval/engine.py": "bb2df8afe2bdb4dd3045d68c1adad8dcd1b87883158781398fad94481cb4b47c",
+    "retrieval/exact.py": "ab798cbe3ff0939c4dddbc16f8b0949ae322b6b503e24d04b93a4a9b8817ac1a",
+    "retrieval/hybrid.py": "4c68635956179a0eb508dd41e0c0d6e29d1b3a34be796a36d9c1fe02cb5ac7fa",
+    "retrieval/models.py": "822682c84a2918edaf072994e7767b2da0a43b89cfd4a6a8e04810a7dc07a3dd",
+    "retrieval/qwen_rerank.py": "fe5af4ffffb00908a82f7bd9b8cc40fd3706e33590c8d80534ed2b4c1137348c",
+    "retrieval/rerank.py": "b2fc26e9cafa1de689965e306b109f5f5d0db3d5a6da988f72eda4e80d6369b3",
+    "retrieval/semantic.py": "47e60a65ab2ec2b45cc744b7195557570ca7b93a8ef06466a5c4a02a3d65307b",
+    "runtime.py": "ece975e1e02e78dc76c7efac238a44c8b492bc6b51a226eba6c2eceb33dce327"
+  },
+  "runs": {
+    "evaluation/results/p4-scifact-lexical": {
+      "status": "completed",
+      "identical_production_files": 32,
+      "experiment_sha256": "8dd868a8f232cd3b879d4f85748e50ae11d80b53d05820015052040e2b629295",
+      "checksums_sha256": "210b907bbd8e523854f9177e36c916129a7b8959b83234a036ff3aada3b974a2"
+    },
+    "evaluation/results/p4-scifact-indexed": {
+      "status": "completed",
+      "identical_production_files": 32,
+      "experiment_sha256": "9e05b451c39728110869d83bf2d38fe87be88b61724848ee60e518de2dd6ab5a",
+      "checksums_sha256": "7082f66b8651922d196296149a1972e0369ba6444a2b5c198b1d4f40a69ca673"
+    },
+    "evaluation/results/p4-bright-stackoverflow-lexical": {
+      "status": "completed",
+      "identical_production_files": 32,
+      "experiment_sha256": "982a3eba7f380760fa2e1f77ad8957f43300c0d4dfff47bd9466602b6b22fe69",
+      "checksums_sha256": "f6dcd083ee31612ee27e60b2dbef4fd039f571b6eea9a5f8c6a911a1798cc336"
+    },
+    "evaluation/results/p4-bright-stackoverflow-indexed": {
+      "status": "completed",
+      "identical_production_files": 32,
+      "experiment_sha256": "4f71d0fe25922089bfe82a54c2d22033c0ee50e9068404f6dd98b9b3eb6ee7f9",
+      "checksums_sha256": "4b4901f9ffdb7b3d407fc5fa1f7c68c6d58179bcfbc9d780b1d218922f56bc54"
+    },
+    "evaluation/results/p4-bright-robotics-lexical": {
+      "status": "completed",
+      "identical_production_files": 32,
+      "experiment_sha256": "aeb58a73c5764becd397c65152dcdf92895b809789b73ade60e6e0182c05fb21",
+      "checksums_sha256": "76bd11e1f258aead787a49778286029e14468aa765f0af222e723b96ae3b0fc5"
+    },
+    "evaluation/results/p4-bright-robotics-indexed": {
+      "status": "completed",
+      "identical_production_files": 32,
+      "experiment_sha256": "bbfec7ed8d5116a82d3d1e8cef0dc109466078dcf5ca5a18ef69cb5e54a99f5e",
+      "checksums_sha256": "6c0dc2518d6b74c3617a04ae8ac2040cdb0eb1ff1feb507c139ed1da28454fc0"
+    },
+    "evaluation/results/p4-t2-lexical": {
+      "status": "completed",
+      "identical_production_files": 32,
+      "experiment_sha256": "5f7e7443b61a8e756461bffa7f7103a019a26262a11c59da9efad34a10a91f17",
+      "checksums_sha256": "bc2ff46f1394f4a1c7f08ab9ad9b25d4595f88fda87a8564568a3895164f673a"
+    },
+    "evaluation/results/p4-t2-indexed": {
+      "status": "completed",
+      "identical_production_files": 32,
+      "experiment_sha256": "899cc361d4eb8127715e5c9d5d07e721b349504d0713f3d18e856d33775d250d",
+      "checksums_sha256": "a8d2eb4254f63bde77410993db087fbd0bd4b37efbaaa2c90876b1ee8062d1b5"
+    },
+    "evaluation/results/p4-bright-stackoverflow-agent-v2": {
+      "status": "completed",
+      "identical_production_files": 32,
+      "experiment_sha256": "23301504848916437dcd5667f38d44f7ff28c515477dc19a8012f40b4583de97",
+      "checksums_sha256": "c18cad4cae83817a6595eb86b6cf40ce88ca065b5e3b42bf675d51af634ec879"
+    },
+    "evaluation/results/p4-bright-robotics-agent-v2": {
+      "status": "completed",
+      "identical_production_files": 32,
+      "experiment_sha256": "b2d2b2d97ddbbd851606429478c1b5e65ad4806240d45f2e301056a346c83ba3",
+      "checksums_sha256": "0026cdb940ffab035cecbfae5f88ad4531d4b7a03439d2577162b7f7b2d85490"
+    },
+    "evaluation/results/p4-musique-agent-v3": {
+      "status": "completed",
+      "identical_production_files": 32,
+      "experiment_sha256": "4b8d44ebe1305f175d83800d005b014adf1cb3dd54007dd7e240bef70c4d60ad",
+      "checksums_sha256": "cbacb1c513b959108a7983ca84980c1485e4c530be9fd9c00b2ecdf1e2be8082"
+    },
+    "evaluation/results/p4-bright-stackoverflow-agent": {
+      "status": "failed",
+      "identical_production_files": 32,
+      "experiment_sha256": "5170e05edb26000e0058bffaa8965e07bdccd674d86e7eaad1973ccb375f8adf",
+      "checksums_sha256": "9ce661d2c7d54df79b7506e93c3f65e046894fa674a15a649eb44e712f78bb08"
+    },
+    "evaluation/results/p4-musique-agent-v2": {
+      "status": "failed",
+      "identical_production_files": 32,
+      "experiment_sha256": "f07a798d849673a6beaf20f9b4ca95ffa6c4f28efd5404f12140ce5a14d4e83b",
+      "checksums_sha256": "7620f4edeafb0c96620fce11c99030f31db5b517e89a2e757f142077a955ffbe"
+    }
+  },
+  "audit_sha256": "20fdd6c2fa4989060ba95ad71bb0bd388fc036a3c132ee651ea4da64e914725b",
+  "scope": "Exact production Python source inventory and byte identity across current source and retained terminal attempts. Evaluation instrumentation is excluded; the original failed attempt remains failed.",
+  "release_eligible": false
+}

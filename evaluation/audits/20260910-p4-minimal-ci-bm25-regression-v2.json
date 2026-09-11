@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "archive_sha256": "4df11fa697de47e7a1eb5033735f8c0bb08e9ac84c2c49fb9aa24699eeba12f9",
+  "dataset": "scifact",
+  "corpus_units": 5183,
+  "queries": 300,
+  "changed_queries": 0,
+  "deltas": [],
+  "metric_absolute_tolerance": 1e-12,
+  "metric_max_absolute_error": 0.0,
+  "current_bm25_sha256": "ec5ce923af2df4c013a4499c703357124c35bc681c9ef4066084eba23e7fdca6",
+  "scope": "Current-code native-unit BM25 ranking/metric regression on public development data; no model calls or release-quality certification.",
+  "release_eligible": false
+}

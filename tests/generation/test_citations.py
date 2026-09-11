@@ -13,7 +13,7 @@ def source(source_id='S1', *, content='A fact.', start=0):
 
 
 def test_contract_preserves_unicode_coordinates_and_snapshot_identity():
-    s = source(content='条件 e\u0301 🧠', start=7)
+    s = source(content='condition e\u0301 🧠', start=7)
     assert s.end_char == 7 + len(s.content)
     assert s.origins[0].document_revision == 'rev'
     with pytest.raises(FrozenInstanceError):
@@ -54,10 +54,10 @@ def test_contradictory_answer_states_are_rejected(status, claims, missing):
 
 
 def test_serialization_separates_facts_missing_information_and_validation():
-    answer = CitedAnswer('partial', (Claim('条件。', ('S2', 'S1')),), ('缺少延迟数据。',))
+    answer = CitedAnswer('partial', (Claim('condition.', ('S2', 'S1')),), ('Latency data is missing.',))
     assert json.loads(json.dumps(answer.to_dict())) == {
-        'status': 'partial', 'claims': [{'text': '条件。', 'source_ids': ['S2', 'S1']}],
-        'missing_information': ['缺少延迟数据。'],
+        'status': 'partial', 'claims': [{'text': 'condition.', 'source_ids': ['S2', 'S1']}],
+        'missing_information': ['Latency data is missing.'],
     }
     assert CitationValidation().to_dict()['support_status'] == 'not_checked'
     assert Claim('Uncited fact', ()).source_ids == ()

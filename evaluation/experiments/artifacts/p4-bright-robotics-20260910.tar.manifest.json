@@ -1,0 +1,14 @@
+{
+  "archive": "p4-bright-robotics-20260910.tar.gz",
+  "sha256": "632b45891fe7f33bd56ea67a18a502ccf3bb388c8606b68aada5d48053cff18a",
+  "bytes": 24128321,
+  "files": 247,
+  "runs": [
+    "p4-bright-robotics-lexical",
+    "p4-bright-robotics-indexed",
+    "p4-bright-robotics-agent-v2"
+  ],
+  "omitted_files": 1,
+  "scope": "Offline score and ranking-assembly replay. Includes full normalized corpus, frozen measured source, raw candidates/observations and official metric source. Model weights and SQLite/Qdrant caches are omitted; generating new model outputs requires rebuilding them.",
+  "release_eligible": false
+}

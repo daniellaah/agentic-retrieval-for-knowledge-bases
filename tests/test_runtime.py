@@ -153,7 +153,7 @@ def test_agent_vertical_slice_uses_real_tools_and_retrieval_over_multiple_turns(
                            read_found_document, follow_reference, finish_with_evidence)
     with Runtime() as runtime:
         tools = runtime.agent_tools(engine=engine, directory=tmp_path, vault_id='v', mode='bm25')
-        result = runtime.run_agent('帮我找一些写 Agent Memory 的素材', tools=tools, client=client, max_turns=4)
+        result = runtime.run_agent('Find material about Agent Memory', tools=tools, client=client, max_turns=4)
     assert result.stop_reason == 'final'
     assert result.state.turn == 4
     assert [c['function']['name'] for c in result.state.tool_calls] == ['search', 'read', 'search']

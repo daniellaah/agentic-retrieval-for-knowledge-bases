@@ -20,7 +20,7 @@ _LIST = re.compile(r"^( {0,3})(?:[-+*]|\d{1,9}[.)])[ \t]+", re.MULTILINE)
 _SEPARATORS = tuple(re.compile(pattern) for pattern in (
     r"\r?\n[ \t]*\r?\n",                 # Paragraphs, including blank lines.
     r"\r?\n",                           # Lines, including their terminators.
-    r"[。！？]+[ \t]*|[.!?]+(?:[ \t]+|(?=$))",
+    r"[.!?]+(?:[ \t]+|(?=$))",           # Sentence punctuation.
     r"[ \t]+",
 ))
 

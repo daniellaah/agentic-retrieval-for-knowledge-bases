@@ -1,0 +1,120 @@
+{
+  "protocol_version": "p3-controlled-dev-v1",
+  "dataset": "evaluation/data/v2/pilot",
+  "dataset_manifest_sha256": "aebb441dd068b5b0335d031afc5c4900b8acbe819198612355d2866ff816c3d7",
+  "embedding_model": "qwen3-embedding:0.6b",
+  "agent_model": "qwen3.5:4b",
+  "component": {
+    "selection": "All cases except exact_lookup, direct_read, no_retrieval; 46 known dev queries, including 3 undefined evidence denominators.",
+    "excluded_tasks": [
+      "exact_lookup",
+      "direct_read",
+      "no_retrieval"
+    ],
+    "planned_queries": 46,
+    "planned_rows": 184,
+    "retrieval": "Qdrant exact=True; freeze each BM25/semantic top-40 ranking once, derive nested prefixes. This isolates depth from ANN candidate instability; not an ANN latency comparison.",
+    "max_leg_depth": 40,
+    "fusion_pool_size": 20,
+    "rrf_k": 60,
+    "top_k": 10,
+    "rerank_leg_depth": 20,
+    "reranker_max_length": 512,
+    "arms": {
+      "depth10": {
+        "leg_depth": 10,
+        "rerank": false
+      },
+      "depth20": {
+        "leg_depth": 20,
+        "rerank": false
+      },
+      "depth40": {
+        "leg_depth": 40,
+        "rerank": false
+      },
+      "depth20_rerank": {
+        "leg_depth": 20,
+        "rerank": true
+      }
+    },
+    "primary_comparison": [
+      "depth20",
+      "depth40"
+    ],
+    "secondary_comparisons": [
+      [
+        "depth10",
+        "depth20"
+      ],
+      [
+        "depth20",
+        "depth20_rerank"
+      ]
+    ],
+    "primary_metric": "equal-family mean draft evidence coverage in returned top-10 chunks",
+    "minimum_effect": 0.03,
+    "diagnostics": "Coverage before fusion truncation, in the fixed 20-candidate pool, and top-10; facet losses and qrel assessment coverage. No final-answer quality inference."
+  },
+  "stopping": {
+    "cases": [
+      "pilot_001",
+      "pilot_013",
+      "pilot_017",
+      "pilot_024",
+      "pilot_037",
+      "pilot_040",
+      "pilot_049",
+      "pilot_053",
+      "pilot_054",
+      "pilot_055",
+      "pilot_056",
+      "pilot_057"
+    ],
+    "selection": "Known dev diagnostics: evidence discovery, exploration, bridge family, direct read, absent/partial/ambiguous evidence, no retrieval. Not random or representative. Selected before this run.",
+    "arms": {
+      "reminder_on": true,
+      "reminder_off": false
+    },
+    "trials": 2,
+    "planned_rows": 48,
+    "think": true,
+    "max_turns": 8,
+    "budget": {
+      "max_tool_calls": 12,
+      "max_query_calls": 10,
+      "max_read_calls": 6,
+      "max_evidence_tokens": 4000,
+      "max_elapsed_ms": 120000
+    },
+    "order": "Trial 0 forward case order, trial 1 reverse; alternate first arm by original case position plus trial (each case starts with the opposite arm on its second trial). Independent fresh conversations, serial inference, temperature 0; no added seed or retries.",
+    "primary_comparison": [
+      "reminder_off",
+      "reminder_on"
+    ],
+    "diagnostic_metrics": [
+      "normal_final_fraction",
+      "evidence_delivery_proxy",
+      "executed_tools",
+      "provider_output_tokens",
+      "calls_after_label_threshold",
+      "reminder_exposure"
+    ],
+    "minimum_relative_tool_saving": 0.1,
+    "quality_noninferiority_margin": 0.02,
+    "quality_gate": "Needs independent reviewed grounded success on held-out families. Unknown semantics cannot pass the noninferiority gate; normal final and coverage are diagnostics only.",
+    "time_policy": "Cooperative loop deadline, no cancellation of in-flight requests. Uncontrolled load/cache; no production latency claim."
+  },
+  "statistics": {
+    "seed": 20260910,
+    "resamples": 10000,
+    "aggregation": "trial mean, then case mean within family, then equal family weights",
+    "secondary_intervals": "Exploratory, unadjusted; no multiplicity-controlled superiority claim."
+  },
+  "decision_policy": "Continue only as a dev candidate if the preregistered effect is observed without an adverse diagnostic; reject a measured ineffective change for this round; otherwise evidence_insufficient. Production adoption additionally requires reviewed independent validation/test and cost evidence.",
+  "release_eligible": false,
+  "model_digests": {
+    "qwen3.5:4b": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+    "qwen3-embedding:0.6b": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d"
+  }
+}

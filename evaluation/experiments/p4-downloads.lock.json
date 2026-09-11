@@ -1,0 +1,167 @@
+{
+  "schema": "arkb-p4-download-lock-v1",
+  "files": {
+    "scifact/README.md": {
+      "url": "https://huggingface.co/datasets/BeIR/scifact/resolve/b3b5335604bf5ee3c4447671af975ea25143d4f5/README.md",
+      "sha256": "b5f57be1839fdb75867073986a019a78afe0a149950f79d1165509efc5e5cf2f",
+      "bytes": 10407,
+      "revision": "b3b5335604bf5ee3c4447671af975ea25143d4f5"
+    },
+    "scifact/corpus/corpus-00000-of-00001.parquet": {
+      "url": "https://huggingface.co/datasets/BeIR/scifact/resolve/b3b5335604bf5ee3c4447671af975ea25143d4f5/corpus/corpus-00000-of-00001.parquet",
+      "sha256": "243324b35f03d82bd6d98a5f575966876e86cad7ce16e5333a35b1b793dc4f45",
+      "bytes": 4469916,
+      "revision": "b3b5335604bf5ee3c4447671af975ea25143d4f5"
+    },
+    "scifact/queries/queries-00000-of-00001.parquet": {
+      "url": "https://huggingface.co/datasets/BeIR/scifact/resolve/b3b5335604bf5ee3c4447671af975ea25143d4f5/queries/queries-00000-of-00001.parquet",
+      "sha256": "1c37956c5dc8b810b60302323c24d1a9e79e26411ba8f5ad9d0888642e2a9034",
+      "bytes": 64982,
+      "revision": "b3b5335604bf5ee3c4447671af975ea25143d4f5"
+    },
+    "scifact-qrels/README.md": {
+      "url": "https://huggingface.co/datasets/BeIR/scifact-qrels/resolve/2938d17dc3b09882fdb8c12bbbe2e2dc0e75a029/README.md",
+      "sha256": "fd34a2830e557f1e32d46d0b34a218d280c9800ee4071579610d4ff587b4fd45",
+      "bytes": 13995,
+      "revision": "2938d17dc3b09882fdb8c12bbbe2e2dc0e75a029"
+    },
+    "scifact-qrels/test.tsv": {
+      "url": "https://huggingface.co/datasets/BeIR/scifact-qrels/resolve/2938d17dc3b09882fdb8c12bbbe2e2dc0e75a029/test.tsv",
+      "sha256": "0864bb985e0ca2367ba217977e72004d549054b2b06666ed9d4825ac7c21284c",
+      "bytes": 5389,
+      "revision": "2938d17dc3b09882fdb8c12bbbe2e2dc0e75a029"
+    },
+    "bright-pro/README.md": {
+      "url": "https://huggingface.co/datasets/yale-nlp/Bright-Pro/resolve/dbdc22babbef310210e267b99249e7cec86d5edf/README.md",
+      "sha256": "f59f4da6fec95fb054a7516c4900a58d8c081db8709ac18d96d9ed24371417c9",
+      "bytes": 7750,
+      "revision": "dbdc22babbef310210e267b99249e7cec86d5edf"
+    },
+    "bright-pro/LICENSE": {
+      "url": "https://huggingface.co/datasets/yale-nlp/Bright-Pro/resolve/dbdc22babbef310210e267b99249e7cec86d5edf/LICENSE",
+      "sha256": "ea26157247c4427088571cca6af8ba793acefd9b4c8cfb1d82696b63ded375cb",
+      "bytes": 1065,
+      "revision": "dbdc22babbef310210e267b99249e7cec86d5edf"
+    },
+    "bright-pro/examples/stackoverflow.parquet": {
+      "url": "https://huggingface.co/datasets/yale-nlp/Bright-Pro/resolve/dbdc22babbef310210e267b99249e7cec86d5edf/examples/stackoverflow.parquet",
+      "sha256": "fd6c1a2fdcd9fc24298f51fda9d3ff674954ebd5e4c73bf428895ed8a4eb1c2b",
+      "bytes": 147842,
+      "revision": "dbdc22babbef310210e267b99249e7cec86d5edf"
+    },
+    "bright-pro/aspects/stackoverflow.parquet": {
+      "url": "https://huggingface.co/datasets/yale-nlp/Bright-Pro/resolve/dbdc22babbef310210e267b99249e7cec86d5edf/aspects/stackoverflow.parquet",
+      "sha256": "345352a89387d8376c2d56177352b26ea0abd6bb744dd2631a87cf5c35789475",
+      "bytes": 30732,
+      "revision": "dbdc22babbef310210e267b99249e7cec86d5edf"
+    },
+    "bright-pro/documents/stackoverflow.parquet": {
+      "url": "https://huggingface.co/datasets/yale-nlp/Bright-Pro/resolve/dbdc22babbef310210e267b99249e7cec86d5edf/documents/stackoverflow.parquet",
+      "sha256": "228d4e1ba911f3e6dece9d21998ecca64400f3654a9a9edd2ec226dbbd34a80d",
+      "bytes": 25186370,
+      "revision": "dbdc22babbef310210e267b99249e7cec86d5edf"
+    },
+    "bright-pro/examples/robotics.parquet": {
+      "url": "https://huggingface.co/datasets/yale-nlp/Bright-Pro/resolve/dbdc22babbef310210e267b99249e7cec86d5edf/examples/robotics.parquet",
+      "sha256": "3d430a438fae5b60d7b7d74764ac137f8cd109e51cb355b0514789d86e65c6a1",
+      "bytes": 149169,
+      "revision": "dbdc22babbef310210e267b99249e7cec86d5edf"
+    },
+    "bright-pro/aspects/robotics.parquet": {
+      "url": "https://huggingface.co/datasets/yale-nlp/Bright-Pro/resolve/dbdc22babbef310210e267b99249e7cec86d5edf/aspects/robotics.parquet",
+      "sha256": "a1f47cd5922b7a9c1938098e171b3abe1a53542bee0b0c4a2bbc682e9c32e7e1",
+      "bytes": 30355,
+      "revision": "dbdc22babbef310210e267b99249e7cec86d5edf"
+    },
+    "bright-pro/documents/robotics.parquet": {
+      "url": "https://huggingface.co/datasets/yale-nlp/Bright-Pro/resolve/dbdc22babbef310210e267b99249e7cec86d5edf/documents/robotics.parquet",
+      "sha256": "aa6447c8d602054528432887d347ddd46660a2dea5cb62eba047a4db0612d25e",
+      "bytes": 8675305,
+      "revision": "dbdc22babbef310210e267b99249e7cec86d5edf"
+    },
+    "musique.zip": {
+      "url": "https://drive.usercontent.google.com/download?id=1tGdADlNjWFaHLeZZGShh2IRcpO6Lv24h&export=download&confirm=t",
+      "sha256": "98f839bf2fd5319f5c688aed77901a6d5c30b3b9f9f691ab9a8ecafb045ee0cd",
+      "bytes": 272049578,
+      "revision": null
+    },
+    "licenses/scifact.md": {
+      "url": "https://raw.githubusercontent.com/allenai/scifact/68b98a56d93e0f9da0d2aab4e6c3294699a0f72e/LICENSE.md",
+      "sha256": "56ee69bc639cbab8f0b2e4b67091ec5e9390aa99a1d65f0a35e4274686c9a806",
+      "bytes": 542,
+      "revision": "68b98a56d93e0f9da0d2aab4e6c3294699a0f72e"
+    },
+    "licenses/musique-readme.md": {
+      "url": "https://raw.githubusercontent.com/StonyBrookNLP/musique/922ac98f19a201998dbdae6d7f2887a5258dbdeb/README.md",
+      "sha256": "7a3fb6a960f3fa122d2a1a81b73b9cf5a39ac983b11735d158490947960b9359",
+      "bytes": 48623,
+      "revision": "922ac98f19a201998dbdae6d7f2887a5258dbdeb"
+    },
+    "bright-pro-source-tree.json": {
+      "url": "https://api.github.com/repos/yale-nlp/Bright-Pro/git/trees/5df9e9baf5a0525a2b962d73f213c9dee63c5f3e?recursive=1",
+      "sha256": "c9681bd5265e8b1f0db17a5bac315ad75923c5a8d3cc733c96b674e454089b56",
+      "bytes": 72758,
+      "revision": "5df9e9baf5a0525a2b962d73f213c9dee63c5f3e"
+    },
+    "official/bright-pro/retrieval/evaluation/alpha-ndcg-evaluation.py": {
+      "url": "https://raw.githubusercontent.com/yale-nlp/Bright-Pro/5df9e9baf5a0525a2b962d73f213c9dee63c5f3e/retrieval/evaluation/alpha-ndcg-evaluation.py",
+      "sha256": "f6846aae5791547227c59694a80edb08e0681912f7717517eed5545117076216",
+      "bytes": 13580,
+      "revision": "5df9e9baf5a0525a2b962d73f213c9dee63c5f3e"
+    },
+    "official/bright-pro/retrieval/evaluation/weighted_aspect_recall.py": {
+      "url": "https://raw.githubusercontent.com/yale-nlp/Bright-Pro/5df9e9baf5a0525a2b962d73f213c9dee63c5f3e/retrieval/evaluation/weighted_aspect_recall.py",
+      "sha256": "26b5605f728181cb4bef5db05a157860f6af0dc3287af362e533961610665b87",
+      "bytes": 11503,
+      "revision": "5df9e9baf5a0525a2b962d73f213c9dee63c5f3e"
+    },
+    "official/bright-pro/agentic_sample_ids.json": {
+      "url": "https://raw.githubusercontent.com/yale-nlp/Bright-Pro/5df9e9baf5a0525a2b962d73f213c9dee63c5f3e/agentic_sample_ids.json",
+      "sha256": "f8d83042a905c039c3648288bd2f7d48bc1f96d92e332545e17c81ce390dcd28",
+      "bytes": 2339,
+      "revision": "5df9e9baf5a0525a2b962d73f213c9dee63c5f3e"
+    },
+    "official/musique/evaluate_v1.0.py": {
+      "url": "https://raw.githubusercontent.com/StonyBrookNLP/musique/922ac98f19a201998dbdae6d7f2887a5258dbdeb/evaluate_v1.0.py",
+      "sha256": "f5fe66ae61dbea5172cba9d428d9924a5811f3457edc945fc1d81369c30e74b7",
+      "bytes": 4606,
+      "revision": "922ac98f19a201998dbdae6d7f2887a5258dbdeb"
+    },
+    "official/musique/metrics/answer.py": {
+      "url": "https://raw.githubusercontent.com/StonyBrookNLP/musique/922ac98f19a201998dbdae6d7f2887a5258dbdeb/metrics/answer.py",
+      "sha256": "10368f619b4d5ef5d83748c05a96c0afd332a14ab5c010740c98d58dfaefe974",
+      "bytes": 2837,
+      "revision": "922ac98f19a201998dbdae6d7f2887a5258dbdeb"
+    },
+    "official/musique/metrics/support.py": {
+      "url": "https://raw.githubusercontent.com/StonyBrookNLP/musique/922ac98f19a201998dbdae6d7f2887a5258dbdeb/metrics/support.py",
+      "sha256": "ac16c0daf458a6a4d6db97682c2340fe5b5936a947bf32c04dc3bf16406077c6",
+      "bytes": 2315,
+      "revision": "922ac98f19a201998dbdae6d7f2887a5258dbdeb"
+    },
+    "official/musique/metrics/group.py": {
+      "url": "https://raw.githubusercontent.com/StonyBrookNLP/musique/922ac98f19a201998dbdae6d7f2887a5258dbdeb/metrics/group.py",
+      "sha256": "b7bff5d19b426a353e50ad07db125fdb6fdd2660a229e1b11752b63e4ebd9087",
+      "bytes": 1152,
+      "revision": "922ac98f19a201998dbdae6d7f2887a5258dbdeb"
+    },
+    "official/musique/metrics/metric.py": {
+      "url": "https://raw.githubusercontent.com/StonyBrookNLP/musique/922ac98f19a201998dbdae6d7f2887a5258dbdeb/metrics/metric.py",
+      "sha256": "c858d1bfda2f0b005065e87a402cd2f82154eb7eed5916845ae130759cc3a299",
+      "bytes": 628,
+      "revision": "922ac98f19a201998dbdae6d7f2887a5258dbdeb"
+    },
+    "official/musique/metrics/group_answer_sufficiency.py": {
+      "url": "https://raw.githubusercontent.com/StonyBrookNLP/musique/922ac98f19a201998dbdae6d7f2887a5258dbdeb/metrics/group_answer_sufficiency.py",
+      "sha256": "6fd72646055b736cfae474eba58f7d4823ee8f539c0746bb87dd5c8208d7abcc",
+      "bytes": 2320,
+      "revision": "922ac98f19a201998dbdae6d7f2887a5258dbdeb"
+    },
+    "official/musique/metrics/group_support_sufficiency.py": {
+      "url": "https://raw.githubusercontent.com/StonyBrookNLP/musique/922ac98f19a201998dbdae6d7f2887a5258dbdeb/metrics/group_support_sufficiency.py",
+      "sha256": "ab6f9aa92243190b891d28a1787781029bd808616e347cbf325526bffcc10820",
+      "bytes": 2546,
+      "revision": "922ac98f19a201998dbdae6d7f2887a5258dbdeb"
+    }
+  }
+}

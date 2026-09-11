@@ -1,0 +1,13 @@
+{
+  "archive": "p4-scifact-20260910.tar.gz",
+  "sha256": "4df11fa697de47e7a1eb5033735f8c0bb08e9ac84c2c49fb9aa24699eeba12f9",
+  "bytes": 36453112,
+  "files": 165,
+  "runs": [
+    "p4-scifact-lexical",
+    "p4-scifact-indexed"
+  ],
+  "omitted_files": 1,
+  "scope": "Offline score and ranking-assembly replay. Includes full normalized corpus, frozen measured source, raw candidates/observations and official metric source. Model weights and SQLite/Qdrant caches are omitted; generating new model outputs requires rebuilding them.",
+  "release_eligible": false
+}

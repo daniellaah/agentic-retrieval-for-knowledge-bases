@@ -1,0 +1,69 @@
+{
+  "official": {
+    "answer_f1": 0.072,
+    "answer_em": 0.06,
+    "support_f1": 0.073,
+    "group_answer_sufficiency_f1": 0.0,
+    "group_support_sufficiency_f1": 0.0
+  },
+  "independent": {
+    "answer_f1": 0.07238095238095238,
+    "answer_em": 0.06,
+    "support_f1": 0.07333333333333333,
+    "group_answer_sufficiency_f1": 0.0,
+    "group_support_sufficiency_f1": 0.0,
+    "answerability_accuracy": 0.04,
+    "groups": 100,
+    "rows": 200
+  },
+  "by_hops": {
+    "2": {
+      "answer_f1": 0.21288515406162464,
+      "answer_em": 0.17647058823529413,
+      "support_f1": 0.2156862745098039,
+      "group_answer_sufficiency_f1": 0.0,
+      "group_support_sufficiency_f1": 0.0,
+      "answerability_accuracy": 0.11764705882352941,
+      "groups": 34,
+      "rows": 68
+    },
+    "3": {
+      "answer_f1": 0.0,
+      "answer_em": 0.0,
+      "support_f1": 0.0,
+      "group_answer_sufficiency_f1": 0.0,
+      "group_support_sufficiency_f1": 0.0,
+      "answerability_accuracy": 0.0,
+      "groups": 33,
+      "rows": 66
+    },
+    "4": {
+      "answer_f1": 0.0,
+      "answer_em": 0.0,
+      "support_f1": 0.0,
+      "group_answer_sufficiency_f1": 0.0,
+      "group_support_sufficiency_f1": 0.0,
+      "answerability_accuracy": 0.0,
+      "groups": 33,
+      "rows": 66
+    }
+  },
+  "answerability_confusion": {
+    "gold=True,predicted=True": 8,
+    "gold=False,predicted=None": 100,
+    "gold=True,predicted=None": 92
+  },
+  "match_at_official_precision": true,
+  "predictions_sha256": "ddc0ebe4e1b209b5f992a79ed56002aff40bc9d91c74977cba13fe4a15e25709",
+  "gold_sha256": "8868d58de0b5f4cebbef4df97ea9e9ed6ef1546afe532c40661acfcc89bb92c9",
+  "official_source_hashes": {
+    "official/musique/evaluate_v1.0.py": "f5fe66ae61dbea5172cba9d428d9924a5811f3457edc945fc1d81369c30e74b7",
+    "official/musique/metrics/answer.py": "10368f619b4d5ef5d83748c05a96c0afd332a14ab5c010740c98d58dfaefe974",
+    "official/musique/metrics/support.py": "ac16c0daf458a6a4d6db97682c2340fe5b5936a947bf32c04dc3bf16406077c6",
+    "official/musique/metrics/group.py": "b7bff5d19b426a353e50ad07db125fdb6fdd2660a229e1b11752b63e4ebd9087",
+    "official/musique/metrics/metric.py": "c858d1bfda2f0b005065e87a402cd2f82154eb7eed5916845ae130759cc3a299",
+    "official/musique/metrics/group_answer_sufficiency.py": "6fd72646055b736cfae474eba58f7d4823ee8f539c0746bb87dd5c8208d7abcc",
+    "official/musique/metrics/group_support_sufficiency.py": "ab6f9aa92243190b891d28a1787781029bd808616e347cbf325526bffcc10820"
+  },
+  "release_eligible": false
+}

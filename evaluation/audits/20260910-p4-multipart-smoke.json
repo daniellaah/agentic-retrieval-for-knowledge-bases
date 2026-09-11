@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "positive_replay": {
+    "archive_sha256": "4df11fa697de47e7a1eb5033735f8c0bb08e9ac84c2c49fb9aa24699eeba12f9",
+    "replayed": [
+      {
+        "run": "p4-scifact-lexical",
+        "rows_replayed": 300,
+        "reference_max_error": 1.1102230246251565e-16,
+        "release_eligible": false
+      },
+      {
+        "run": "p4-scifact-indexed",
+        "rows_replayed": 1200,
+        "reference_max_error": 1.1102230246251565e-16,
+        "rankings_reassembled": 1200,
+        "source_body_spans_verified": 6000,
+        "release_eligible": false
+      }
+    ],
+    "passed": true,
+    "scope": "No model or Qdrant calls; metric and ranking assembly integrity, not annotation truth.",
+    "release_eligible": false,
+    "multipart": {
+      "manifest_sha256": "97032383ce97c7a1f1476d07b967c4afe900a7695c2fe3119df80e28955b49d5",
+      "parts_verified": 2,
+      "archive_byte_identity": true,
+      "packager_sha256": "ee81ab3be236af2c75d271f4746cfac8cacafe82116bb3b4a26596526d565cf6"
+    }
+  },
+  "negative_case": "One byte changed in one transport part; replay rejected before archive extraction.",
+  "corruption_rejected": true,
+  "original_archive_unchanged": true,
+  "packager_sha256": "ee81ab3be236af2c75d271f4746cfac8cacafe82116bb3b4a26596526d565cf6",
+  "release_eligible": false
+}

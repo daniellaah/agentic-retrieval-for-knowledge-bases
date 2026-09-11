@@ -1,0 +1,58 @@
+{
+  "schema": "arkb-p4-posthoc-tie-policy-v1",
+  "dataset": "bright-stackoverflow",
+  "queries": 115,
+  "candidate_inputs_sha256": "00bc147f29a630738ccf73661c136b58e836440427d71fccfbaf17a6b04c83a2",
+  "measured_rows_sha256": "3ef945f9d87b76a9f93d350f6f15eebf469424369b146439a3f5f031fe32d99c",
+  "audit_sha256": "185719af788168060e509ae489a47b21565489ec798681d88e4c74075abc7952",
+  "rule": "Exact equal scores retain original frozen hybrid-pool order; all other scores and candidates are unchanged.",
+  "all_inputs_identical_queries": 30,
+  "all_scores_equal_queries": 30,
+  "queries_with_score_ties": 67,
+  "changed_rankings": 46,
+  "means": {
+    "hybrid_metrics": {
+      "ndcg@10": 0.4806525133795389,
+      "recall@10": 0.5251831501831502,
+      "mrr@10": 0.6237060041407868,
+      "ndcg@100": 0.5737278375373943,
+      "recall@100": 0.7934275627753888,
+      "mrr@100": 0.6276834654882212,
+      "alpha_ndcg@10": 0.48914166156394495,
+      "aspect_recall@10": 0.6110135516657256
+    },
+    "measured_metrics": {
+      "ndcg@10": 0.3412274648761499,
+      "recall@10": 0.41598927642405903,
+      "mrr@10": 0.4455106970324362,
+      "ndcg@100": 0.4801020583702239,
+      "recall@100": 0.7934275627753888,
+      "mrr@100": 0.45157864443320495,
+      "alpha_ndcg@10": 0.34815608557485317,
+      "aspect_recall@10": 0.4874816487859966
+    },
+    "stable_tie_metrics": {
+      "ndcg@10": 0.3988712730147078,
+      "recall@10": 0.4629457981631895,
+      "mrr@10": 0.5244858523119392,
+      "ndcg@100": 0.518191332388977,
+      "recall@100": 0.7934275627753888,
+      "mrr@100": 0.5291840024619039,
+      "alpha_ndcg@10": 0.4064704072508251,
+      "aspect_recall@10": 0.5326024217328564
+    }
+  },
+  "stable_tie_minus_measured": {
+    "ndcg@10": 0.057643808138557906,
+    "recall@10": 0.04695652173913045,
+    "mrr@10": 0.07897515527950305,
+    "ndcg@100": 0.03808927401875306,
+    "recall@100": 0.0,
+    "mrr@100": 0.07760535802869895,
+    "alpha_ndcg@10": 0.05831432167597195,
+    "aspect_recall@10": 0.045120772946859844
+  },
+  "reference_max_error": 2.220446049250313e-16,
+  "scope": "Exploratory deterministic policy replay chosen after inspecting these public-development results. No new model calls, unseen validation, human answer score, or product change. Input token equality includes all main tokens; the reserved prefix/suffix are identical constants.",
+  "release_eligible": false
+}

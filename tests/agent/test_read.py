@@ -14,7 +14,7 @@ def test_read_full_empty_and_open_ranges(tools, documents, engine):
     assert hit['document_id'] == record.document_id
     assert hit['chunk_id'] is None and hit['section_id'] is None
     assert (hit['start_char'], hit['end_char']) == (0, len(hit['content']))
-    assert tools.read(record.document_id, end_char=2)['result']['content'] == '中文'
+    assert tools.read(record.document_id, end_char=2)['result']['content'] == 'éø'
     assert tools.read(record.document_id, start_char=3)['result']['content'] == hit['content'][3:]
     assert tools.read(record.document_id, start_char=2, end_char=2)['result']['content'] == ''
     empty = next(documents.records(source='empty.md'))
@@ -72,7 +72,7 @@ def test_read_known_source_directly_without_discovery(documents, engine):
     record = next(documents.records(source='a.md'))
     assert tools.read(source='a.md') == tools.read(record.document_id)
     assert tools.read(record.document_id, source='a.md') == tools.read(record.document_id)
-    assert tools.read(source='a.md', end_char=2)['result']['content'] == '中文'
+    assert tools.read(source='a.md', end_char=2)['result']['content'] == 'éø'
     engine.search.assert_not_called()
     exact.search.assert_not_called()
 

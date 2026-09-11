@@ -1,0 +1,21 @@
+{
+  "valid": true,
+  "seed": 20260910,
+  "queries": 504,
+  "numeric_comparisons": 1946,
+  "undefined_denominators_checked": 70,
+  "max_absolute_difference": 3.3306690738754696e-16,
+  "reference_packages": {
+    "ir-measures": "0.4.3",
+    "pytrec-eval-terrier": "0.5.10"
+  },
+  "provider": "pytrec_eval",
+  "tie_rule": "unique descending scores preserve input order",
+  "adapter": "truncate run at k; binary qrels for R/RR/P; exponential qrels for linear nDCG",
+  "undefined_policy": "ARKB null vs reference zero; checked separately",
+  "source_sha256": {
+    "evaluation/audits/verify_v2_reference.py": "1abf94e87c1d9ed339eb401fabfdb846a26a83f15bf61cb27bf8feab4a633713",
+    "src/arkb/evaluation/v2.py": "66642b9d307e0cc6384109a9a9af550371171855b7c1f47633c5ce997852ccf1",
+    "src/arkb/evaluation/metrics.py": "2e3f77ef6852516fbd5c6940b44cceb7b37ff410b5475a80a7cc8a3a78bbab93"
+  }
+}

@@ -1,4 +1,37 @@
-# Agent Evaluation v1
+# Evaluation
+
+Current maintenance scope is English retrieval. Active public adapters are
+SciFact and the Bright-Pro Stack Overflow/Robotics domains, with MuSiQue as a
+separate Agent diagnostic. The default download/preparation workflow excludes
+retired tracks. Existing datasets, labels and historical results remain intact;
+they are not new English evaluation results. See the [scope cleanup](../docs/english-scope-cleanup.md).
+
+The v2 implementation and execution status is recorded in
+[Evaluation implementation progress](implementation-progress.md).
+The [P3 controlled experiment report](p3-controlled-results.md) records candidate
+depth, fixed-pool reranking and stopping-reminder comparisons (184 component +
+48 Agent rows), with [core intake readiness](data/v2/core-intake/README.md).
+Independent core gold and held-out quality validation remain pending.
+The [original public dataset study](public-dataset-selection.md) records the
+pre-cleanup selection rationale. Its language expansion recommendations are
+superseded by the current English maintenance scope.
+P4 execution is recorded in [External evaluation and regression results](p4-external-results.md).
+The public-development batch is complete: 1,016 full-corpus BM25 rows, 4,064
+indexed retrieval rows and 250 Agent attempts, with official metric checks,
+frozen archives and replay. MuSiQue strict output failures and a separate
+posthoc format diagnostic are reported explicitly. The [artifact manifest](experiments/p4-artifacts-20260910-manifest.json)
+indexes the historical delivery snapshot. Source and workflow entries describe
+that delivery, not the current checkout; their exact bytes are retained in the
+[pre-cleanup snapshot](experiments/artifacts/pre-english-scope-20260911.tar.gz).
+Human output review, independent ARKB core,
+real release holdout and remote CI execution remain pending.
+The [P2 budget and output diagnostics](p2-budget-results.md) document optional
+Agent observation/budgets, review binding and the release gate. Default Agent
+calls retain the v1 trace; opt-in budget runs may additionally stop as `budget`.
+The [v2 pilot dataset card](data/v2/pilot/README.md) describes provisional labels,
+family grouping and limits; [human review](reviews/pilot-20260910/README.md) is pending.
+The [metric specification](metric-spec.json) preserves v1 semantics and names v2
+cutoffs and evidence rules explicitly. Remaining sections on this page describe v1.
 
 For the September 2026 audit, external evaluation research, and proposed v2
 dataset/metrics/experiment roadmap, see the

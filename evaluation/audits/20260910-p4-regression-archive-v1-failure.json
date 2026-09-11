@@ -1,0 +1,9 @@
+{
+  "status": "archive_verification_failed",
+  "archive": "evaluation/experiments/artifacts/p4-regression-evidence-20260910.tar.gz",
+  "sha256": "681f863e049d84fe119f6bf7c16ec83552026ab1e7b554e005c58bc554248b09",
+  "reason": "Archive omitted SQLite WAL/SHM files that were listed in the sealed fixture checksum inventory. Raw fixture and benchmark outputs remained intact.",
+  "retained_attempt": "evaluation/results/p4-finalization-before-regression-archive-v2.json",
+  "correction": "Preserve all checksum-bound SQLite sidecar files; create and verify a new v2 archive. No model calls or scores changed.",
+  "release_eligible": false
+}

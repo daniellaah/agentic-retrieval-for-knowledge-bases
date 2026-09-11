@@ -1,0 +1,12 @@
+{
+  "archive": "p4-musique-20260910.tar.gz",
+  "sha256": "05324bf3b37b31272bbdb7bcd37199f1dbfaf1ad7dec3863208cac75324d40b1",
+  "bytes": 9153242,
+  "files": 4304,
+  "runs": [
+    "p4-musique-agent-v3"
+  ],
+  "omitted_files": 200,
+  "scope": "Offline score and ranking-assembly replay. Includes full normalized corpus, frozen measured source, raw candidates/observations and official metric source. Model weights and SQLite/Qdrant caches are omitted; generating new model outputs requires rebuilding them.",
+  "release_eligible": false
+}

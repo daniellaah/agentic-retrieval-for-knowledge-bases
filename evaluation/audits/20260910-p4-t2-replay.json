@@ -1,0 +1,7 @@
+{
+  "rows_replayed": 2000,
+  "reference_max_error": 3.3306690738754696e-16,
+  "rankings_reassembled": 2000,
+  "source_body_spans_verified": 10000,
+  "release_eligible": false
+}

@@ -1,0 +1,34 @@
+{
+  "scope": "Local macOS isolated evaluation-only environment; not a remote GitHub Actions run",
+  "created_at": "2026-09-11T02:26:21.488402+00:00",
+  "sync": "uv sync --offline --locked --extra evaluation",
+  "freshness_checks": {
+    "kind": "deterministic captured BM25/live filesystem contract",
+    "checks": {
+      "snapshot_keeps_t0_content": true,
+      "live_read_observes_t1_content": true,
+      "revisions_distinguish_stale_evidence": true,
+      "literal_match_observes_t1": true,
+      "literal_match_excludes_t0": true,
+      "snapshot_keeps_deleted_until_rebuild": true,
+      "deleted.md_old_id_rejected": true,
+      "renamed.md_old_id_rejected": true,
+      "rename_has_new_identity": true,
+      "rebuilt_removes_deleted": true,
+      "rebuilt_returns_new_content": true,
+      "rebuilt_uses_new_filename": true
+    },
+    "passed": 12,
+    "failed": 0,
+    "scope": "No claim about asynchronous freshness or vector publication latency."
+  },
+  "lock_sha256": "84636f2d52b5c5b64fc36ec9716531b581be1b19e6b1623da67d6d73693cde3c",
+  "workflow_sha256": "6e85cce235bb6973ef2c5e16c876da700f66c2f8f2a1f483777cf0c6e5444df5",
+  "tests": {
+    "passed": 1056,
+    "skipped": 1,
+    "integration_deselected": 63,
+    "elapsed_seconds": 21.68,
+    "command": "python -m pytest -q -m 'not integration'"
+  }
+}

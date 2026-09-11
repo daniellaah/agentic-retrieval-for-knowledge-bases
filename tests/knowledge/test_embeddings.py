@@ -233,8 +233,8 @@ def test_document_format_preserves_the_existing_cli_input(chunk: Chunk) -> None:
 @pytest.mark.parametrize(("title", "body", "expected"), [
     ("Title", "", "Title\n\n"),
     ("", "Body", "\n\nBody"),
-    (" 标题🧠e\u0301 ", "\r\n```py\nx = 1\n```\n ",
-     " 标题🧠e\u0301 \n\n\r\n```py\nx = 1\n```\n "),
+    (" Title🧠e\u0301 ", "\r\n```py\nx = 1\n```\n ",
+     " Title🧠e\u0301 \n\n\r\n```py\nx = 1\n```\n "),
 ])
 def test_document_preserves_empty_fields_unicode_and_markdown(
     chunk: Chunk, title: str, body: str, expected: str,
@@ -270,13 +270,13 @@ def test_default_query_preserves_the_existing_cli_input() -> None:
 
 
 def test_query_preserves_custom_instruction_and_original_question() -> None:
-    assert prepare_query("  为什么 e\u0301？\r\n", instruction=" 查找笔记。 ") == (
-        "Instruct:  查找笔记。 \nQuery:  为什么 e\u0301？\r\n"
+    assert prepare_query("  Why e\u0301?\r\n", instruction=" Find notes. ") == (
+        "Instruct:  Find notes. \nQuery:  Why e\u0301?\r\n"
     )
 
 
 def test_empty_instruction_uses_the_raw_question() -> None:
-    assert prepare_query("  原始问题？\n", instruction="") == "  原始问题？\n"
+    assert prepare_query("  Original question?\n", instruction="") == "  Original question?\n"
 
 
 @pytest.mark.parametrize("question", ["", " \r\n\t", None, 42])

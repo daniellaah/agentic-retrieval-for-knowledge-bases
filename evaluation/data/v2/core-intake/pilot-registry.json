@@ -1,0 +1,626 @@
+{
+  "schema_version": "arkb-core-intake-v1",
+  "dataset_fingerprint": "949376982c30e7f09bb71aa1e7e56b239d2058122eee97ab94d171019c46e83b",
+  "families": [
+    {
+      "family_id": "aggregation",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "semantic_discovery",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_004,pilot_016",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "ambiguous_version",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "evidence_gap",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_056",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "benchmark_scope",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "exploratory_retrieval",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_020,pilot_036",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "cache",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "semantic_discovery",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_011,pilot_022",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "calibration",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "knowledge_qa",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_034",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "candidate_limit",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "knowledge_qa",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_027",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "context",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "knowledge_qa",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_025",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "control",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "semantic_discovery",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_001,pilot_013",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "decoding",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "knowledge_qa",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_033",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "exact_enumeration",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "exact_lookup",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_043,pilot_044,pilot_045,pilot_046,pilot_047,pilot_048",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "fusion",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "knowledge_qa",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_026",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "graph",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "semantic_discovery",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_012",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "handoff",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "semantic_discovery",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_006,pilot_017",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "interfaces",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "semantic_discovery",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_002,pilot_014",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "intermediate_reasoning",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "semantic_discovery",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_008",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "isolation",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "semantic_discovery",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_009",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "missing_measurement",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "evidence_gap",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_053",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "missing_private_fact",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "evidence_gap",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_054",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "oversight",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "exploratory_retrieval",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_023",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "preferences",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "knowledge_qa",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_032",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "protocol",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "semantic_discovery",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_010,pilot_049",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "provided_text",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "no_retrieval",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_057,pilot_058,pilot_059,pilot_060",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "quantization",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "knowledge_qa",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_030,pilot_052",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "skill_loading",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "semantic_discovery",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_005",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "structure",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "exploratory_retrieval",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_024,pilot_028",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "synthetic_retention_family",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "multi_hop_qa",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_037,pilot_038,pilot_039,pilot_040,pilot_041,pilot_042",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "tool_loading",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "semantic_discovery",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_003,pilot_015",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "training",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "exploratory_retrieval",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_021,pilot_031,pilot_050",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "uncertainty",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "knowledge_qa",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_035,pilot_051",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "vectors",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "exploratory_retrieval",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_019,pilot_029,pilot_055",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    },
+    {
+      "family_id": "verification",
+      "leakage_group": "known-pilot-development",
+      "seen_in_development": true,
+      "primary_task": "semantic_discovery",
+      "origin": "assistant_authored",
+      "author": "assistant",
+      "source_reference": "evaluation/data/v2/pilot/queries.jsonl#pilot_007,pilot_018",
+      "use_permission": "confirmed",
+      "independence_review": {
+        "status": "pending",
+        "reviewers": [],
+        "rationale": null
+      },
+      "pool_review": {
+        "status": "pending",
+        "reviewer": null,
+        "artifact_sha256": null
+      }
+    }
+  ]
+}

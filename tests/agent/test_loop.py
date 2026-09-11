@@ -18,12 +18,12 @@ def bm25_tools(documents):
 
 
 @pytest.mark.parametrize('query,call,observation', [
-    ('哪些笔记提到了 RAG', tool_call('match', query='RAG'),
+    ('Which notes mention RAG', tool_call('match', query='RAG'),
      {'query': 'RAG', 'results': [{'source': 'rag.md', 'content': 'RAG'}]}),
-    ('有哪些笔记和 RAG 相关', tool_call('search', query='RAG'),
-     {'query': 'RAG', 'results': [{'source': 'retrieval.md', 'content': '相关知识'}]}),
-    ('读取 rag.md', tool_call('read', source='rag.md'),
-     {'result': {'source': 'rag.md', 'content': '完整文档内容'}}),
+    ('Which notes relate to RAG', tool_call('search', query='RAG'),
+     {'query': 'RAG', 'results': [{'source': 'retrieval.md', 'content': 'Related knowledge'}]}),
+    ('Read rag.md', tool_call('read', source='rag.md'),
+     {'result': {'source': 'rag.md', 'content': 'Full document content'}}),
 ])
 def test_model_selected_tool_receives_arguments_and_returns_observation(query, call, observation):
     tools = Mock(spec=AgentTools, tool_definitions=Mock(return_value=TOOL_DEFINITIONS))
@@ -60,9 +60,9 @@ def test_model_selected_tool_receives_arguments_and_returns_observation(query, c
 
 
 def test_ordinary_input_can_finish_without_tools(tools, engine):
-    final = reply('你好！')
+    final = reply('Hello!')
     model = ScriptedModel(final)
-    result = run_agent('你好', client=model, tools=tools, model='fake', max_turns=1)
+    result = run_agent('Hello', client=model, tools=tools, model='fake', max_turns=1)
     assert result.response == final.message.content
     assert result.stop_reason == 'final'
     assert result.state.turn == 1

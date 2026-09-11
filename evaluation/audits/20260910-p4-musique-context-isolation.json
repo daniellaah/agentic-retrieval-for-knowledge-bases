@@ -1,0 +1,73 @@
+{
+  "passed": true,
+  "checks": [
+    "context_0_bm25_only_registered_sources",
+    "context_0_semantic_only_registered_sources",
+    "context_1_bm25_only_registered_sources",
+    "context_1_semantic_only_registered_sources",
+    "context_0_remains_isolated_after_both_builds",
+    "context_1_remains_isolated_after_both_builds"
+  ],
+  "builds": [
+    {
+      "manifest": {
+        "index_version": "99037bf42d72439b9f7b34482b8c98e7",
+        "vault_id": "p4-musique",
+        "embedding_spec": {
+          "model": "qwen3-embedding:0.6b",
+          "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+          "dimensions": 1024,
+          "document_template": "title-body-v1",
+          "provider": "ollama",
+          "normalization": "l2",
+          "dtype": "float64"
+        },
+        "chunking_fingerprint": "b4bfce1d9c2fb53f35aa94cd6b9c9c1adf0e85a312fa4c85ae1cc2465be13e8b",
+        "document_count": 2,
+        "chunk_count": 2,
+        "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+        "status": "ready",
+        "schema_version": 2
+      },
+      "embedded_inputs": 2,
+      "cached_inputs": 0,
+      "reused_index": false,
+      "added_documents": 2,
+      "modified_documents": 0,
+      "deleted_documents": 0,
+      "build_seconds": 0.4950753329321742
+    },
+    {
+      "manifest": {
+        "index_version": "13543855b7434852b9c3776f5a97e734",
+        "vault_id": "p4-musique",
+        "embedding_spec": {
+          "model": "qwen3-embedding:0.6b",
+          "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+          "dimensions": 1024,
+          "document_template": "title-body-v1",
+          "provider": "ollama",
+          "normalization": "l2",
+          "dtype": "float64"
+        },
+        "chunking_fingerprint": "b4bfce1d9c2fb53f35aa94cd6b9c9c1adf0e85a312fa4c85ae1cc2465be13e8b",
+        "document_count": 2,
+        "chunk_count": 2,
+        "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+        "status": "ready",
+        "schema_version": 2
+      },
+      "embedded_inputs": 2,
+      "cached_inputs": 0,
+      "reused_index": false,
+      "added_documents": 2,
+      "modified_documents": 0,
+      "deleted_documents": 0,
+      "build_seconds": 0.5152947080787271
+    }
+  ],
+  "runner_sha256": "f00c31ffdd214a8b2a3dbe96a0d9a56a3e6d78fb1500797c492abf8eb93c664f",
+  "probe_sha256": "cc6f8dd0f2bfc613dcaa6ed81d7fed250e1c79f671a7cc572cd9864baa25ad21",
+  "scope": "Two synthetic contexts, two real Ollama/SQLite/Qdrant indexes using the exact runner helper. No Agent or benchmark score was produced.",
+  "release_eligible": false
+}

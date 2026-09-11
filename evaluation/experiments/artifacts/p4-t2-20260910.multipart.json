@@ -1,0 +1,28 @@
+{
+  "schema": "arkb-p4-multipart-v1",
+  "archive": "p4-t2-20260910.tar.gz",
+  "bytes": 136707615,
+  "sha256": "26f3c255ef3212184fb288db4bb6332f2d1f5038b2a5e4df218ae73f8532ae2c",
+  "archive_manifest": "p4-t2-20260910.tar.manifest.json",
+  "archive_manifest_sha256": "b4f10d593a8e95b8d1009d3177e0d6243110bb98dc63de25e0b15acaadcfc808",
+  "parts": [
+    {
+      "name": "p4-t2-20260910.tar.gz.part-000",
+      "bytes": 67108864,
+      "sha256": "6f72b36c8e72f70f8b6d3a54f399fc744ed77830ca2ba0ef19c60cc18811752d"
+    },
+    {
+      "name": "p4-t2-20260910.tar.gz.part-001",
+      "bytes": 67108864,
+      "sha256": "cc04e07c8983102a4da21fbfec1c95410df4f6c040da606601bfdc0f2323a366"
+    },
+    {
+      "name": "p4-t2-20260910.tar.gz.part-002",
+      "bytes": 2489887,
+      "sha256": "222841c1b29fdb92e193b10a17c909645ad5fdcc892735920c7ad95285769279"
+    }
+  ],
+  "packager_sha256": "ee81ab3be236af2c75d271f4746cfac8cacafe82116bb3b4a26596526d565cf6",
+  "scope": "Lossless transport parts of the original sealed archive; scores and experiment protocols are unchanged.",
+  "release_eligible": false
+}

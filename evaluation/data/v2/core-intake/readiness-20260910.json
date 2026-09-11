@@ -1,0 +1,336 @@
+{
+  "queries": 60,
+  "proposed_families": 31,
+  "reviewed_independent_families": 0,
+  "target_families": 300,
+  "additional_proposed_families_needed": 269,
+  "additional_verified_families_needed": 300,
+  "corpus_documents": 58,
+  "additional_documents_needed": 242,
+  "by_primary_task": {
+    "semantic_discovery": 12,
+    "evidence_gap": 3,
+    "exploratory_retrieval": 5,
+    "knowledge_qa": 8,
+    "exact_lookup": 1,
+    "no_retrieval": 1,
+    "multi_hop_qa": 1
+  },
+  "origin_counts": {
+    "assistant_authored": 31
+  },
+  "problems": [
+    {
+      "family": "aggregation",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "aggregation",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "ambiguous_version",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "ambiguous_version",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "benchmark_scope",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "benchmark_scope",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "cache",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "cache",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "calibration",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "calibration",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "candidate_limit",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "candidate_limit",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "context",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "context",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "control",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "control",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "decoding",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "decoding",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "exact_enumeration",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "exact_enumeration",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "fusion",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "fusion",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "graph",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "graph",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "handoff",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "handoff",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "interfaces",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "interfaces",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "intermediate_reasoning",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "intermediate_reasoning",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "isolation",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "isolation",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "missing_measurement",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "missing_measurement",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "missing_private_fact",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "missing_private_fact",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "oversight",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "oversight",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "preferences",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "preferences",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "protocol",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "protocol",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "provided_text",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "provided_text",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "quantization",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "quantization",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "skill_loading",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "skill_loading",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "structure",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "structure",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "synthetic_retention_family",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "synthetic_retention_family",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "tool_loading",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "tool_loading",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "training",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "training",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "uncertainty",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "uncertainty",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "vectors",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "vectors",
+      "reason": "judgment_pool_audit_pending"
+    },
+    {
+      "family": "verification",
+      "reason": "independence_review_pending_or_not_independent"
+    },
+    {
+      "family": "verification",
+      "reason": "judgment_pool_audit_pending"
+    }
+  ],
+  "split_plan": {
+    "assignments": {
+      "aggregation": "dev",
+      "ambiguous_version": "dev",
+      "benchmark_scope": "dev",
+      "cache": "dev",
+      "calibration": "dev",
+      "candidate_limit": "dev",
+      "context": "dev",
+      "control": "dev",
+      "decoding": "dev",
+      "exact_enumeration": "dev",
+      "fusion": "dev",
+      "graph": "dev",
+      "handoff": "dev",
+      "interfaces": "dev",
+      "intermediate_reasoning": "dev",
+      "isolation": "dev",
+      "missing_measurement": "dev",
+      "missing_private_fact": "dev",
+      "oversight": "dev",
+      "preferences": "dev",
+      "protocol": "dev",
+      "provided_text": "dev",
+      "quantization": "dev",
+      "skill_loading": "dev",
+      "structure": "dev",
+      "synthetic_retention_family": "dev",
+      "tool_loading": "dev",
+      "training": "dev",
+      "uncertainty": "dev",
+      "vectors": "dev",
+      "verification": "dev"
+    },
+    "family_counts": {
+      "dev": 31,
+      "validation": 0,
+      "test": 0
+    },
+    "remaining": {
+      "dev": 89,
+      "validation": 60,
+      "test": 120
+    },
+    "over_target": {
+      "dev": 0,
+      "validation": 0,
+      "test": 0
+    },
+    "unassigned_families": [],
+    "leakage_groups": 1,
+    "complete": false,
+    "seed": 20260910
+  },
+  "freeze_ready": false,
+  "blockers": [
+    "independent_family_intake_shortfall",
+    "provisional_annotations",
+    "family_review_or_provenance_incomplete",
+    "split_plan_incomplete",
+    "corpus_document_shortfall"
+  ],
+  "release_eligible": false,
+  "limits": "Intake review attestations are not authenticated by software; a dataset freeze does not certify an experiment or output quality."
+}

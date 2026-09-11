@@ -26,8 +26,8 @@ pytestmark = [pytest.mark.integration, pytest.mark.skipif(
     reason='Enable real model integration tests explicitly.')]
 
 MATERIAL_QUERY = (
-    '帮我找一些写 Agent Memory 的素材。请打开候选笔记阅读全文，核对其中关联的规范，'
-    '说明事件记忆的保留期限和本次实验验收口令，并列出依据文件名。'
+    'Find material for an article about Agent Memory. Read candidate notes and check their linked policy. '
+    'Report the episodic-memory retention period and experiment verification code, with supporting filenames.'
 )
 
 
@@ -81,21 +81,21 @@ def persisted_knowledge(tmp_path_factory):
     vault = 'agent-runtime-' + uuid4().hex
     code = 'MEM-' + uuid4().hex[:10].upper()
     documents = {
-        'rag.md': '# RAG\nRAG 使用检索到的笔记为回答提供依据。检索与生成分别执行。',
-        'architecture.md': '# 检索架构\nRAG 可以结合关键词召回与向量召回，读取原文后再回答。',
+        'rag.md': '# RAG\nRAG grounds answers in retrieved notes. Retrieval and generation run separately.',
+        'architecture.md': '# Retrieval architecture\nRAG can combine keyword and vector retrieval. Read the source before answering.',
         'memory.md': '# Agent Memory\n'
-                     'Agent Memory 包括工作记忆、事件记忆和程序性记忆。'
-                     '这些材料可以用于撰写智能体记忆设计文章。\n\n'
-                     '## 工作记忆\n工作记忆保存当前任务需要的短期信息，任务结束后可以释放。\n\n'
-                     '## 事件记忆\n事件记忆记录过去发生的事情。它不意味着永久保存全部对话。'
-                     '具体保留期限和验收口令不在本笔记中，需核对关联规范。\n\n'
-                     '## 程序性记忆\n程序性记忆保存可复用的步骤，更新时需要记录版本。\n\n'
-                     '## 关联规范\n本次实验使用 [记忆归档规范](memory-policy.md)。',
-        'memory-policy.md': '# 记忆归档规范\n'
-                            '本规范只适用于本地 Agent Memory 集成实验，不是通用产品规则。\n\n'
-                            '## 保留策略\n事件记忆保留 30 天，到期后清除原始记录。\n\n'
-                            f'## 实验验收\n本次实验的验收口令是 {code}。核验时应原样返回口令。',
-        'cache.md': '# 向量缓存\n缓存已计算的 embedding 可以减少重复计算。缓存不决定事件记忆保留期。',
+                     'Agent Memory includes working, episodic and procedural memory. '
+                     'These notes support articles about agent memory design.\n\n'
+                     '## Working memory\nWorking memory holds temporary task information and can be released after the task.\n\n'
+                     '## Episodic memory\nEpisodic memory records past events; it does not retain every conversation forever. '
+                     'The retention period and verification code are in the linked policy, not this note.\n\n'
+                     '## Procedural memory\nProcedural memory stores reusable steps; updates require version tracking.\n\n'
+                     '## Linked policy\nThis experiment uses [Memory archive policy](memory-policy.md).',
+        'memory-policy.md': '# Memory archive policy\n'
+                            'This policy applies only to the local Agent Memory integration experiment.\n\n'
+                            '## Retention policy\nRetain episodic memory for 30 days, after which raw records are deleted.\n\n'
+                            f'## Experiment verification\nThe verification code for this experiment is {code}. Return the verification code exactly.',
+        'cache.md': '# Vector cache\nCaching computed embedding reduces repeated computation. The cache does not determine episodic-memory retention.',
     }
     for source, content in documents.items():
         (notes / source).write_text(content, encoding='utf-8')
@@ -151,11 +151,11 @@ def persisted_knowledge(tmp_path_factory):
 
 
 @pytest.mark.parametrize('case,query,first_tool', [
-    ('A-match', '哪些笔记提到了 RAG', 'match'),
-    ('B-search', '有哪些笔记和 RAG 相关', 'search'),
-    ('C-read', '读取 rag.md', 'read'),
+    ('A-match', 'Which notes mention RAG', 'match'),
+    ('B-search', 'Which notes relate to RAG', 'search'),
+    ('C-read', 'Read rag.md', 'read'),
     ('D-materials', MATERIAL_QUERY, None),
-    ('E-direct', '你好', None),
+    ('E-direct', 'Hello', None),
     ('F-limit', MATERIAL_QUERY, None),
 ])
 def test_real_runtime_with_persisted_hybrid_retrieval(persisted_knowledge, case, query, first_tool):
@@ -195,7 +195,7 @@ def test_real_runtime_with_persisted_hybrid_retrieval(persisted_knowledge, case,
                 assert 'search' in names and 'read' in names
                 assert result.state.turn >= 3
                 assert data['code'] in result.response
-                assert '30' in result.response or '三十' in result.response
+                assert '30' in result.response or 'thirty' in result.response
                 assert any(data['code'] in m['content'] for m in observations)
             if case == 'E-direct':
                 assert names == [] and result.state.turn == 1
@@ -213,8 +213,8 @@ def test_real_runtime_with_persisted_hybrid_retrieval(persisted_knowledge, case,
 
 @pytest.mark.parametrize('case,query,max_turns,expected_exit,flags', [
     ('CLI-materials', MATERIAL_QUERY, 8, 0, []),
-    ('CLI-limit', '读取 rag.md，并根据原文解释 RAG。', 1, 1, ['--think']),
-    ('CLI-limit-no-think', '读取 rag.md，并根据原文解释 RAG。', 1, 1, ['--no-think']),
+    ('CLI-limit', 'Read rag.md and explain RAG using the note.', 1, 1, ['--think']),
+    ('CLI-limit-no-think', 'Read rag.md and explain RAG using the note.', 1, 1, ['--no-think']),
 ])
 def test_real_ask_cli_uses_runtime_entry_point(persisted_knowledge, case, query, max_turns, expected_exit, flags):
     data = persisted_knowledge
@@ -242,12 +242,12 @@ def test_real_ask_cli_uses_runtime_entry_point(persisted_knowledge, case, query,
         assert result['stop_reason'] == 'final'
         assert 'search' in names and 'read' in names
         assert data['code'] in result['response']
-        assert '30' in result['response'] or '三十' in result['response']
+        assert '30' in result['response'] or 'thirty' in result['response']
     assert result['state']['turn'] <= max_turns
 
 
 @pytest.mark.parametrize('repeat', [1, 2])
-@pytest.mark.parametrize('case,query', [('material', MATERIAL_QUERY), ('related', '有哪些笔记和 RAG 相关')])
+@pytest.mark.parametrize('case,query', [('material', MATERIAL_QUERY), ('related', 'Which notes relate to RAG')])
 @pytest.mark.parametrize('think', [False, True])
 def test_thinking_configuration_quality_and_work(persisted_knowledge, repeat, case, query, think):
     """Compare the public think setting on the same real hybrid index.
@@ -283,7 +283,7 @@ def test_thinking_configuration_quality_and_work(persisted_knowledge, repeat, ca
         assert requests and all(request['think'] is think for request in requests)
         if case == 'material':
             report['facts_complete'] = (data['code'] in result.response
-                                        and ('30' in result.response or '三十' in result.response))
+                                        and ('30' in result.response or 'thirty' in result.response))
             if think:
                 assert report['facts_complete'], 'Thinking run must answer both requested facts.'
                 assert any(data['code'] in m.get('content', '') for m in result.state.messages if m['role'] == 'tool')

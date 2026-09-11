@@ -333,7 +333,7 @@ def test_search_reports_service_errors_without_an_answer(indexed_client, operati
 
 
 def test_search_preserves_unicode_and_whitespace(indexed_client):
-    question = "  为什么保留 e\u0301？\r\n"
+    question = "  Why preserve e\u0301?\r\n"
     assert main(['search', question, '--offline']) == 0
     assert indexed_client.embed.call_args.kwargs['input'][0].endswith('Query:' + question)
     indexed_client.chat.assert_not_called()

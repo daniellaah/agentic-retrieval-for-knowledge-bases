@@ -1,0 +1,10 @@
+{
+  "archive": "p1-pilot-20260910.tar.gz",
+  "sha256": "44fe73ca9ea8b8d1e4f4adf67f810337ff8e92cbcedab2d405b0223d50b61080",
+  "bytes": 2045178,
+  "root": "p1-pilot-20260910",
+  "files": 120,
+  "source_bundle": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p1-pilot-20260910",
+  "status": "completed",
+  "includes": "Frozen source, lockfile, cases/corpus, raw observations, index, metadata, scores and hashes; excludes transient WAL/SHM/cache and execution log."
+}
